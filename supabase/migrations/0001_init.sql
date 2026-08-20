@@ -1,5 +1,7 @@
 -- ELCSA Tshwane City Parish — core schema
 -- Run this in the Supabase SQL Editor (or via `supabase db push`) on a fresh project.
+-- Safe to paste and run again on a project that already has it applied — every
+-- statement here is written to skip/replace rather than error the second time.
 --
 -- Design note: every WRITE to `profiles` (besides your own phone number and the
 -- pending_* "request" flags) goes through a security-definer RPC function that
@@ -9,30 +11,45 @@
 -- client-side app code does. All the actual security lives here, in Postgres.
 
 -- 1. Enums -------------------------------------------------------------
+-- Postgres has no `create type if not exists`, so each is wrapped to make the
+-- whole file safe to paste and run again (e.g. after pulling a later change to
+-- one of the functions below) without erroring on "type already exists".
 
-create type ward as enum ('North','East','Central','West','South');
+do $$ begin
+  create type ward as enum ('North','East','Central','West','South');
+exception when duplicate_object then null;
+end $$;
 
-create type league as enum (
-  'None',
-  'PrayerMens',
-  'PrayerWomens',
-  'PrayerYouth',
-  'YoungAdults',
-  'SundaySchool',
-  'ConfirmationClass',
-  'ELCSAMO',
-  'ELCSASO',
-  'DiaconateMinistry'
-);
+do $$ begin
+  create type league as enum (
+    'None',
+    'PrayerMens',
+    'PrayerWomens',
+    'PrayerYouth',
+    'YoungAdults',
+    'SundaySchool',
+    'ConfirmationClass',
+    'ELCSAMO',
+    'ELCSASO',
+    'DiaconateMinistry'
+  );
+exception when duplicate_object then null;
+end $$;
 
-create type app_role as enum ('member','admin');
+do $$ begin
+  create type app_role as enum ('member','admin');
+exception when duplicate_object then null;
+end $$;
 
-create type gender as enum ('Male','Female');
+do $$ begin
+  create type gender as enum ('Male','Female');
+exception when duplicate_object then null;
+end $$;
 
 -- 2. Profiles ------------------------------------------------------------
 -- One row per auth.users row, created automatically on sign-up (trigger below).
 
-create table public.profiles (
+create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text not null,
   phone text,
@@ -71,6 +88,7 @@ $$;
 -- Read access: your own row, or every row if you're an admin.
 -- (Congregation-wide chart data for ordinary members comes from the anonymised
 -- stats_* functions below, not from reading other people's profile rows.)
+drop policy if exists "profiles: select" on public.profiles;
 create policy "profiles: select" on public.profiles
   for select using (auth.uid() = id or public.is_admin());
 
@@ -136,7 +154,7 @@ begin
 end;
 $$;
 
-create trigger on_auth_user_created
+create or replace trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
@@ -361,7 +379,7 @@ grant execute on function public.admin_remove_member(uuid) to authenticated;
 -- Owned by a "guardian" profile. No login of their own — the guardian (or an
 -- admin) manages their record and requests on their behalf.
 
-create table public.dependents (
+create table if not exists public.dependents (
   id uuid primary key default gen_random_uuid(),
   guardian_id uuid not null references public.profiles(id) on delete cascade,
   full_name text not null,
@@ -384,6 +402,7 @@ create table public.dependents (
 
 alter table public.dependents enable row level security;
 
+drop policy if exists "dependents: select" on public.dependents;
 create policy "dependents: select" on public.dependents
   for select using (guardian_id = auth.uid() or public.is_admin());
 
@@ -727,7 +746,7 @@ grant execute on function public.upcoming_birthdays(int) to authenticated;
 
 -- 3. Announcements ---------------------------------------------------------
 
-create table public.announcements (
+create table if not exists public.announcements (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   date_text text not null default '',
@@ -738,15 +757,19 @@ create table public.announcements (
 
 alter table public.announcements enable row level security;
 
+drop policy if exists "announcements: read" on public.announcements;
 create policy "announcements: read" on public.announcements
   for select using (auth.uid() is not null);
 
+drop policy if exists "announcements: admin insert" on public.announcements;
 create policy "announcements: admin insert" on public.announcements
   for insert with check (public.is_admin());
 
+drop policy if exists "announcements: admin update" on public.announcements;
 create policy "announcements: admin update" on public.announcements
   for update using (public.is_admin());
 
+drop policy if exists "announcements: admin delete" on public.announcements;
 create policy "announcements: admin delete" on public.announcements
   for delete using (public.is_admin());
 
