@@ -99,7 +99,6 @@ export const leagues: Record<string, League> = {
     label: 'Prayer Youth League',
     color: '#e65100',
     info: "Meets Sundays 8H00. Contact Vhukhudo Makuya, 079 592 3835",
-    icon: 'happy-outline',
   },
   YoungAdults: { label: 'Young Adults League', color: '#4b6fb6', info: 'Every 2nd Monday 18H00. Contact Sis Kholo Rabotho, 082 577 1709' },
   SundaySchool: {
