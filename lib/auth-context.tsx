@@ -24,20 +24,31 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data }) => {
-      setSession(data.session)
-      if (data.session) await loadProfile(data.session.user.id)
-      setLoading(false)
-    })
+    // getSession() and loadProfile() must never leave `loading` stuck true —
+    // any rejection here (a network hiccup, a cold Supabase project waking up)
+    // would otherwise strand the whole app on the loading spinner forever.
+    supabase.auth
+      .getSession()
+      .then(async ({ data }) => {
+        setSession(data.session)
+        if (data.session) await loadProfile(data.session.user.id)
+      })
+      .catch((err) => console.error('Failed to load auth session', err))
+      .finally(() => setLoading(false))
 
     const { data: sub } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
       setSession(newSession)
-      if (newSession) {
-        await loadProfile(newSession.user.id)
-      } else {
-        setProfile(null)
+      try {
+        if (newSession) {
+          await loadProfile(newSession.user.id)
+        } else {
+          setProfile(null)
+        }
+      } catch (err) {
+        console.error('Failed to load profile after auth change', err)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     })
 
     return () => sub.subscription.unsubscribe()
