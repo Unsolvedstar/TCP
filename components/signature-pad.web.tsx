@@ -25,7 +25,9 @@ export function SignaturePad({ value, onChange }: { value: string | null; onChan
 
     function pos(e: any) {
       const rect = canvas.getBoundingClientRect()
-      return { x: e.clientX - rect.left, y: e.clientY - rect.top }
+      const scaleX = canvas.width / rect.width
+      const scaleY = canvas.height / rect.height
+      return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY }
     }
     function down(e: any) {
       e.preventDefault()
