@@ -10,6 +10,10 @@ const BADGES: Partial<Record<LeagueKey, ReturnType<typeof require>>> = {
   PrayerMens: require('../assets/brand/badge-prayer-mens.png'),
 }
 
+export function hasLeagueBadge(leagueKey: LeagueKey) {
+  return leagueKey in BADGES
+}
+
 export function LeagueBadge({ leagueKey, size = 40 }: { leagueKey: LeagueKey; size?: number }) {
   const source = BADGES[leagueKey]
   if (!source) return null

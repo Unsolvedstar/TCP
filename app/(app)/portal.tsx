@@ -7,6 +7,7 @@ import { PortalInvolvementCard } from '../../components/portal-involvement-card'
 import { PortalHouseholdCard } from '../../components/portal-household-card'
 import { WardBreakdownCard } from '../../components/ward-breakdown-card'
 import { LeagueBreakdownCard } from '../../components/league-breakdown-card'
+import { LeaguesDirectoryCard } from '../../components/leagues-directory-card'
 import { GenderBreakdownCard } from '../../components/gender-breakdown-card'
 import { SacramentsCard } from '../../components/sacraments-card'
 import { BirthdaysCard } from '../../components/birthdays-card'
@@ -25,7 +26,7 @@ type Announcement = { id: string; title: string; date_text: string; body: string
 export default function Portal() {
   const { profile, refreshProfile } = useAuth()
   const season = useLiturgicalSeason()
-  const [section, setSection] = useState<'dashboard' | 'calendar'>('dashboard')
+  const [section, setSection] = useState<'dashboard' | 'leagues' | 'calendar'>('dashboard')
   const [refreshing, setRefreshing] = useState(false)
   const [wardStats, setWardStats] = useState<WardStat[]>([])
   const [leagueStats, setLeagueStats] = useState<LeagueStat[]>([])
@@ -121,6 +122,9 @@ export default function Portal() {
         <Text onPress={() => setSection('dashboard')} style={[styles.tabBtn, section === 'dashboard' && styles.tabBtnActive]}>
           Dashboard
         </Text>
+        <Text onPress={() => setSection('leagues')} style={[styles.tabBtn, section === 'leagues' && styles.tabBtnActive]}>
+          Leagues
+        </Text>
         <Text onPress={() => setSection('calendar')} style={[styles.tabBtn, section === 'calendar' && styles.tabBtnActive]}>
           Calendar
         </Text>
@@ -151,9 +155,13 @@ export default function Portal() {
             title="Parish at a Glance"
             subtitle={`${sacraments.total} people across 5 wards: ${sacraments.adults} adults, ${sacraments.children} children`}
           />
-          <LeagueBreakdownCard leagueStats={leagueStats} />
           <GenderBreakdownCard genderStats={genderStats} />
           <SacramentsCard sacraments={sacraments} />
+        </>
+      ) : section === 'leagues' ? (
+        <>
+          <LeaguesDirectoryCard leagueStats={leagueStats} />
+          <LeagueBreakdownCard leagueStats={leagueStats} />
         </>
       ) : (
         <>

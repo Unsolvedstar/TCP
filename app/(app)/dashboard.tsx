@@ -4,6 +4,7 @@ import { Alert, RefreshControl, ScrollView, Text, TextInput, View } from 'react-
 import { Button, Card } from '../../components/ui'
 import { WardBreakdownCard } from '../../components/ward-breakdown-card'
 import { LeagueBreakdownCard } from '../../components/league-breakdown-card'
+import { LeaguesDirectoryCard } from '../../components/leagues-directory-card'
 import { GenderBreakdownCard } from '../../components/gender-breakdown-card'
 import { SacramentsCard } from '../../components/sacraments-card'
 import { BirthdaysCard } from '../../components/birthdays-card'
@@ -21,7 +22,7 @@ type Announcement = { id: string; title: string; date_text: string; body: string
 export default function Dashboard() {
   const router = useRouter()
   const season = useLiturgicalSeason()
-  const [section, setSection] = useState<'dashboard' | 'calendar'>('dashboard')
+  const [section, setSection] = useState<'dashboard' | 'leagues' | 'calendar'>('dashboard')
   const [refreshing, setRefreshing] = useState(false)
   const [wardStats, setWardStats] = useState<WardStat[]>([])
   const [leagueStats, setLeagueStats] = useState<LeagueStat[]>([])
@@ -126,6 +127,9 @@ export default function Dashboard() {
         <Text onPress={() => setSection('dashboard')} style={[styles.tabBtn, section === 'dashboard' && styles.tabBtnActive]}>
           Dashboard
         </Text>
+        <Text onPress={() => setSection('leagues')} style={[styles.tabBtn, section === 'leagues' && styles.tabBtnActive]}>
+          Leagues
+        </Text>
         <Text onPress={() => setSection('calendar')} style={[styles.tabBtn, section === 'calendar' && styles.tabBtnActive]}>
           Calendar
         </Text>
@@ -144,7 +148,6 @@ export default function Dashboard() {
           </View>
 
           <WardBreakdownCard wardStats={wardStats} />
-          <LeagueBreakdownCard leagueStats={leagueStats} />
           <GenderBreakdownCard genderStats={genderStats} />
           <SacramentsCard sacraments={sacraments} />
 
@@ -177,6 +180,11 @@ export default function Dashboard() {
               </View>
             ))}
           </Card>
+        </>
+      ) : section === 'leagues' ? (
+        <>
+          <LeaguesDirectoryCard leagueStats={leagueStats} />
+          <LeagueBreakdownCard leagueStats={leagueStats} />
         </>
       ) : (
         <>
