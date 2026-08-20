@@ -37,7 +37,6 @@ export const styles = StyleSheet.create({
   screenSubtitle: { fontSize: 13, color: colors.muted, marginTop: 2 },
   sectionLabel: { fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8, color: colors.muted, marginBottom: 6 },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 99, alignSelf: 'flex-start' },
-  chipDot: { width: 7, height: 7, borderRadius: 4 },
   chipText: { fontSize: 12, fontWeight: '700' },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 },
   barLabelCol: { width: 100 },
