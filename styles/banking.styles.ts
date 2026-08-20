@@ -3,7 +3,7 @@ import { colors, radius } from '../theme'
 
 export const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.cream },
-  content: { padding: 16, paddingBottom: 16 },
+  content: { padding: 16, paddingBottom: 32 },
   hero: { backgroundColor: colors.g800, borderRadius: radius.lg, padding: 20, marginBottom: 16 },
   heroLabel: { fontSize: 10.5, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1, color: colors.gold3, marginBottom: 6 },
   heroTitle: { fontSize: 18, fontWeight: '700', color: colors.white },
