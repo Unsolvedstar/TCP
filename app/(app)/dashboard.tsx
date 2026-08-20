@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { Alert, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native'
-import { Button, Card } from '../../components/ui'
+import { Button, Card, GlassSheen } from '../../components/ui'
 import { WardBreakdownCard } from '../../components/ward-breakdown-card'
 import { LeagueBreakdownCard } from '../../components/league-breakdown-card'
 import { LeaguesDirectoryCard } from '../../components/leagues-directory-card'
@@ -11,7 +11,7 @@ import { BirthdaysCard } from '../../components/birthdays-card'
 import { ChurchCalendarCard } from '../../components/church-calendar-card'
 import { supabase } from '../../lib/supabase'
 import { useLiturgicalSeason } from '../../lib/liturgical-theme'
-import { colors, wardColors, wardCodes, wards } from '../../theme'
+import { colors, radius, wardColors, wardCodes, wards } from '../../theme'
 import { styles } from '../../styles/dashboard.styles'
 import type { Birthday, GenderStat, LeagueStat, SacramentStat, WardStat } from '../../lib/types'
 
@@ -140,6 +140,7 @@ export default function Dashboard() {
           <View style={styles.wardGrid}>
             {wards.map((w) => (
               <View key={w} style={[styles.wardCard, { borderTopColor: wardColors[w] }]}>
+                <GlassSheen cornerRadius={radius.md} />
                 <Text style={styles.wardLabel}>{w}</Text>
                 <Text style={styles.wardNum}>{wardStats.find((s) => s.ward === w)?.cnt ?? 0}</Text>
                 <Text style={styles.wardCode}>Ward {wardCodes[w]}</Text>

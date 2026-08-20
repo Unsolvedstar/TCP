@@ -1,7 +1,8 @@
 import { createElement, useState } from 'react'
-import { ActivityIndicator, FlatList, Modal, Platform, Pressable, Text, TextInput, View, type TextInputProps } from 'react-native'
+import { ActivityIndicator, FlatList, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native'
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker'
-import { colors } from '../theme'
+import { LinearGradient } from 'expo-linear-gradient'
+import { colors, radius } from '../theme'
 import { toLocalISODate } from '../lib/dates'
 import { styles, webDateInputStyle } from './ui.styles'
 
@@ -16,8 +17,30 @@ export function formatDate(iso: string) {
 // below and merged in only for web.
 export const glassBlur = Platform.OS === 'web' ? ({ backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' } as object) : null
 
+// The glossy highlight that sells the "glass bubble" look — a soft white sheen
+// across the top of a panel, like light catching a curved glass or water
+// surface. Render as the first child of anything using the glass treatment;
+// it carries its own matching borderRadius so it clips itself without the
+// parent needing `overflow: hidden` (which would also clip the card's shadow).
+export function GlassSheen({ cornerRadius = radius.lg }: { cornerRadius?: number } = {}) {
+  return (
+    <LinearGradient
+      pointerEvents="none"
+      colors={['rgba(255,255,255,0.55)', 'rgba(255,255,255,0)']}
+      start={{ x: 0.15, y: 0 }}
+      end={{ x: 0.85, y: 0.75 }}
+      style={[StyleSheet.absoluteFill, { borderRadius: cornerRadius }]}
+    />
+  )
+}
+
 export function Card({ children, style }: { children: React.ReactNode; style?: object }) {
-  return <View style={[styles.card, glassBlur, style]}>{children}</View>
+  return (
+    <View style={[styles.card, glassBlur, style]}>
+      <GlassSheen />
+      {children}
+    </View>
+  )
 }
 
 export function ScreenTitle({ title, subtitle }: { title: string; subtitle?: string }) {

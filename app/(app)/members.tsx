@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
 import { ActivityIndicator, Alert, FlatList, Image, Pressable, RefreshControl, Text, TextInput, View } from 'react-native'
-import { Card, Chip, SelectField, formatDate } from '../../components/ui'
+import { Card, Chip, GlassSheen, SelectField, formatDate } from '../../components/ui'
 import { EditMemberModal } from '../../components/edit-member-modal'
 import { EditChildModal } from '../../components/edit-child-modal'
 import { supabase } from '../../lib/supabase'
@@ -308,6 +308,7 @@ export default function Members() {
           const child = item as ChildRow
           return (
             <Pressable style={styles.memberCard} onPress={() => (isChild ? setEditingChild(child) : setEditingMember(item as Profile))}>
+              <GlassSheen />
               <View style={{ flex: 1 }}>
                 <Text style={styles.memberName}>{item.full_name}</Text>
                 {isChild ? <Text style={styles.guardianLine}>Guardian: {child.guardian?.full_name ?? 'Unknown'}</Text> : null}

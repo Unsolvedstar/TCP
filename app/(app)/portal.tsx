@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
 import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native'
-import { Card, Chip, SectionLabel } from '../../components/ui'
+import { Card, Chip, GlassSheen, SectionLabel } from '../../components/ui'
 import { PortalDetailsCard } from '../../components/portal-details-card'
 import { PortalInvolvementCard } from '../../components/portal-involvement-card'
 import { PortalHouseholdCard } from '../../components/portal-household-card'
@@ -94,15 +94,18 @@ export default function Portal() {
 
       <View style={styles.statGrid}>
         <View style={styles.statCard}>
+          <GlassSheen />
           <SectionLabel>Ward</SectionLabel>
           <Chip label={profile.ward} color={wardColors[profile.ward]} />
         </View>
         <View style={styles.statCard}>
+          <GlassSheen />
           <SectionLabel>League</SectionLabel>
           <Chip label={myLeague.label} color={myLeague.color} />
           {profile.pending_league ? <Text style={styles.pendingNote}>Pending review</Text> : null}
         </View>
         <View style={styles.statCard}>
+          <GlassSheen />
           <SectionLabel>Baptism</SectionLabel>
           <Chip
             label={profile.baptised ? 'Confirmed ✓' : profile.pending_baptism ? 'Pending Review' : 'Not Yet'}
@@ -110,6 +113,7 @@ export default function Portal() {
           />
         </View>
         <View style={styles.statCard}>
+          <GlassSheen />
           <SectionLabel>Confirmation</SectionLabel>
           <Chip
             label={profile.confirmed ? 'Confirmed ✓' : profile.pending_confirmation ? 'Pending Review' : 'Not Yet'}

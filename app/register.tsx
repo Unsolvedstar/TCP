@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native'
 import { Link, router } from 'expo-router'
-import { DateField, Field, glassBlur, SelectField } from '../components/ui'
+import { DateField, Field, GlassSheen, glassBlur, SelectField } from '../components/ui'
 import { ChurchHeader } from '../components/church-header'
 import { SignaturePad } from '../components/signature-pad'
 import { CertificatePicker } from '../components/certificate-picker'
 import { Wizard, type WizardStepDef } from '../components/wizard'
 import { supabase } from '../lib/supabase'
-import { genders, leagueKeys, leagues, wards } from '../theme'
+import { genders, leagueKeys, leagues, radius, wards } from '../theme'
 import { styles } from '../styles/register.styles'
 
 export { ErrorBoundary } from '../components/error-boundary'
@@ -219,6 +219,7 @@ export default function Register() {
         <ChurchHeader title="Register" subtitle="ELCSA Tshwane City Parish" showSeason={false} />
 
         <View style={[styles.card, glassBlur]}>
+          <GlassSheen cornerRadius={radius.xl} />
           {error ? <Text style={styles.error}>{error}</Text> : null}
           {notice ? <Text style={styles.notice}>{notice}</Text> : null}
           <Wizard steps={steps} onComplete={onSubmit} completeLabel="Create Account" submitting={loading} />

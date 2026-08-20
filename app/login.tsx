@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native'
 import { Link, router } from 'expo-router'
 import * as Linking from 'expo-linking'
-import { Button, Field, glassBlur } from '../components/ui'
+import { Button, Field, GlassSheen, glassBlur } from '../components/ui'
 import { ChurchHeader } from '../components/church-header'
 import { supabase } from '../lib/supabase'
+import { radius } from '../theme'
 import { styles } from '../styles/login.styles'
 
 export { ErrorBoundary } from '../components/error-boundary'
@@ -62,6 +63,7 @@ export default function Login() {
 
         {forgotOpen ? (
           <View style={[styles.card, glassBlur]}>
+            <GlassSheen cornerRadius={radius.xl} />
             <Text style={styles.cardTitle}>Reset Password</Text>
             {error ? <Text style={styles.error}>{error}</Text> : null}
             {resetNotice ? <Text style={styles.notice}>{resetNotice}</Text> : null}
@@ -80,6 +82,7 @@ export default function Login() {
           </View>
         ) : (
           <View style={[styles.card, glassBlur]}>
+            <GlassSheen cornerRadius={radius.xl} />
             <Text style={styles.cardTitle}>Sign In</Text>
             {error ? <Text style={styles.error}>{error}</Text> : null}
             <Field label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" />

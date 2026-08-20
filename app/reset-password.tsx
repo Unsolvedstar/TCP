@@ -3,10 +3,10 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Text, Vi
 import { router } from 'expo-router'
 import * as Linking from 'expo-linking'
 import * as QueryParams from 'expo-auth-session/build/QueryParams'
-import { Button, Field, glassBlur } from '../components/ui'
+import { Button, Field, GlassSheen, glassBlur } from '../components/ui'
 import { ChurchHeader } from '../components/church-header'
 import { supabase } from '../lib/supabase'
-import { colors } from '../theme'
+import { colors, radius } from '../theme'
 import { styles } from '../styles/reset-password.styles'
 
 export { ErrorBoundary } from '../components/error-boundary'
@@ -89,6 +89,7 @@ export default function ResetPassword() {
         <ChurchHeader title="Reset Password" showSeason={false} />
 
         <View style={[styles.card, glassBlur]}>
+          <GlassSheen cornerRadius={radius.xl} />
           {checking ? (
             <View style={styles.checkingBox}>
               <ActivityIndicator color={colors.g700} />
