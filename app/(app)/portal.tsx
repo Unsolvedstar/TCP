@@ -15,7 +15,7 @@ import { useAuth } from '../../lib/auth-context'
 import { supabase } from '../../lib/supabase'
 import { useLiturgicalSeason } from '../../lib/liturgical-theme'
 import { colors, leagues, wardColors } from '../../theme'
-import { styles } from './portal.styles'
+import { styles } from '../../styles/portal.styles'
 import type { Birthday, Dependent, GenderStat, LeagueStat, SacramentStat, WardStat } from '../../lib/types'
 
 export { ErrorBoundary } from '../../components/error-boundary'

@@ -11,7 +11,7 @@ import { ChurchCalendarCard } from '../../components/church-calendar-card'
 import { supabase } from '../../lib/supabase'
 import { useLiturgicalSeason } from '../../lib/liturgical-theme'
 import { colors, wardColors, wardCodes, wards } from '../../theme'
-import { styles } from './dashboard.styles'
+import { styles } from '../../styles/dashboard.styles'
 import type { Birthday, GenderStat, LeagueStat, SacramentStat, WardStat } from '../../lib/types'
 
 export { ErrorBoundary } from '../../components/error-boundary'

@@ -8,7 +8,7 @@ import { CertificatePicker } from '../components/certificate-picker'
 import { Wizard, type WizardStepDef } from '../components/wizard'
 import { supabase } from '../lib/supabase'
 import { genders, leagueKeys, leagues, wards } from '../theme'
-import { styles } from './register.styles'
+import { styles } from '../styles/register.styles'
 
 export { ErrorBoundary } from '../components/error-boundary'
 

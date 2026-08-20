@@ -2,7 +2,7 @@ import { ScrollView, Text, View } from 'react-native'
 import { Card } from '../../components/ui'
 import { useLiturgicalSeason } from '../../lib/liturgical-theme'
 import { wardCodes, wards } from '../../theme'
-import { styles } from './banking.styles'
+import { styles } from '../../styles/banking.styles'
 
 export { ErrorBoundary } from '../../components/error-boundary'
 

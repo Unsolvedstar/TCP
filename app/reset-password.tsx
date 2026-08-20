@@ -7,7 +7,7 @@ import { Button, Field } from '../components/ui'
 import { ChurchHeader } from '../components/church-header'
 import { supabase } from '../lib/supabase'
 import { colors } from '../theme'
-import { styles } from './reset-password.styles'
+import { styles } from '../styles/reset-password.styles'
 
 export { ErrorBoundary } from '../components/error-boundary'
 

@@ -5,7 +5,7 @@ import * as Linking from 'expo-linking'
 import { Button, Field } from '../components/ui'
 import { ChurchHeader } from '../components/church-header'
 import { supabase } from '../lib/supabase'
-import { styles } from './login.styles'
+import { styles } from '../styles/login.styles'
 
 export { ErrorBoundary } from '../components/error-boundary'
 

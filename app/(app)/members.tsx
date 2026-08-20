@@ -6,7 +6,7 @@ import { EditMemberModal } from '../../components/edit-member-modal'
 import { EditChildModal } from '../../components/edit-child-modal'
 import { supabase } from '../../lib/supabase'
 import { colors, genderColors, leagueKeys, leagues, wardColors, wards } from '../../theme'
-import { styles } from './members.styles'
+import { styles } from '../../styles/members.styles'
 import type { BaptismApplication, ChildRow, ConfirmationApplication, LeagueApplication, Profile } from '../../lib/types'
 
 export { ErrorBoundary } from '../../components/error-boundary'
