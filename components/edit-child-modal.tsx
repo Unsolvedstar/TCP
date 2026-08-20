@@ -101,7 +101,7 @@ export function EditChildModal({
         <Text style={styles.modalHeading}>Edit Child</Text>
         <Text style={styles.guardianNote}>
           Guardian: {child.guardian?.full_name ?? 'Unknown'}
-          {child.reviewed_at ? ` · Last reviewed ${formatDate(child.reviewed_at.slice(0, 10))}` : ''}
+          {child.reviewed_at ? ` (last reviewed ${formatDate(child.reviewed_at.slice(0, 10))})` : ''}
         </Text>
         <Wizard steps={steps} onComplete={save} completeLabel="Save Changes" submitting={saving} />
         <View style={{ gap: 10, marginTop: 20 }}>

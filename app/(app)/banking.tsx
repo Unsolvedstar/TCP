@@ -24,12 +24,12 @@ export default function Banking() {
       <View style={[styles.hero, { backgroundColor: season.color }]}>
         <Text style={[styles.heroLabel, { color: season.text }]}>Banking Information</Text>
         <Text style={[styles.heroTitle, { color: season.text }]}>ELCSA Tshwane City Parish</Text>
-        <Text style={[styles.heroSub, { color: season.text }]}>Standard Bank — use the correct account and reference for each payment</Text>
+        <Text style={[styles.heroSub, { color: season.text }]}>Standard Bank. Use the correct account and reference for each payment</Text>
       </View>
 
       <Card>
         <Text style={styles.cardTitle}>Other Ways to Give</Text>
-        <Text style={styles.cardSub}>SnapScan is also accepted on Sundays — look for the scanner at the offering table. It's tracked separately on the parish's weekly offering summary.</Text>
+        <Text style={styles.cardSub}>SnapScan is also accepted on Sundays. Look for the scanner at the offering table. It's tracked separately on the parish's weekly offering summary.</Text>
       </Card>
 
       <Card>
@@ -81,11 +81,11 @@ export default function Banking() {
         <Text style={styles.cardTitle}>Reference Format</Text>
         <Text style={styles.cardSub}>Surname + Ward Code + Payment Code</Text>
         <View style={styles.example}>
-          <Text style={styles.exampleLabel}>Pledge & Tithe · South Ward (500)</Text>
+          <Text style={styles.exampleLabel}>Pledge & Tithe, South Ward (500)</Text>
           <Text style={styles.exampleCode}>Neswiswi500PLG</Text>
         </View>
         <View style={[styles.example, styles.exampleBuilding]}>
-          <Text style={styles.exampleLabel}>Building Project · South Ward (500) → Building Account</Text>
+          <Text style={styles.exampleLabel}>Building Project, South Ward (500) → Building Account</Text>
           <Text style={styles.exampleCode}>Neswiswi500BLD</Text>
         </View>
       </Card>

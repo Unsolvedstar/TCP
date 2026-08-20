@@ -96,10 +96,10 @@ export function PortalHouseholdCard({ dependents, onChanged }: { dependents: Dep
     {
       key: 'involvement',
       title: 'Sacraments & League',
-      subtitle: 'Already baptised, confirmed, or part of a league? Tell us now — this is recorded on their record right away, no approval needed.',
+      subtitle: 'Already baptised, confirmed, or part of a league? Tell us now. It\'s recorded on their record right away, no approval needed.',
       validate: () => {
         if (childConfirmed === 'yes' && childBaptised !== 'yes') {
-          return 'Confirmation always follows baptism — please also answer "Yes" to already baptised, or leave both blank if you\'re not sure.'
+          return 'Confirmation always follows baptism. Please also answer "Yes" to already baptised, or leave both blank if you\'re not sure.'
         }
         const claimingSomething = childBaptised === 'yes' || childConfirmed === 'yes' || !!childLeague
         if (claimingSomething && !childSignature) {
@@ -178,7 +178,7 @@ export function PortalHouseholdCard({ dependents, onChanged }: { dependents: Dep
   return (
     <Card>
       <Text style={styles.cardTitle}>My Household</Text>
-      <Text style={styles.cardSub}>Register children who don't have their own phone — you manage their league, baptism and confirmation here.</Text>
+      <Text style={styles.cardSub}>Register children who don't have their own phone. You manage their league, baptism and confirmation here.</Text>
 
       {dependents.map((d) => (
         <DependentCard key={d.id} dependent={d} onChanged={onChanged} />

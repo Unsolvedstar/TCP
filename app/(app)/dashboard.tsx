@@ -109,7 +109,7 @@ export default function Dashboard() {
           <Text style={[styles.heroTotalL, { color: season.text }]}>People In The Church</Text>
         </View>
         <Text style={[styles.heroBreakdown, { color: season.text }]}>
-          {sacraments.adults} adults · {sacraments.children} children
+          {sacraments.adults} adults, {sacraments.children} children
         </Text>
       </View>
 
@@ -150,10 +150,10 @@ export default function Dashboard() {
 
           <Card>
             <Text style={styles.cardTitle}>Parish Announcements</Text>
-            <Text style={styles.cardSub}>Shown to every member on their portal — keep this current.</Text>
+            <Text style={styles.cardSub}>Shown to every member on their portal. Keep this current.</Text>
             <View style={styles.form}>
-              <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="Title — e.g. Harvest Celebration" placeholderTextColor="#a99" />
-              <TextInput style={styles.input} value={dateText} onChangeText={setDateText} placeholder="Date / when — e.g. 18 October 2026" placeholderTextColor="#a99" />
+              <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="Title, e.g. Harvest Celebration" placeholderTextColor="#a99" />
+              <TextInput style={styles.input} value={dateText} onChangeText={setDateText} placeholder="Date / when, e.g. 18 October 2026" placeholderTextColor="#a99" />
               <TextInput
                 style={[styles.input, { height: 70, textAlignVertical: 'top' }]}
                 value={body}

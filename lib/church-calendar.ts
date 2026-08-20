@@ -76,7 +76,7 @@ export function getChurchEventsForYear(year: number): ChurchEvent[] {
     { name: 'Trinity Sunday', date: toLocalISODate(addDays(easter, 56)), note: 'Celebrating the Holy Trinity' },
     { name: 'Reformation Day', date: toLocalISODate(new Date(year, 9, 31)), note: "Luther's 95 Theses, 1517" },
     { name: "All Saints' Day", date: toLocalISODate(new Date(year, 10, 1)), note: 'Remembering the faithful departed' },
-    { name: 'Advent Sunday', date: toLocalISODate(adventSunday), note: 'Advent begins — preparing for Christmas' },
+    { name: 'Advent Sunday', date: toLocalISODate(adventSunday), note: 'Advent begins, preparing for Christmas' },
     {
       name: 'Advent',
       date: toLocalISODate(adventSunday),

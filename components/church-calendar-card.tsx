@@ -21,12 +21,13 @@ export function ChurchCalendarCard({ count = 6 }: { count?: number }) {
         return (
           <View key={i} style={styles.row}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.name}>
-                {e.name} {isNow ? <Text style={styles.nowBadge}> · now</Text> : null}
-              </Text>
+              <View style={styles.nameRow}>
+                <Text style={styles.name}>{e.name}</Text>
+                {isNow ? <Text style={styles.nowBadge}>NOW</Text> : null}
+              </View>
               {e.note ? <Text style={styles.note}>{e.note}</Text> : null}
             </View>
-            <Text style={styles.date}>{e.endDate ? `${formatShortDate(e.date)} – ${formatShortDate(e.endDate)}` : formatDate(e.date)}</Text>
+            <Text style={styles.date}>{e.endDate ? `${formatShortDate(e.date)} to ${formatShortDate(e.endDate)}` : formatDate(e.date)}</Text>
           </View>
         )
       })}

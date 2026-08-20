@@ -37,7 +37,7 @@ function applicationDetail(p: PendingItem): string | null {
             (p.application as ConfirmationApplication).mentor_name ? `Mentor: ${(p.application as ConfirmationApplication).mentor_name}` : null,
             (p.application as ConfirmationApplication).note ? `Note: ${(p.application as ConfirmationApplication).note}` : null,
           ]
-  const text = parts.filter(Boolean).join(' · ')
+  const text = parts.filter(Boolean).join(', ')
   return text || null
 }
 
@@ -156,7 +156,7 @@ export default function Members() {
   }
 
   function confirmPromoteMember(m: Profile) {
-    Alert.alert('Promote to Admin', `Give ${m.full_name} full admin access — they'll be able to see, edit, approve, and remove every member?`, [
+    Alert.alert('Promote to Admin', `Give ${m.full_name} full admin access? They'll be able to see, edit, approve, and remove every member.`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Promote', onPress: async () => {
         const { error } = await supabase.rpc('admin_set_role', { target_id: m.id, new_role: 'admin' })
@@ -208,7 +208,7 @@ export default function Members() {
           <View>
             <Text style={styles.screenTitle}>Congregation Registry</Text>
             <Text style={styles.screenSub}>
-              {members.length} adult{members.length !== 1 ? 's' : ''} · {children.length} child{children.length !== 1 ? 'ren' : ''}
+              {members.length} adult{members.length !== 1 ? 's' : ''}, {children.length} child{children.length !== 1 ? 'ren' : ''}
             </Text>
 
             {pending.length > 0 && (
@@ -225,8 +225,8 @@ export default function Members() {
                             {p.name} {p.isChild ? '👶' : ''}
                           </Text>
                           <Text style={styles.pendingDetail}>
-                            {p.ward} Ward · {p.label}
-                            {p.isChild ? ` · Guardian: ${p.guardianName}` : ''}
+                            {p.ward} Ward, {p.label}
+                            {p.isChild ? ` (Guardian: ${p.guardianName})` : ''}
                           </Text>
                         </View>
                         <View style={styles.pendingActions}>

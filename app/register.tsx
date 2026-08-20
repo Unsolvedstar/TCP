@@ -108,7 +108,7 @@ export default function Register() {
     {
       key: 'contact',
       title: 'Contact & Birthday',
-      subtitle: 'Both optional — helps us reach you and celebrate with you.',
+      subtitle: 'Both optional, and help us reach you and celebrate with you.',
       render: () => (
         <>
           <Field label="Phone (optional)" value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="072 000 0000" />
@@ -119,10 +119,10 @@ export default function Register() {
     {
       key: 'involvement',
       title: 'Sacraments & League',
-      subtitle: 'Already baptised, confirmed, or part of a league? Tell us now — this is recorded on your record right away, no approval needed.',
+      subtitle: 'Already baptised, confirmed, or part of a league? Tell us now. It\'s recorded on your record right away, no approval needed.',
       validate: () => {
         if (alreadyConfirmed === 'yes' && alreadyBaptised !== 'yes') {
-          return 'Confirmation always follows baptism — please also answer "Yes" to already baptised, or leave both blank if you\'re not sure.'
+          return 'Confirmation always follows baptism. Please also answer "Yes" to already baptised, or leave both blank if you\'re not sure.'
         }
         const claimingSomething = alreadyBaptised === 'yes' || alreadyConfirmed === 'yes' || !!initialLeague
         if (claimingSomething && !signature) {

@@ -13,7 +13,7 @@ export function BirthdaysCard({ birthdays, subtitle = 'Next 30 days', showWard =
         <View key={i} style={styles.bdayRow}>
           <Text style={styles.bdayName}>
             {b.full_name} {b.is_child ? '👶' : ''}
-            {showWard ? <Text style={styles.bdayWard}> · {b.ward}</Text> : null}
+            {showWard ? <Text style={styles.bdayWard}> ({b.ward})</Text> : null}
           </Text>
           <Text style={styles.bdayDate}>{formatDate(b.next_birthday)}</Text>
         </View>

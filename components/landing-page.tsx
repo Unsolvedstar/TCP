@@ -7,9 +7,9 @@ import { formatShortDate } from '../lib/dates'
 import { styles } from './landing-page.styles'
 
 const FEATURES = [
-  { title: 'Your membership, in one place', body: 'See your ward, league, baptism and confirmation status — and request changes without waiting for the office.' },
+  { title: 'Your membership, in one place', body: 'See your ward, league, baptism and confirmation status, and request changes without waiting for the office.' },
   { title: 'Register your household', body: "Add children who don't have their own phone, and manage their league, baptism and confirmation from your account." },
-  { title: 'See the whole parish', body: 'Ward, league, gender and sacrament breakdowns — real numbers, kept private, visible to everyone signed in.' },
+  { title: 'See the whole parish', body: 'Ward, league, gender and sacrament breakdowns. Real numbers, kept private, visible to everyone signed in.' },
 ]
 
 export function LandingPage() {
@@ -29,7 +29,7 @@ export function LandingPage() {
         <Text style={[styles.heroTagline, { color: season.text }]}>Growing Together in Christ</Text>
         {nextEvent ? (
           <Text style={[styles.heroNext, { color: season.text }]}>
-            Next in the church year: {nextEvent.name} · {formatShortDate(nextEvent.date)}
+            Next in the church year: {nextEvent.name} on {formatShortDate(nextEvent.date)}
           </Text>
         ) : null}
         <View style={styles.heroButtons}>
@@ -50,7 +50,9 @@ export function LandingPage() {
           </Card>
         ))}
 
-        <Text style={styles.footer}>959 Pretorius Street, Arcadia, Tshwane · elcsatcp.org</Text>
+        <Text style={styles.footer}>
+          959 Pretorius Street, Arcadia, Tshwane{'\n'}elcsatcp.org
+        </Text>
       </View>
     </ScrollView>
   )

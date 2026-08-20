@@ -44,7 +44,7 @@ export default function AppLayout() {
       <View style={styles.center}>
         <Text style={styles.notFoundTitle}>Account Not Found</Text>
         <Text style={styles.notFoundBody}>
-          Your login still works, but there's no membership record for it anymore — an admin may have removed it from the registry. If this seems
+          Your login still works, but there's no membership record for it anymore. An admin may have removed it from the registry. If this seems
           wrong, contact the parish office.
         </Text>
         <View style={styles.notFoundBtn}>

@@ -88,7 +88,7 @@ export default function Portal() {
           <Text style={[styles.heroSeasonPillText, { color: season.text }]}>{season.name.toUpperCase()}</Text>
         </View>
         <Text style={[styles.heroName, { color: season.text }]}>Welcome, {profile.full_name.split(' ')[0]}</Text>
-        <Text style={[styles.heroSub, { color: season.text }]}>{profile.ward} Ward · ELCSA Tshwane City Parish</Text>
+        <Text style={[styles.heroSub, { color: season.text }]}>{profile.ward} Ward, ELCSA Tshwane City Parish</Text>
       </View>
 
       <View style={styles.statGrid}>
@@ -149,7 +149,7 @@ export default function Portal() {
           <WardBreakdownCard
             wardStats={wardStats}
             title="Parish at a Glance"
-            subtitle={`${sacraments.total} people across 5 wards — ${sacraments.adults} adults, ${sacraments.children} children`}
+            subtitle={`${sacraments.total} people across 5 wards: ${sacraments.adults} adults, ${sacraments.children} children`}
           />
           <LeagueBreakdownCard leagueStats={leagueStats} />
           <GenderBreakdownCard genderStats={genderStats} />
