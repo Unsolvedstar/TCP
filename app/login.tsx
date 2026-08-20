@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native'
 import { Link, router } from 'expo-router'
 import * as Linking from 'expo-linking'
-import { Button, Field } from '../components/ui'
+import { Button, Field, glassBlur } from '../components/ui'
 import { ChurchHeader } from '../components/church-header'
 import { supabase } from '../lib/supabase'
 import { styles } from '../styles/login.styles'
@@ -61,7 +61,7 @@ export default function Login() {
         <ChurchHeader title="ELCSA Tshwane City Parish" subtitle="Growing Together in Christ" />
 
         {forgotOpen ? (
-          <View style={styles.card}>
+          <View style={[styles.card, glassBlur]}>
             <Text style={styles.cardTitle}>Reset Password</Text>
             {error ? <Text style={styles.error}>{error}</Text> : null}
             {resetNotice ? <Text style={styles.notice}>{resetNotice}</Text> : null}
@@ -79,7 +79,7 @@ export default function Login() {
             </Text>
           </View>
         ) : (
-          <View style={styles.card}>
+          <View style={[styles.card, glassBlur]}>
             <Text style={styles.cardTitle}>Sign In</Text>
             {error ? <Text style={styles.error}>{error}</Text> : null}
             <Field label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" />

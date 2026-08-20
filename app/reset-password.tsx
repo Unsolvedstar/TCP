@@ -3,7 +3,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Text, Vi
 import { router } from 'expo-router'
 import * as Linking from 'expo-linking'
 import * as QueryParams from 'expo-auth-session/build/QueryParams'
-import { Button, Field } from '../components/ui'
+import { Button, Field, glassBlur } from '../components/ui'
 import { ChurchHeader } from '../components/church-header'
 import { supabase } from '../lib/supabase'
 import { colors } from '../theme'
@@ -88,7 +88,7 @@ export default function ResetPassword() {
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <ChurchHeader title="Reset Password" showSeason={false} />
 
-        <View style={styles.card}>
+        <View style={[styles.card, glassBlur]}>
           {checking ? (
             <View style={styles.checkingBox}>
               <ActivityIndicator color={colors.g700} />

@@ -97,4 +97,4 @@ export const leagues: Record<string, League> = {
 
 export const leagueKeys = Object.keys(leagues)
 
-export const radius = { md: 8, lg: 14, xl: 20 }
+export const radius = { md: 10, lg: 20, xl: 28 }

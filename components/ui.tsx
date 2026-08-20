@@ -9,8 +9,15 @@ export function formatDate(iso: string) {
   return new Date(iso + 'T00:00:00').toLocaleDateString('en-ZA', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
+// A real CSS blur behind translucent panels, only meaningful (and only
+// understood) on web — react-native-web passes unrecognized style keys like
+// backdropFilter straight through to the DOM, but native platforms have no
+// such property, so it's kept out of the typed StyleSheet.create() styles
+// below and merged in only for web.
+export const glassBlur = Platform.OS === 'web' ? ({ backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' } as object) : null
+
 export function Card({ children, style }: { children: React.ReactNode; style?: object }) {
-  return <View style={[styles.card, style]}>{children}</View>
+  return <View style={[styles.card, glassBlur, style]}>{children}</View>
 }
 
 export function ScreenTitle({ title, subtitle }: { title: string; subtitle?: string }) {
@@ -87,7 +94,7 @@ export function SelectField({
       </Pressable>
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <Pressable style={styles.modalBackdrop} onPress={() => setOpen(false)}>
-          <View style={styles.modalSheet}>
+          <View style={[styles.modalSheet, glassBlur]}>
             <Text style={styles.modalTitle}>{label}</Text>
             <FlatList
               data={options}
@@ -172,7 +179,7 @@ export function DateField({
       {Platform.OS === 'ios' && (
         <Modal visible={iosOpen} transparent animationType="fade" onRequestClose={() => setIosOpen(false)}>
           <Pressable style={styles.modalBackdrop} onPress={() => setIosOpen(false)}>
-            <View style={styles.modalSheet}>
+            <View style={[styles.modalSheet, glassBlur]}>
               <Text style={styles.modalTitle}>{label}</Text>
               <DateTimePicker
                 value={current}

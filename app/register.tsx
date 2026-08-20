@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native'
 import { Link, router } from 'expo-router'
-import { DateField, Field, SelectField } from '../components/ui'
+import { DateField, Field, glassBlur, SelectField } from '../components/ui'
 import { ChurchHeader } from '../components/church-header'
 import { SignaturePad } from '../components/signature-pad'
 import { CertificatePicker } from '../components/certificate-picker'
@@ -218,7 +218,7 @@ export default function Register() {
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <ChurchHeader title="Register" subtitle="ELCSA Tshwane City Parish" showSeason={false} />
 
-        <View style={styles.card}>
+        <View style={[styles.card, glassBlur]}>
           {error ? <Text style={styles.error}>{error}</Text> : null}
           {notice ? <Text style={styles.notice}>{notice}</Text> : null}
           <Wizard steps={steps} onComplete={onSubmit} completeLabel="Create Account" submitting={loading} />
