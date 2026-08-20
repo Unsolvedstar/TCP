@@ -9,6 +9,7 @@ const BADGES: Partial<Record<LeagueKey, ReturnType<typeof require>>> = {
   ELCSAMO: require('../assets/brand/badge-elcsamo.png'),
   PrayerMens: require('../assets/brand/badge-prayer-mens.png'),
   PrayerYouth: require('../assets/brand/badge-prayer-youth.png'),
+  PrayerWomens: require('../assets/brand/badge-prayer-womens.png'),
 }
 
 export function hasLeagueBadge(leagueKey: LeagueKey) {
