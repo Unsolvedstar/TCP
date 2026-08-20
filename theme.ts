@@ -80,10 +80,6 @@ export type League = {
   label: string
   color: string
   info?: string
-  // Ionicons name shown inside the colour dot for leagues with no scanned
-  // badge artwork (see components/league-badge.tsx) — a generic icon reads
-  // better than a bare circle, without pretending it's the league's real mark.
-  icon?: string
 }
 
 export const leagues: Record<string, League> = {
@@ -93,7 +89,6 @@ export const leagues: Record<string, League> = {
     label: "Prayer Women's League",
     color: '#ad1457',
     info: "Meets Sundays 8H00. Contact Mme Matshidiso Mogoase, 072 182 0472",
-    icon: 'heart-outline',
   },
   PrayerYouth: {
     label: 'Prayer Youth League',
@@ -105,26 +100,22 @@ export const leagues: Record<string, League> = {
     label: 'Sunday School',
     color: '#00897b',
     info: 'For children. Ask at the Secretariat Desk',
-    icon: 'book-outline',
   },
   ConfirmationClass: {
     label: 'Confirmation Class',
     color: '#5d4037',
     info: 'Preparation classes ahead of Confirmation',
-    icon: 'ribbon-outline',
   },
   ELCSAMO: { label: 'ELCSAMO (Music Organisation)', color: colors.brandNavy, info: 'Sun after church, Thu 18H00, Sat 14H00. Contact Mr Azwi Ramakuela' },
   ELCSASO: {
     label: 'ELCSASO (Student Organisation)',
     color: '#2e7d32',
     info: 'UP / TUT / Eduvos chapters. Ask at the Secretariat Desk',
-    icon: 'school-outline',
   },
   DiaconateMinistry: {
     label: 'Diaconate Ministry',
     color: '#37474f',
     info: 'Serve, Care, Give Hope. Outreach and donations ministry',
-    icon: 'hand-left-outline',
   },
 }
 
