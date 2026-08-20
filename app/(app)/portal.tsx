@@ -25,6 +25,7 @@ type Announcement = { id: string; title: string; date_text: string; body: string
 export default function Portal() {
   const { profile, refreshProfile } = useAuth()
   const season = useLiturgicalSeason()
+  const [section, setSection] = useState<'dashboard' | 'calendar'>('dashboard')
   const [refreshing, setRefreshing] = useState(false)
   const [wardStats, setWardStats] = useState<WardStat[]>([])
   const [leagueStats, setLeagueStats] = useState<LeagueStat[]>([])
@@ -116,34 +117,50 @@ export default function Portal() {
         </View>
       </View>
 
-      <PortalDetailsCard profile={profile} onChanged={loadAll} />
-      <PortalInvolvementCard profile={profile} onChanged={loadAll} />
-      <PortalHouseholdCard dependents={dependents} onChanged={loadAll} />
-      <ChurchCalendarCard />
-      <BirthdaysCard birthdays={birthdays} />
+      <View style={styles.tabRow}>
+        <Text onPress={() => setSection('dashboard')} style={[styles.tabBtn, section === 'dashboard' && styles.tabBtnActive]}>
+          Dashboard
+        </Text>
+        <Text onPress={() => setSection('calendar')} style={[styles.tabBtn, section === 'calendar' && styles.tabBtnActive]}>
+          Calendar
+        </Text>
+      </View>
 
-      {announcements.length ? (
-        <Card>
-          <Text style={styles.cardTitle}>Parish Announcements</Text>
-          <Text style={styles.cardSub}>What's coming up at Tshwane City Parish</Text>
-          {announcements.map((a) => (
-            <View key={a.id} style={styles.annItem}>
-              <Text style={styles.annDate}>{a.date_text}</Text>
-              <Text style={styles.annTitle}>{a.title}</Text>
-              <Text style={styles.annBody}>{a.body}</Text>
-            </View>
-          ))}
-        </Card>
-      ) : null}
+      {section === 'dashboard' ? (
+        <>
+          <PortalDetailsCard profile={profile} onChanged={loadAll} />
+          <PortalInvolvementCard profile={profile} onChanged={loadAll} />
+          <PortalHouseholdCard dependents={dependents} onChanged={loadAll} />
 
-      <WardBreakdownCard
-        wardStats={wardStats}
-        title="Parish at a Glance"
-        subtitle={`${sacraments.total} people across 5 wards — ${sacraments.adults} adults, ${sacraments.children} children`}
-      />
-      <LeagueBreakdownCard leagueStats={leagueStats} />
-      <GenderBreakdownCard genderStats={genderStats} />
-      <SacramentsCard sacraments={sacraments} />
+          {announcements.length ? (
+            <Card>
+              <Text style={styles.cardTitle}>Parish Announcements</Text>
+              <Text style={styles.cardSub}>What's coming up at Tshwane City Parish</Text>
+              {announcements.map((a) => (
+                <View key={a.id} style={styles.annItem}>
+                  <Text style={styles.annDate}>{a.date_text}</Text>
+                  <Text style={styles.annTitle}>{a.title}</Text>
+                  <Text style={styles.annBody}>{a.body}</Text>
+                </View>
+              ))}
+            </Card>
+          ) : null}
+
+          <WardBreakdownCard
+            wardStats={wardStats}
+            title="Parish at a Glance"
+            subtitle={`${sacraments.total} people across 5 wards — ${sacraments.adults} adults, ${sacraments.children} children`}
+          />
+          <LeagueBreakdownCard leagueStats={leagueStats} />
+          <GenderBreakdownCard genderStats={genderStats} />
+          <SacramentsCard sacraments={sacraments} />
+        </>
+      ) : (
+        <>
+          <ChurchCalendarCard />
+          <BirthdaysCard birthdays={birthdays} />
+        </>
+      )}
     </ScrollView>
   )
 }

@@ -21,6 +21,7 @@ type Announcement = { id: string; title: string; date_text: string; body: string
 export default function Dashboard() {
   const router = useRouter()
   const season = useLiturgicalSeason()
+  const [section, setSection] = useState<'dashboard' | 'calendar'>('dashboard')
   const [refreshing, setRefreshing] = useState(false)
   const [wardStats, setWardStats] = useState<WardStat[]>([])
   const [leagueStats, setLeagueStats] = useState<LeagueStat[]>([])
@@ -121,52 +122,68 @@ export default function Dashboard() {
         </View>
       ) : null}
 
-      <View style={styles.wardGrid}>
-        {wards.map((w) => (
-          <View key={w} style={[styles.wardCard, { borderTopColor: wardColors[w] }]}>
-            <Text style={styles.wardLabel}>{w}</Text>
-            <Text style={styles.wardNum}>{wardStats.find((s) => s.ward === w)?.cnt ?? 0}</Text>
-            <Text style={styles.wardCode}>Ward {wardCodes[w]}</Text>
-          </View>
-        ))}
+      <View style={styles.tabRow}>
+        <Text onPress={() => setSection('dashboard')} style={[styles.tabBtn, section === 'dashboard' && styles.tabBtnActive]}>
+          Dashboard
+        </Text>
+        <Text onPress={() => setSection('calendar')} style={[styles.tabBtn, section === 'calendar' && styles.tabBtnActive]}>
+          Calendar
+        </Text>
       </View>
 
-      <WardBreakdownCard wardStats={wardStats} />
-      <LeagueBreakdownCard leagueStats={leagueStats} />
-      <GenderBreakdownCard genderStats={genderStats} />
-      <SacramentsCard sacraments={sacraments} />
-      <ChurchCalendarCard />
-      <BirthdaysCard birthdays={birthdays} subtitle="Next 30 days, whole congregation" showWard />
-
-      <Card>
-        <Text style={styles.cardTitle}>Parish Announcements</Text>
-        <Text style={styles.cardSub}>Shown to every member on their portal — keep this current.</Text>
-        <View style={styles.form}>
-          <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="Title — e.g. Harvest Celebration" placeholderTextColor="#a99" />
-          <TextInput style={styles.input} value={dateText} onChangeText={setDateText} placeholder="Date / when — e.g. 18 October 2026" placeholderTextColor="#a99" />
-          <TextInput
-            style={[styles.input, { height: 70, textAlignVertical: 'top' }]}
-            value={body}
-            onChangeText={setBody}
-            placeholder="Short description…"
-            placeholderTextColor="#a99"
-            multiline
-          />
-          <Button title="Add Announcement" onPress={addAnnouncement} loading={saving} />
-        </View>
-        {announcements.map((a) => (
-          <View key={a.id} style={styles.annItem}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.annDate}>{a.date_text}</Text>
-              <Text style={styles.annTitle}>{a.title}</Text>
-              <Text style={styles.annBody}>{a.body}</Text>
-            </View>
-            <Text style={styles.removeLink} onPress={() => removeAnnouncement(a.id)}>
-              Remove
-            </Text>
+      {section === 'dashboard' ? (
+        <>
+          <View style={styles.wardGrid}>
+            {wards.map((w) => (
+              <View key={w} style={[styles.wardCard, { borderTopColor: wardColors[w] }]}>
+                <Text style={styles.wardLabel}>{w}</Text>
+                <Text style={styles.wardNum}>{wardStats.find((s) => s.ward === w)?.cnt ?? 0}</Text>
+                <Text style={styles.wardCode}>Ward {wardCodes[w]}</Text>
+              </View>
+            ))}
           </View>
-        ))}
-      </Card>
+
+          <WardBreakdownCard wardStats={wardStats} />
+          <LeagueBreakdownCard leagueStats={leagueStats} />
+          <GenderBreakdownCard genderStats={genderStats} />
+          <SacramentsCard sacraments={sacraments} />
+
+          <Card>
+            <Text style={styles.cardTitle}>Parish Announcements</Text>
+            <Text style={styles.cardSub}>Shown to every member on their portal — keep this current.</Text>
+            <View style={styles.form}>
+              <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="Title — e.g. Harvest Celebration" placeholderTextColor="#a99" />
+              <TextInput style={styles.input} value={dateText} onChangeText={setDateText} placeholder="Date / when — e.g. 18 October 2026" placeholderTextColor="#a99" />
+              <TextInput
+                style={[styles.input, { height: 70, textAlignVertical: 'top' }]}
+                value={body}
+                onChangeText={setBody}
+                placeholder="Short description…"
+                placeholderTextColor="#a99"
+                multiline
+              />
+              <Button title="Add Announcement" onPress={addAnnouncement} loading={saving} />
+            </View>
+            {announcements.map((a) => (
+              <View key={a.id} style={styles.annItem}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.annDate}>{a.date_text}</Text>
+                  <Text style={styles.annTitle}>{a.title}</Text>
+                  <Text style={styles.annBody}>{a.body}</Text>
+                </View>
+                <Text style={styles.removeLink} onPress={() => removeAnnouncement(a.id)}>
+                  Remove
+                </Text>
+              </View>
+            ))}
+          </Card>
+        </>
+      ) : (
+        <>
+          <ChurchCalendarCard />
+          <BirthdaysCard birthdays={birthdays} subtitle="Next 30 days, whole congregation" showWard />
+        </>
+      )}
     </ScrollView>
   )
 }
