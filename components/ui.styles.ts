@@ -1,0 +1,55 @@
+import { StyleSheet } from 'react-native'
+import { colors, radius } from '../theme'
+
+// Plain DOM style object (px units required) for the web-only <input type="date"> in DateField.
+export const webDateInputStyle = {
+  borderWidth: '1.5px',
+  borderStyle: 'solid',
+  borderColor: '#d5cfc5',
+  borderRadius: `${radius.md}px`,
+  paddingTop: '10px',
+  paddingBottom: '10px',
+  paddingLeft: '12px',
+  paddingRight: '12px',
+  fontSize: '15px',
+  fontFamily: 'inherit',
+  color: colors.text,
+  backgroundColor: colors.white,
+  width: '100%',
+  boxSizing: 'border-box' as const,
+}
+
+export const styles = StyleSheet.create({
+  card: {
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.warmBorder,
+    padding: 18,
+    marginBottom: 16,
+  },
+  screenTitle: { fontSize: 20, fontWeight: '700', color: colors.g800 },
+  screenSubtitle: { fontSize: 13, color: colors.muted, marginTop: 2 },
+  sectionLabel: { fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8, color: colors.muted, marginBottom: 6 },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 99, alignSelf: 'flex-start' },
+  chipDot: { width: 7, height: 7, borderRadius: 4 },
+  chipText: { fontSize: 12, fontWeight: '700' },
+  barRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 },
+  barLabelCol: { width: 100 },
+  barLabel: { fontSize: 12.5, fontWeight: '600', color: colors.g800 },
+  barSub: { fontSize: 10.5, color: colors.muted },
+  barTrack: { flex: 1, height: 9, backgroundColor: colors.cream, borderRadius: 99, overflow: 'hidden' },
+  barFill: { height: '100%', borderRadius: 99 },
+  barValue: { width: 28, textAlign: 'right', fontSize: 13, fontWeight: '800', color: colors.g800 },
+  fieldLabel: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6, color: colors.muted },
+  input: { borderWidth: 1.5, borderColor: '#d5cfc5', borderRadius: radius.md, paddingVertical: 10, paddingHorizontal: 12, fontSize: 15, color: colors.text, backgroundColor: colors.white },
+  btn: { borderWidth: 1.5, borderRadius: radius.md, paddingVertical: 12, alignItems: 'center', justifyContent: 'center' },
+  btnText: { fontSize: 14.5, fontWeight: '700' },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,.4)', justifyContent: 'flex-end' },
+  modalSheet: { backgroundColor: colors.white, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, paddingTop: 16, paddingBottom: 32, maxHeight: '70%' },
+  modalTitle: { fontSize: 15, fontWeight: '700', color: colors.g800, paddingHorizontal: 20, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.warmBorder, marginBottom: 4 },
+  modalOption: { paddingVertical: 13, paddingHorizontal: 20 },
+  modalOptionActive: { backgroundColor: colors.g50 },
+  modalOptionText: { fontSize: 15, color: colors.text },
+  modalOptionTextActive: { color: colors.g700, fontWeight: '700' },
+})

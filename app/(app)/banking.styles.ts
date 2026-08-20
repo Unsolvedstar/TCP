@@ -1,0 +1,31 @@
+import { StyleSheet } from 'react-native'
+import { colors, radius } from '../../theme'
+
+export const styles = StyleSheet.create({
+  flex: { flex: 1, backgroundColor: colors.cream },
+  content: { padding: 16, paddingBottom: 16 },
+  hero: { backgroundColor: colors.g800, borderRadius: radius.lg, padding: 20, marginBottom: 16 },
+  heroLabel: { fontSize: 10.5, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1, color: colors.gold3, marginBottom: 6 },
+  heroTitle: { fontSize: 18, fontWeight: '700', color: colors.white },
+  heroSub: { fontSize: 12, color: 'rgba(255,255,255,.55)', fontStyle: 'italic', marginTop: 4 },
+  acctHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  cardTitle: { fontSize: 15, fontWeight: '700', color: colors.g800 },
+  cardSub: { fontSize: 12, color: colors.muted, marginBottom: 10, marginTop: 2 },
+  tag: { fontSize: 10.5, fontWeight: '700', color: colors.g700, backgroundColor: colors.g100, paddingVertical: 2, paddingHorizontal: 8, borderRadius: 4 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.cream },
+  rowKey: { fontSize: 11.5, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4, color: colors.muted },
+  rowVal: { fontSize: 13.5, fontWeight: '700', color: colors.text },
+  codeRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 9, borderTopWidth: 1, borderTopColor: colors.cream },
+  codePill: { fontWeight: '700', fontSize: 12.5, backgroundColor: colors.cream, borderWidth: 1, borderColor: colors.warmBorder, paddingVertical: 3, paddingHorizontal: 8, borderRadius: 5, width: 52, textAlign: 'center' },
+  codeLabel: { flex: 1, fontSize: 13.5, color: '#444' },
+  codeBadge: { fontSize: 10, fontWeight: '800', color: colors.g700, backgroundColor: colors.g100, paddingVertical: 3, paddingHorizontal: 8, borderRadius: 4 },
+  codeBadgeBuilding: { color: '#7a5c00', backgroundColor: colors.goldBg },
+  wardRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  wardCell: { flex: 1, minWidth: 60, alignItems: 'center', backgroundColor: colors.cream, borderRadius: radius.md, paddingVertical: 10 },
+  wardName: { fontSize: 10.5, fontWeight: '700', textTransform: 'uppercase', color: colors.muted },
+  wardCode: { fontSize: 16, fontWeight: '800', color: colors.g800, marginTop: 3 },
+  example: { backgroundColor: colors.cream, borderLeftWidth: 4, borderLeftColor: colors.g700, borderRadius: radius.md, padding: 12, marginTop: 8 },
+  exampleBuilding: { borderLeftColor: colors.gold },
+  exampleLabel: { fontSize: 10.5, fontWeight: '800', textTransform: 'uppercase', color: colors.muted, marginBottom: 4 },
+  exampleCode: { fontSize: 15, fontWeight: '800', color: colors.g800 },
+})

@@ -1,0 +1,33 @@
+import { StyleSheet } from 'react-native'
+import { colors, radius } from '../../theme'
+
+export const styles = StyleSheet.create({
+  flex: { flex: 1, backgroundColor: colors.cream },
+  content: { padding: 16, paddingBottom: 32 },
+  hero: { backgroundColor: colors.g800, borderRadius: radius.lg, padding: 22, marginBottom: 16 },
+  heroSeasonPill: { alignSelf: 'flex-start', backgroundColor: 'rgba(128,128,128,0.22)', borderRadius: 99, paddingVertical: 4, paddingHorizontal: 10, marginBottom: 10 },
+  heroSeasonPillText: { fontSize: 10, fontWeight: '800', letterSpacing: 1 },
+  heroTitle: { fontSize: 18, fontWeight: '700', color: colors.white },
+  heroSub: { fontSize: 12.5, color: 'rgba(255,255,255,.6)', fontStyle: 'italic', marginTop: 4 },
+  heroTotal: { marginTop: 14, backgroundColor: 'rgba(255,255,255,.08)', borderRadius: radius.md, padding: 14, alignItems: 'center', alignSelf: 'flex-start', paddingHorizontal: 24 },
+  heroTotalN: { fontSize: 28, fontWeight: '700', color: colors.white },
+  heroTotalL: { fontSize: 10.5, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(255,255,255,.5)', marginTop: 2 },
+  heroBreakdown: { fontSize: 11.5, color: 'rgba(255,255,255,.55)', marginTop: 10 },
+  pendingBanner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.goldBg, borderWidth: 1, borderColor: '#f0e0a8', borderRadius: radius.md, padding: 12, marginBottom: 16 },
+  pendingText: { fontSize: 13, fontWeight: '700', color: '#8a6310' },
+  pendingLink: { fontSize: 13, fontWeight: '700', color: colors.g700 },
+  wardGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
+  wardCard: { width: '18.5%', minWidth: 66, backgroundColor: colors.white, borderRadius: radius.md, borderWidth: 1, borderColor: colors.warmBorder, borderTopWidth: 3, padding: 10, alignItems: 'center' },
+  wardLabel: { fontSize: 9.5, fontWeight: '700', textTransform: 'uppercase', color: colors.muted, marginBottom: 4, textAlign: 'center' },
+  wardNum: { fontSize: 18, fontWeight: '700', color: colors.g800 },
+  wardCode: { fontSize: 9.5, color: colors.muted, marginTop: 2 },
+  cardTitle: { fontSize: 16, fontWeight: '700', color: colors.g800 },
+  cardSub: { fontSize: 12.5, color: colors.muted, marginBottom: 12, marginTop: 2 },
+  form: { gap: 10, backgroundColor: colors.g50, borderRadius: radius.md, borderWidth: 1, borderColor: colors.g100, padding: 14, marginBottom: 14, marginTop: 4 },
+  input: { borderWidth: 1.5, borderColor: '#d5cfc5', borderRadius: radius.md, paddingVertical: 9, paddingHorizontal: 12, fontSize: 14, backgroundColor: colors.white, color: colors.text },
+  annItem: { flexDirection: 'row', gap: 10, borderTopWidth: 1, borderTopColor: colors.cream, paddingTop: 10, marginTop: 10 },
+  annDate: { fontSize: 10.5, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.6, color: colors.gold },
+  annTitle: { fontSize: 14, fontWeight: '700', color: colors.g800, marginTop: 2 },
+  annBody: { fontSize: 12.5, color: '#444', marginTop: 3, lineHeight: 18 },
+  removeLink: { fontSize: 12, fontWeight: '700', color: colors.danger },
+})

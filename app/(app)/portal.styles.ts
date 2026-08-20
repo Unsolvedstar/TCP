@@ -1,0 +1,22 @@
+import { StyleSheet } from 'react-native'
+import { colors, radius } from '../../theme'
+
+export const styles = StyleSheet.create({
+  flex: { flex: 1, backgroundColor: colors.cream },
+  content: { padding: 16, paddingBottom: 32 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cream },
+  hero: { backgroundColor: colors.g800, borderRadius: radius.lg, padding: 22, marginBottom: 16, alignItems: 'flex-start' },
+  heroSeasonPill: { alignSelf: 'flex-start', backgroundColor: 'rgba(128,128,128,0.22)', borderRadius: 99, paddingVertical: 4, paddingHorizontal: 10, marginBottom: 10 },
+  heroSeasonPillText: { fontSize: 10, fontWeight: '800', letterSpacing: 1 },
+  heroName: { fontSize: 20, fontWeight: '700', color: colors.white },
+  heroSub: { fontSize: 12.5, color: 'rgba(255,255,255,.6)', fontStyle: 'italic', marginTop: 4 },
+  statGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
+  statCard: { width: '47%', backgroundColor: colors.white, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.warmBorder, padding: 14, gap: 8 },
+  pendingNote: { fontSize: 11, color: colors.gold, fontWeight: '700' },
+  cardTitle: { fontSize: 16, fontWeight: '700', color: colors.g800 },
+  cardSub: { fontSize: 12.5, color: colors.muted, marginBottom: 14, marginTop: 2 },
+  annItem: { borderTopWidth: 1, borderTopColor: colors.cream, paddingTop: 10, marginTop: 10 },
+  annDate: { fontSize: 10.5, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.6, color: colors.gold },
+  annTitle: { fontSize: 14, fontWeight: '700', color: colors.g800, marginTop: 2 },
+  annBody: { fontSize: 12.5, color: '#444', marginTop: 3, lineHeight: 18 },
+})
