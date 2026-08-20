@@ -692,10 +692,24 @@ create or replace function public.stats_sacraments()
 returns table(total bigint, baptised bigint, confirmed bigint, adults bigint, children bigint)
 language sql security definer set search_path = public stable
 as $$
+  -- Adult vs child is based on actual age from date_of_birth, not on whether
+  -- someone's a profiles row (has their own login) or a dependents row (added
+  -- by a guardian) — those are about who manages the record, not how old
+  -- someone is. Falls back to the table-based guess only when birthdate is
+  -- unknown (it's optional at registration).
   with people as (
-    select baptised, confirmed, false as is_child from public.profiles where role = 'member'
+    select baptised, confirmed, date_of_birth, false as fallback_is_child from public.profiles where role = 'member'
     union all
-    select baptised, confirmed, true as is_child from public.dependents
+    select baptised, confirmed, date_of_birth, true as fallback_is_child from public.dependents
+  ),
+  classified as (
+    select
+      baptised, confirmed,
+      case
+        when date_of_birth is not null then extract(year from age(current_date, date_of_birth)) < 18
+        else fallback_is_child
+      end as is_child
+    from people
   )
   select
     count(*),
@@ -703,7 +717,7 @@ as $$
     count(*) filter (where confirmed),
     count(*) filter (where not is_child),
     count(*) filter (where is_child)
-  from people;
+  from classified;
 $$;
 
 -- Upcoming birthdays across the whole congregation (adults + children), visible to
@@ -713,16 +727,20 @@ create or replace function public.upcoming_birthdays(days_ahead int default 30)
 returns table(full_name text, date_of_birth date, is_child boolean, ward ward, next_birthday date)
 language sql security definer set search_path = public stable
 as $$
+  -- Adult vs child (for the 👶 marker) is based on actual age from
+  -- date_of_birth, not on which table the record came from — see
+  -- stats_sacraments() above for the same reasoning.
   with people as (
-    select full_name, date_of_birth, false as is_child, ward
+    select full_name, date_of_birth, ward
     from public.profiles where role = 'member' and date_of_birth is not null
     union all
-    select full_name, date_of_birth, true as is_child, ward
+    select full_name, date_of_birth, ward
     from public.dependents where date_of_birth is not null
   ),
   next_bday as (
     select
-      full_name, date_of_birth, is_child, ward,
+      full_name, date_of_birth, ward,
+      extract(year from age(current_date, date_of_birth)) < 18 as is_child,
       make_date(
         extract(year from current_date)::int
           + case when make_date(extract(year from current_date)::int, extract(month from date_of_birth)::int,
