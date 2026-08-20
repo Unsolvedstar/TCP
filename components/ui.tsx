@@ -58,7 +58,7 @@ export function SectionLabel({ children }: { children: React.ReactNode }) {
 
 export function Chip({ label, color }: { label: string; color: string }) {
   return (
-    <View style={[styles.chip, { backgroundColor: color + '18' }]}>
+    <View style={[styles.chip, { backgroundColor: color + '26', borderColor: color + '55' }]}>
       <Text style={[styles.chipText, { color }]} numberOfLines={1}>
         {label}
       </Text>
