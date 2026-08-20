@@ -157,16 +157,23 @@ the asset existed but nothing referenced it.
 > circular/squircle launcher, and the splash flash on cold start — before
 > shipping it.
 
-**Registration collects sacraments/league too — as a claim, not a fact.**
-Register (and "Add Child") now also ask "already baptised?", "already
-confirmed?", and which league someone already belongs to. This does **not**
-set `baptised`/`confirmed`/`league` directly — it creates the same
-`pending_baptism` / `pending_confirmation` / `pending_league` request an
-existing member would submit from their portal, so it still needs an admin to
-confirm it before it counts (same rule explained above: nobody can hand
-themselves a sacramental record just by typing into a form). Answering "already
-confirmed" without "already baptised" is rejected client-side and dropped
-server-side too, since confirmation always follows baptism.
+**Registration collects sacraments/league too — and records them as fact.**
+Register (and "Add Child") also ask "already baptised?", "already confirmed?",
+and which league someone already belongs to. Unlike requesting these things
+*later* from the portal, claiming them at registration sets `baptised` /
+`confirmed` / `league` directly — the reasoning being that this is a statement
+about something that already happened (you already got baptised, you're
+already in a league), not a new event the church needs to schedule, so there's
+nothing for an admin to "approve." The signature, sponsor/mentor name, and any
+attached certificate are still captured and stored as an attestation record on
+the profile (`baptism_application` / `confirmation_application` /
+`league_application`) even though nothing needs to clear it. Requesting
+baptism, confirmation, or a league change *after* you're already a member is a
+different, forward-looking action — the church still has to actually schedule
+and perform that — so that still goes through the pending/admin-approval flow
+described below. Answering "already confirmed" without "already baptised" is
+rejected client-side and dropped server-side too, since confirmation always
+follows baptism.
 
 **Baptism, confirmation, and league requests are now real application forms,
 signed.** Requesting baptism asks for the type (Infant/Adult) and a

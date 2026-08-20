@@ -119,7 +119,7 @@ export default function Register() {
     {
       key: 'involvement',
       title: 'Sacraments & League',
-      subtitle: "Already baptised, confirmed, or part of a league? Tell us now so the office can confirm it — no need to ask again after you sign up.",
+      subtitle: 'Already baptised, confirmed, or part of a league? Tell us now — this is recorded on your record right away, no approval needed.',
       validate: () => {
         if (alreadyConfirmed === 'yes' && alreadyBaptised !== 'yes') {
           return 'Confirmation always follows baptism — please also answer "Yes" to already baptised, or leave both blank if you\'re not sure.'

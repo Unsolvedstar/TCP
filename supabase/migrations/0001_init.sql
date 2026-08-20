@@ -91,16 +91,19 @@ declare
   claims_confirmed boolean := coalesce((new.raw_user_meta_data->>'already_confirmed')::boolean, false) and claims_baptised;
   claims_league league := nullif(nullif(new.raw_user_meta_data->>'initial_league', ''), 'None')::league;
 begin
-  -- What someone types at sign-up is a claim, not a fact: baptism/confirmation/league
-  -- are only ever recorded as *pending* here, exactly like requesting them later from
-  -- the portal would — an admin still has to confirm them before they count. This is
-  -- just collecting the claim (and the same sponsor/reason/signature questions the
-  -- portal's request forms ask) once, up front, instead of making them ask again
-  -- after registering. Confirmation without also claiming baptism is nonsensical, so
-  -- it's dropped rather than trusted.
+  -- What someone claims at sign-up (already baptised/confirmed, already in a
+  -- league) is recorded as fact straight away, not a pending request — it's a
+  -- statement about something that already happened, not a future event the
+  -- office needs to schedule. The signature/sponsor/certificate details are
+  -- still captured and kept as an attestation record alongside it. Joining a
+  -- league, or requesting baptism/confirmation, *later* from the portal is
+  -- different — those go through request_*() below and still need admin
+  -- approval, since they're new events the church has to arrange. Confirmation
+  -- without also claiming baptism is nonsensical, so it's dropped rather than
+  -- trusted.
   insert into public.profiles (
     id, full_name, phone, date_of_birth, gender, ward,
-    pending_league, pending_baptism, pending_confirmation,
+    league, baptised, confirmed,
     league_application, baptism_application, confirmation_application
   )
   values (
@@ -110,7 +113,7 @@ begin
     nullif(new.raw_user_meta_data->>'date_of_birth', '')::date,
     nullif(new.raw_user_meta_data->>'gender', '')::gender,
     coalesce((new.raw_user_meta_data->>'ward')::ward, 'Central'),
-    claims_league,
+    coalesce(claims_league, 'None'),
     claims_baptised,
     claims_confirmed,
     case when claims_league is null then null else
@@ -403,16 +406,16 @@ declare
   claims_confirmed boolean := coalesce(p_already_confirmed, false) and claims_baptised;
   claims_league league := case when p_initial_league = 'None' then null else p_initial_league end;
 begin
-  -- Same rule as new adult sign-ups: what a guardian claims here goes on as a
-  -- *pending* request, not a fact — an admin still has to confirm it.
+  -- Same rule as new adult sign-ups: what a guardian claims here is recorded as
+  -- fact straight away, not a pending request — see handle_new_user() above.
   insert into public.dependents (
     guardian_id, full_name, date_of_birth, ward, gender,
-    pending_league, pending_baptism, pending_confirmation,
+    league, baptised, confirmed,
     league_application, baptism_application, confirmation_application
   )
   values (
     auth.uid(), p_full_name, p_date_of_birth, p_ward, p_gender,
-    claims_league, claims_baptised, claims_confirmed,
+    coalesce(claims_league, 'None'), claims_baptised, claims_confirmed,
     case when claims_league is null then null else
       jsonb_build_object(
         'reason', p_league_reason, 'signature', p_signature, 'signed_at', now(),

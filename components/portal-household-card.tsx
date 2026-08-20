@@ -96,7 +96,7 @@ export function PortalHouseholdCard({ dependents, onChanged }: { dependents: Dep
     {
       key: 'involvement',
       title: 'Sacraments & League',
-      subtitle: 'Already baptised, confirmed, or part of a league? Tell us now so the office can confirm it.',
+      subtitle: 'Already baptised, confirmed, or part of a league? Tell us now — this is recorded on their record right away, no approval needed.',
       validate: () => {
         if (childConfirmed === 'yes' && childBaptised !== 'yes') {
           return 'Confirmation always follows baptism — please also answer "Yes" to already baptised, or leave both blank if you\'re not sure.'
