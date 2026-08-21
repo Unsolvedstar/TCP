@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Alert, Image, Platform, Text, View } from 'react-native'
+import { Image, Platform, Text, View } from 'react-native'
+import { Alert } from '../lib/alert'
 import * as ImagePicker from 'expo-image-picker'
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator'
 import { Button } from './ui'

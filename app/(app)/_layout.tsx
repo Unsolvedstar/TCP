@@ -1,8 +1,9 @@
 import { Redirect, Tabs } from 'expo-router'
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Button } from '../../components/ui'
 import { useAuth } from '../../lib/auth-context'
+import { Alert } from '../../lib/alert'
 import { colors, radius } from '../../theme'
 
 export { ErrorBoundary } from '../../components/error-boundary'

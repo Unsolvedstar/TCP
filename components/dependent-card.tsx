@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Alert, Pressable, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
+import { Alert } from '../lib/alert'
 import { Button, Chip, DateField, Field, SelectField, formatDate } from './ui'
 import { SignaturePad } from './signature-pad'
 import { CertificatePicker } from './certificate-picker'

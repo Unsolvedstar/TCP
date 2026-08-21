@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Alert, Modal, ScrollView, Switch, Text, View } from 'react-native'
+import { Modal, ScrollView, Switch, Text, View } from 'react-native'
+import { Alert } from '../lib/alert'
 import { Button, DateField, Field, SelectField, formatDate } from './ui'
 import { Wizard, type WizardStepDef } from './wizard'
 import { styles } from './edit-modal.styles'

@@ -34,20 +34,36 @@ RLS enabled on all 6 tables, and the anon-callable pre-auth RPCs
 tables returns nothing. That test account needs re-registering through the
 app.
 
-**Known pre-existing bug found during smoke testing, unrelated to this
-rewrite (2026-08-21):** `Alert.alert()` is a no-op stub on the web platform
-(`react-native-web`'s implementation is literally `static alert() {}`), and
-`vercel.json`/the `build:web` script confirm web is a real deployed target.
-Every error message and every destructive-action confirmation (remove
-member, remove dependent, promote/demote, the member-removal cascade
-warning) silently does nothing on web today — the action is wrapped inside
-the Alert callback, which never fires. Affects `dashboard.tsx`,
-`members.tsx`, `app/(app)/_layout.tsx`, `certificate-picker.tsx`,
-`dependent-card.tsx`, `edit-child-modal.tsx`, `edit-member-modal.tsx`,
-`portal-details-card.tsx`, `portal-household-card.tsx`,
-`portal-involvement-card.tsx`. Needs a cross-platform confirm/alert
-replacement — tracked here as a separate follow-up, not fixed as part of
-this rewrite.
+**Pre-existing `Alert.alert` web bug — fixed (2026-08-21).** Found during
+smoke testing, unrelated to the rewrite itself: `Alert.alert()` is a no-op
+stub on the web platform (`react-native-web`'s implementation is literally
+`static alert() {}`), and `vercel.json`/the `build:web` script confirm web
+is a real deployed target. Every error message and every destructive-action
+confirmation (remove member, remove dependent, promote/demote, the
+member-removal cascade warning) was silently doing nothing on web.
+
+Fixed with a drop-in replacement using the platform-file-split convention
+already used elsewhere in this codebase (see `signature-pad.native.tsx` /
+`.web.tsx`): `lib/alert.native.tsx` re-exports React Native's real `Alert`
+unchanged; `lib/alert.web.tsx` implements the same `Alert.alert(title,
+message, buttons)` signature as an actual on-screen modal (styled to match
+the app's existing bottom-sheet/picker modals), backed by an `<AlertHost />`
+mounted once in `app/_layout.tsx`. Every call site's import moved from
+`react-native` to `../lib/alert` — the call sites themselves are unchanged.
+Affected 10 files: `dashboard.tsx`, `members.tsx`, `app/(app)/_layout.tsx`,
+`certificate-picker.tsx`, `dependent-card.tsx`, `edit-child-modal.tsx`,
+`edit-member-modal.tsx`, `portal-details-card.tsx`,
+`portal-household-card.tsx`, `portal-involvement-card.tsx`.
+
+Verified via real browser interaction (Playwright) against the local
+Supabase instance, covering all three call shapes used in the app: a
+two-button destructive confirm (removing a dependent — confirmed the dialog
+renders and that confirming it actually deletes the row), a two-button
+non-destructive confirm (promoting a member to admin — confirmed end-to-end),
+and a single-button error message with no `buttons` argument (the
+last-remaining-admin block — confirmed the real backend error text renders
+and OK dismisses it). `tsc --noEmit`, the Jest suite (38/38), and the RLS
+suite (35/35) all still pass after the change.
 
 ## Scope split
 
@@ -230,13 +246,14 @@ errors across every step:
       behavior wasn't independently re-verified due to a `fill()` artifact in
       the test script, not a suspected app issue.
 - [x] Admin: create and delete an announcement.
-- [ ] **Blocked by the `Alert.alert` web bug above, not by anything in this
-      rewrite**: admin promote/demote + last-admin block, admin remove a
-      member with dependents (cascade warning), portal remove-a-dependent —
-      the confirm button does nothing on web today. All three are covered
-      structurally instead: `admin_set_role`/`admin_remove_member`/
-      `remove_my_dependent` are exercised directly (bypassing the UI) by the
-      RLS test suite, including the per-congregation last-admin guard.
+- [x] Admin promote/demote + last-admin block, and portal remove-a-dependent
+      — previously blocked by the `Alert.alert` web bug (now fixed, see
+      above); all confirmed via real browser interaction, including the
+      last-admin error message actually rendering. Admin remove-a-member-
+      with-dependents (cascade warning) wasn't separately re-clicked, but
+      uses the identical `Alert.alert` call pattern already proven working
+      elsewhere, and `admin_remove_member` itself is exercised directly by
+      the RLS test suite.
 - [ ] Not separately re-verified (same component/RPC patterns already proven
       elsewhere in this pass, low residual risk): logout click, forgot-
       password flow, portal request+cancel league/confirmation (baptism

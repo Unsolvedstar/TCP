@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Alert, Text, View } from 'react-native'
+import { Text, View } from 'react-native'
+import { Alert } from '../lib/alert'
 import { Button, Card, Field, SelectField } from './ui'
 import { LeagueBadge } from './league-badge'
 import { SignaturePad } from './signature-pad'

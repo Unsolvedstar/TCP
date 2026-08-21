@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
-import { ActivityIndicator, Alert, FlatList, Image, Pressable, RefreshControl, Text, TextInput, View } from 'react-native'
+import { ActivityIndicator, FlatList, Image, Pressable, RefreshControl, Text, TextInput, View } from 'react-native'
+import { Alert } from '../../lib/alert'
 import { Card, Chip, GlassSheen, SelectField, formatDate } from '../../components/ui'
 import { EditMemberModal } from '../../components/edit-member-modal'
 import { EditChildModal } from '../../components/edit-child-modal'

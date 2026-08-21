@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useFocusEffect, useRouter } from 'expo-router'
-import { Alert, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native'
+import { RefreshControl, ScrollView, Text, TextInput, View } from 'react-native'
+import { Alert } from '../../lib/alert'
 import { Button, Card, GlassSheen } from '../../components/ui'
 import { WardBreakdownCard } from '../../components/ward-breakdown-card'
 import { LeagueBreakdownCard } from '../../components/league-breakdown-card'
