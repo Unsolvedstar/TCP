@@ -4,6 +4,7 @@ import { Alert } from '../lib/alert'
 import { Button, Card, DateField, Field, SelectField } from './ui'
 import { SignaturePad } from './signature-pad'
 import { CertificatePicker } from './certificate-picker'
+import { ChipRow } from './chip-row'
 import { Wizard, type WizardStepDef } from './wizard'
 import { DependentCard } from './dependent-card'
 import { styles } from './portal-household-card.styles'
@@ -24,7 +25,11 @@ export function PortalHouseholdCard({ dependents, onChanged }: { dependents: Dep
   const [childConfirmed, setChildConfirmed] = useState('')
   const [childBaptismType, setChildBaptismType] = useState('')
   const [childSponsorName, setChildSponsorName] = useState('')
+  const [childBaptismLocation, setChildBaptismLocation] = useState('')
+  const [childBaptismOfficiant, setChildBaptismOfficiant] = useState('')
   const [childMentorName, setChildMentorName] = useState('')
+  const [childConfirmationLocation, setChildConfirmationLocation] = useState('')
+  const [childConfirmationOfficiant, setChildConfirmationOfficiant] = useState('')
   const [childLeagueReason, setChildLeagueReason] = useState('')
   const [childBaptismCert, setChildBaptismCert] = useState<string | null>(null)
   const [childConfirmationCert, setChildConfirmationCert] = useState<string | null>(null)
@@ -48,6 +53,10 @@ export function PortalHouseholdCard({ dependents, onChanged }: { dependents: Dep
       p_signature: childSignature,
       p_baptism_certificate: childBaptismCert,
       p_confirmation_certificate: childConfirmationCert,
+      p_baptism_location: childBaptismLocation.trim() || null,
+      p_baptism_officiant: childBaptismOfficiant.trim() || null,
+      p_confirmation_location: childConfirmationLocation.trim() || null,
+      p_confirmation_officiant: childConfirmationOfficiant.trim() || null,
     })
     setBusy(false)
     if (error) {
@@ -63,7 +72,11 @@ export function PortalHouseholdCard({ dependents, onChanged }: { dependents: Dep
     setChildConfirmed('')
     setChildBaptismType('')
     setChildSponsorName('')
+    setChildBaptismLocation('')
+    setChildBaptismOfficiant('')
     setChildMentorName('')
+    setChildConfirmationLocation('')
+    setChildConfirmationOfficiant('')
     setChildLeagueReason('')
     setChildBaptismCert(null)
     setChildConfirmationCert(null)
@@ -77,7 +90,7 @@ export function PortalHouseholdCard({ dependents, onChanged }: { dependents: Dep
       key: 'name',
       title: "Child's Name",
       validate: () => (!childName.trim() ? "Please enter the child's name." : null),
-      render: () => <Field label="Full Name" value={childName} onChangeText={setChildName} placeholder="e.g. Tumelo Mogowe" />,
+      render: () => <Field label="Full Name" value={childName} onChangeText={setChildName} placeholder="e.g. Tshedza Tshikovhi" />,
     },
     {
       key: 'birthday',
@@ -112,19 +125,18 @@ export function PortalHouseholdCard({ dependents, onChanged }: { dependents: Dep
       },
       render: () => (
         <>
-          <SelectField
+          <ChipRow
             label="Already baptised?"
             value={childBaptised}
             onChange={setChildBaptised}
             options={[
               { value: 'yes', label: 'Yes' },
-              { value: 'no', label: 'No / Not yet' },
+              { value: 'no', label: 'No, not yet' },
             ]}
-            placeholder="Select…"
           />
           {childBaptised === 'yes' ? (
             <>
-              <SelectField
+              <ChipRow
                 label="Baptism type"
                 value={childBaptismType}
                 onChange={setChildBaptismType}
@@ -132,33 +144,33 @@ export function PortalHouseholdCard({ dependents, onChanged }: { dependents: Dep
                   { value: 'Infant', label: 'Infant' },
                   { value: 'Adult', label: 'Adult' },
                 ]}
-                placeholder="Select…"
               />
-              <Field label="Sponsor / Godparent name" value={childSponsorName} onChangeText={setChildSponsorName} placeholder="e.g. Thabo Mokoena" />
+              <Field label="Sponsor / Godparent name (optional)" value={childSponsorName} onChangeText={setChildSponsorName} placeholder="e.g. Tshedza Tshikovhi" />
+              <Field label="Where were they baptised? (optional)" value={childBaptismLocation} onChangeText={setChildBaptismLocation} placeholder="e.g. Tshwane City Parish" />
+              <Field label="Who baptised them? (optional, e.g. the pastor's name)" value={childBaptismOfficiant} onChangeText={setChildBaptismOfficiant} placeholder="Pastor's name" />
             </>
           ) : null}
-          <SelectField
+          <ChipRow
             label="Already confirmed?"
             value={childConfirmed}
             onChange={setChildConfirmed}
             options={[
               { value: 'yes', label: 'Yes' },
-              { value: 'no', label: 'No / Not yet' },
+              { value: 'no', label: 'No, not yet' },
             ]}
-            placeholder="Select…"
           />
           {childConfirmed === 'yes' ? (
             <>
               <Field label="Confirmation mentor (optional)" value={childMentorName} onChangeText={setChildMentorName} placeholder="If they have one" />
-              <CertificatePicker label="Baptism Certificate (optional, if applicable)" value={childBaptismCert} onChange={setChildBaptismCert} />
+              <Field label="Where were they confirmed? (optional)" value={childConfirmationLocation} onChangeText={setChildConfirmationLocation} placeholder="e.g. Tshwane City Parish" />
+              <Field label="Who confirmed them? (optional)" value={childConfirmationOfficiant} onChangeText={setChildConfirmationOfficiant} placeholder="Pastor's name" />
             </>
           ) : null}
-          <SelectField
-            label="League / Organisation (optional)"
+          <ChipRow
+            label="League / Organisation (optional — already belong to one?)"
             value={childLeague}
             onChange={setChildLeague}
-            options={leagues.map((l) => ({ value: l.id, label: l.label }))}
-            placeholder="Select if they already belong to one…"
+            options={leagues.map((l) => ({ value: l.id, label: l.label, color: l.color }))}
           />
           {childLeague ? (
             <>

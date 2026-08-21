@@ -1,4 +1,5 @@
-import { ScrollView, Text, View } from 'react-native'
+import { Pressable, ScrollView, Text, View } from 'react-native'
+import { router } from 'expo-router'
 import { Card } from '../../components/ui'
 import { useLiturgicalSeason } from '../../lib/liturgical-theme'
 import { useCongregationData } from '../../lib/congregation-context'
@@ -30,7 +31,11 @@ export default function Banking() {
 
       <Card>
         <Text style={styles.cardTitle}>Other Ways to Give</Text>
-        <Text style={styles.cardSub}>SnapScan is also accepted on Sundays. Look for the scanner at the offering table. It's tracked separately on the parish's weekly offering summary.</Text>
+        <Text style={styles.cardSub}>SnapScan is also accepted on Sundays. Look for the scanner at the offering table, or scan the code below anytime. It's tracked separately on the parish's weekly offering summary.</Text>
+        <Pressable style={styles.snapScanLink} onPress={() => router.push('/(app)/banking-snapscan')}>
+          <Text style={styles.snapScanLinkLabel}>View SnapScan QR Code</Text>
+          <Text style={styles.snapScanLinkArrow}>→</Text>
+        </Pressable>
       </Card>
 
       <Card>

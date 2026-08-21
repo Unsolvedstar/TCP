@@ -1,13 +1,17 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
 import { ActivityIndicator, FlatList, Image, Pressable, RefreshControl, Text, TextInput, View } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { Alert } from '../../lib/alert'
-import { Card, Chip, GlassSheen, SelectField, formatDate } from '../../components/ui'
+import { Button, Card, Chip, DateField, GlassSheen, SelectField, formatDate } from '../../components/ui'
 import { EditMemberModal } from '../../components/edit-member-modal'
 import { EditChildModal } from '../../components/edit-child-modal'
+import { ActivityList } from '../../components/activity-list'
+import { ChipRow } from '../../components/chip-row'
 import { supabase } from '../../lib/supabase'
 import { colors, genderColors } from '../../theme'
 import { useCongregationData } from '../../lib/congregation-context'
+import { applicationDetailText, applicationCertificateList } from '../../lib/application-detail'
 import { styles } from '../../styles/members.styles'
 import type { BaptismApplication, ChildRow, ConfirmationApplication, LeagueApplication, Profile } from '../../lib/types'
 
@@ -27,42 +31,18 @@ type PendingItem = {
   isChild: boolean
   guardianName?: string
   application: LeagueApplication | BaptismApplication | ConfirmationApplication | null
+  leagueId?: string
 }
 
-function applicationDetail(p: PendingItem): string | null {
-  if (!p.application) return null
-  const parts: (string | null | undefined)[] =
-    p.type === 'league'
-      ? [(p.application as LeagueApplication).reason ? `Reason: ${(p.application as LeagueApplication).reason}` : null]
-      : p.type === 'baptism'
-        ? [
-            (p.application as BaptismApplication).type,
-            (p.application as BaptismApplication).sponsor_name ? `Sponsor: ${(p.application as BaptismApplication).sponsor_name}` : null,
-            (p.application as BaptismApplication).note ? `Note: ${(p.application as BaptismApplication).note}` : null,
-          ]
-        : [
-            (p.application as ConfirmationApplication).mentor_name ? `Mentor: ${(p.application as ConfirmationApplication).mentor_name}` : null,
-            (p.application as ConfirmationApplication).note ? `Note: ${(p.application as ConfirmationApplication).note}` : null,
-          ]
-  const text = parts.filter(Boolean).join(', ')
-  return text || null
-}
-
-function applicationCertificates(p: PendingItem): { label: string; uri: string }[] {
-  if (!p.application) return []
-  const out: { label: string; uri: string }[] = []
-  const app = p.application as LeagueApplication & ConfirmationApplication
-  if (app.baptism_certificate) out.push({ label: 'Baptism Cert.', uri: app.baptism_certificate })
-  if (app.confirmation_certificate) out.push({ label: 'Confirmation Cert.', uri: app.confirmation_certificate })
-  return out
-}
+type LeagueAdminRow = { profile_id: string; league_id: string; profiles: { full_name: string } | null }
 
 export default function Members() {
   const { wards, leagues } = useCongregationData()
-  const [tab, setTab] = useState<'adults' | 'children'>('adults')
+  const [tab, setTab] = useState<'adults' | 'children' | 'activity'>('adults')
   const [members, setMembers] = useState<Profile[]>([])
   const [children, setChildren] = useState<ChildRow[]>([])
   const [admins, setAdmins] = useState<Profile[]>([])
+  const [leagueAdmins, setLeagueAdmins] = useState<LeagueAdminRow[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [search, setSearch] = useState('')
@@ -70,16 +50,21 @@ export default function Members() {
   const [leagueFilter, setLeagueFilter] = useState('')
   const [editingMember, setEditingMember] = useState<Profile | null>(null)
   const [editingChild, setEditingChild] = useState<ChildRow | null>(null)
+  const [schedulingKey, setSchedulingKey] = useState<string | null>(null)
+  const [ceremonyDate, setCeremonyDate] = useState<string | null>(null)
+  const [sendingDate, setSendingDate] = useState(false)
 
   const loadAll = useCallback(async () => {
-    const [{ data: mem, error: memErr }, { data: dep, error: depErr }, { data: adm, error: admErr }] = await Promise.all([
+    const [{ data: mem, error: memErr }, { data: dep, error: depErr }, { data: adm, error: admErr }, { data: la }] = await Promise.all([
       supabase.from('profiles').select('*').eq('role', 'member').order('full_name'),
       supabase.from('dependents').select('*, guardian:profiles(full_name)').order('full_name'),
       supabase.from('profiles').select('*').eq('role', 'admin').order('full_name'),
+      supabase.from('league_admins').select('profile_id, league_id, profiles(full_name)'),
     ])
     if (!memErr) setMembers((mem as Profile[]) ?? [])
     if (!depErr) setChildren((dep as unknown as ChildRow[]) ?? [])
     if (!admErr) setAdmins((adm as Profile[]) ?? [])
+    setLeagueAdmins((la as unknown as LeagueAdminRow[]) ?? [])
     setLoading(false)
   }, [])
 
@@ -100,7 +85,10 @@ export default function Members() {
     const items: PendingItem[] = []
     members.forEach((m) => {
       if (m.pending_league_id)
-        items.push({ id: m.id, name: m.full_name, ward_id: m.ward_id, type: 'league', label: `Wants to join ${leagueLabel(m.pending_league_id)}`, isChild: false, application: m.league_application })
+        items.push({
+          id: m.id, name: m.full_name, ward_id: m.ward_id, type: 'league', label: `Wants to join ${leagueLabel(m.pending_league_id)}`,
+          isChild: false, application: m.league_application, leagueId: m.pending_league_id,
+        })
       if (m.pending_baptism)
         items.push({ id: m.id, name: m.full_name, ward_id: m.ward_id, type: 'baptism', label: 'Requesting Baptism', isChild: false, application: m.baptism_application })
       if (m.pending_confirmation)
@@ -109,7 +97,10 @@ export default function Members() {
     children.forEach((c) => {
       const guardianName = c.guardian?.full_name ?? 'Unknown guardian'
       if (c.pending_league_id)
-        items.push({ id: c.id, name: c.full_name, ward_id: c.ward_id, type: 'league', label: `Wants to join ${leagueLabel(c.pending_league_id)}`, isChild: true, guardianName, application: c.league_application })
+        items.push({
+          id: c.id, name: c.full_name, ward_id: c.ward_id, type: 'league', label: `Wants to join ${leagueLabel(c.pending_league_id)}`,
+          isChild: true, guardianName, application: c.league_application, leagueId: c.pending_league_id,
+        })
       if (c.pending_baptism)
         items.push({ id: c.id, name: c.full_name, ward_id: c.ward_id, type: 'baptism', label: 'Requesting Baptism', isChild: true, guardianName, application: c.baptism_application })
       if (c.pending_confirmation)
@@ -117,6 +108,27 @@ export default function Members() {
     })
     return items
   }, [members, children, leagues])
+
+  const leagueAdminsByLeague = useMemo(() => {
+    const map = new Map<string, { profileId: string; name: string }[]>()
+    leagueAdmins.forEach((r) => {
+      const arr = map.get(r.league_id) ?? []
+      arr.push({ profileId: r.profile_id, name: r.profiles?.full_name ?? 'Unknown' })
+      map.set(r.league_id, arr)
+    })
+    return map
+  }, [leagueAdmins])
+
+  async function revokeLeagueAdmin(profileId: string, leagueId: string, leagueLabel: string, name: string) {
+    Alert.alert('Remove league admin', `Remove ${name} as admin of ${leagueLabel}?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Remove', style: 'destructive', onPress: async () => {
+        const { error } = await supabase.rpc('admin_set_league_admin', { target_profile_id: profileId, target_league_id: leagueId, make_admin: false })
+        if (error) Alert.alert('Could not remove', error.message)
+        else loadAll()
+      } },
+    ])
+  }
 
   const matchesLeagueFilter = (leagueId: string | null) =>
     !leagueFilter || (leagueFilter === NO_LEAGUE_FILTER ? leagueId === null : leagueId === leagueFilter)
@@ -136,13 +148,38 @@ export default function Members() {
     [children, search, wardFilter, leagueFilter]
   )
 
-  async function approve(item: PendingItem) {
-    const prefix = item.isChild ? 'approve_dependent_' : 'approve_'
-    const fn = `${prefix}${item.type}`
-    const { error } = await supabase.rpc(fn, { target_id: item.id })
-    if (error) Alert.alert('Could not approve', error.message)
-    else loadAll()
+  function pendingKey(item: PendingItem) {
+    return `${item.id}-${item.type}`
   }
+
+  function startScheduling(item: PendingItem) {
+    setSchedulingKey(pendingKey(item))
+    setCeremonyDate(null)
+  }
+
+  async function sendCeremonyDate(item: PendingItem) {
+    if (!ceremonyDate) {
+      Alert.alert('Pick a date', 'Please choose a date first.')
+      return
+    }
+    setSendingDate(true)
+    const { error } = await supabase.rpc('propose_ceremony_date', {
+      target_id: item.id,
+      p_is_dependent: item.isChild,
+      p_kind: item.type,
+      p_ceremony_date: ceremonyDate,
+      p_league_id: item.leagueId ?? null,
+    })
+    setSendingDate(false)
+    if (error) {
+      Alert.alert('Could not send date', error.message)
+      return
+    }
+    setSchedulingKey(null)
+    setCeremonyDate(null)
+    loadAll()
+  }
+
   async function deny(item: PendingItem) {
     const prefix = item.isChild ? 'deny_dependent_' : 'deny_'
     const fn = `${prefix}${item.type}`
@@ -207,7 +244,7 @@ export default function Members() {
     )
   }
 
-  const data: (Profile | ChildRow)[] = tab === 'adults' ? filteredMembers : filteredChildren
+  const data: (Profile | ChildRow)[] = tab === 'adults' ? filteredMembers : tab === 'children' ? filteredChildren : []
 
   return (
     <View style={styles.flex}>
@@ -227,28 +264,32 @@ export default function Members() {
               <Card>
                 <Text style={styles.cardTitle}>Pending Requests</Text>
                 {pending.map((p, i) => {
-                  const detail = applicationDetail(p)
-                  const certs = applicationCertificates(p)
+                  const detail = applicationDetailText(p.type, p.application)
+                  const certs = applicationCertificateList(p.application)
+                  const isScheduling = schedulingKey === pendingKey(p)
                   return (
                     <View key={`${p.id}-${p.type}-${i}`} style={styles.pendingRow}>
                       <View style={{ flexDirection: 'row' }}>
                         <View style={{ flex: 1 }}>
-                          <Text style={styles.pendingName}>
-                            {p.name} {p.isChild ? '👶' : ''}
-                          </Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                            <Text style={styles.pendingName}>{p.name}</Text>
+                            {p.isChild ? <Ionicons name="body-outline" size={13} color={colors.muted} /> : null}
+                          </View>
                           <Text style={styles.pendingDetail}>
                             {wards.find((w) => w.id === p.ward_id)?.name ?? 'Unknown'} Ward, {p.label}
                             {p.isChild ? ` (Guardian: ${p.guardianName})` : ''}
                           </Text>
                         </View>
-                        <View style={styles.pendingActions}>
-                          <Text style={styles.approveBtn} onPress={() => approve(p)}>
-                            Approve
-                          </Text>
-                          <Text style={styles.denyBtn} onPress={() => deny(p)}>
-                            Deny
-                          </Text>
-                        </View>
+                        {isScheduling ? null : (
+                          <View style={styles.pendingActions}>
+                            <Text style={styles.approveBtn} onPress={() => startScheduling(p)}>
+                              Schedule
+                            </Text>
+                            <Text style={styles.denyBtn} onPress={() => deny(p)}>
+                              Deny
+                            </Text>
+                          </View>
+                        )}
                       </View>
                       {detail || p.application?.signature || certs.length > 0 ? (
                         <View style={styles.pendingAppRow}>
@@ -269,6 +310,23 @@ export default function Members() {
                           </View>
                         </View>
                       ) : null}
+                      {isScheduling ? (
+                        <View style={{ gap: 8, marginTop: 8 }}>
+                          <Text style={styles.pendingAppText}>
+                            Pick a date for {p.type === 'league' ? `their ${leagues.find((l) => l.id === p.leagueId)?.label ?? 'league'} installation` : `the ${p.type}`} —
+                            {p.name} will need to confirm it works before it's final.
+                          </Text>
+                          <DateField label="Ceremony date" value={ceremonyDate} onChange={setCeremonyDate} />
+                          <View style={{ flexDirection: 'row', gap: 8 }}>
+                            <View style={{ flex: 1 }}>
+                              <Button title="Send Date" onPress={() => sendCeremonyDate(p)} loading={sendingDate} />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                              <Button title="Cancel" variant="secondary" onPress={() => setSchedulingKey(null)} disabled={sendingDate} />
+                            </View>
+                          </View>
+                        </View>
+                      ) : null}
                     </View>
                   )
                 })}
@@ -282,41 +340,76 @@ export default function Members() {
               <Text onPress={() => setTab('children')} style={[styles.tabBtn, tab === 'children' && styles.tabBtnActive]}>
                 Children ({children.length})
               </Text>
+              <Text onPress={() => setTab('activity')} style={[styles.tabBtn, tab === 'activity' && styles.tabBtnActive]}>
+                Activity
+              </Text>
             </View>
 
-            <TextInput style={styles.search} value={search} onChangeText={setSearch} placeholder="Search by name or phone…" placeholderTextColor="#a99" />
-            <View style={styles.filterRow}>
-              <ScrollFilterChip label="All Wards" active={!wardFilter} onPress={() => setWardFilter('')} />
-              {wards.map((w) => (
-                <ScrollFilterChip key={w.id} label={w.name} active={wardFilter === w.id} onPress={() => setWardFilter(w.id)} />
-              ))}
-            </View>
-            <View style={{ marginBottom: 16 }}>
-              <SelectField
-                label="Filter by League / Organisation"
-                value={leagueFilter}
-                onChange={setLeagueFilter}
-                placeholder="All leagues & organisations"
-                options={[
-                  { value: '', label: 'All leagues & organisations' },
-                  { value: NO_LEAGUE_FILTER, label: 'No League / Organisation' },
-                  ...leagues.map((l) => ({ value: l.id, label: l.label })),
-                ]}
-              />
-            </View>
-
-            <Card>
-              <Text style={styles.cardTitle}>Admins ({admins.length})</Text>
-              {admins.map((a) => (
-                <View key={a.id} style={[styles.pendingRow, { flexDirection: 'row', alignItems: 'center' }]}>
-                  <Text style={{ flex: 1, fontSize: 13.5, color: colors.text }}>{a.full_name}</Text>
-                  <Text style={styles.denyBtn} onPress={() => confirmDemoteAdmin(a)}>
-                    Remove Access
-                  </Text>
+            {tab === 'activity' ? (
+              <ActivityList people={[...members, ...admins]} />
+            ) : (
+              <>
+                <TextInput style={styles.search} value={search} onChangeText={setSearch} placeholder="Search by name or phone…" placeholderTextColor="#a99" />
+                <View style={{ marginBottom: 16 }}>
+                  <ChipRow
+                    options={[{ value: '', label: 'All Wards' }, ...wards.map((w) => ({ value: w.id, label: w.name, color: w.color }))]}
+                    value={wardFilter}
+                    onChange={setWardFilter}
+                  />
                 </View>
-              ))}
-              <Text style={styles.adminHint}>To give someone admin access, open their profile below and tap "Promote to Admin".</Text>
-            </Card>
+                <View style={{ marginBottom: 16 }}>
+                  <SelectField
+                    label="Filter by League / Organisation"
+                    value={leagueFilter}
+                    onChange={setLeagueFilter}
+                    placeholder="All leagues & organisations"
+                    options={[
+                      { value: '', label: 'All leagues & organisations' },
+                      { value: NO_LEAGUE_FILTER, label: 'No League / Organisation' },
+                      ...leagues.map((l) => ({ value: l.id, label: l.label })),
+                    ]}
+                  />
+                </View>
+
+                <Card>
+                  <Text style={styles.cardTitle}>Admins ({admins.length})</Text>
+                  {admins.map((a) => (
+                    <View key={a.id} style={[styles.pendingRow, { flexDirection: 'row', alignItems: 'center' }]}>
+                      <Text style={{ flex: 1, fontSize: 13.5, color: colors.text }}>{a.full_name}</Text>
+                      <Text style={styles.denyBtn} onPress={() => confirmDemoteAdmin(a)}>
+                        Remove Access
+                      </Text>
+                    </View>
+                  ))}
+                  <Text style={styles.adminHint}>To give someone admin access, open their profile below and tap "Promote to Admin".</Text>
+                </Card>
+
+                <Card>
+                  <Text style={styles.cardTitle}>League Admins</Text>
+                  {leagues.map((l) => {
+                    const assigned = leagueAdminsByLeague.get(l.id) ?? []
+                    return (
+                      <View key={l.id} style={styles.pendingRow}>
+                        <Text style={{ fontSize: 12.5, fontWeight: '700', color: l.color, marginBottom: 4 }}>{l.label}</Text>
+                        {assigned.length === 0 ? (
+                          <Text style={{ fontSize: 12, color: colors.muted, fontStyle: 'italic' }}>No league admin assigned</Text>
+                        ) : (
+                          assigned.map((a) => (
+                            <View key={a.profileId} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                              <Text style={{ flex: 1, fontSize: 13, color: colors.text }}>{a.name}</Text>
+                              <Text style={styles.denyBtn} onPress={() => revokeLeagueAdmin(a.profileId, l.id, l.label, a.name)}>
+                                Remove
+                              </Text>
+                            </View>
+                          ))
+                        )}
+                      </View>
+                    )
+                  })}
+                  <Text style={styles.adminHint}>To make someone a league admin, open their profile below and choose leagues under "League admin access".</Text>
+                </Card>
+              </>
+            )}
           </View>
         }
         renderItem={({ item }) => {
@@ -342,7 +435,7 @@ export default function Members() {
             </Pressable>
           )
         }}
-        ListEmptyComponent={<Text style={styles.emptyText}>No {tab === 'adults' ? 'members' : 'children'} found.</Text>}
+        ListEmptyComponent={tab === 'activity' ? null : <Text style={styles.emptyText}>No {tab === 'adults' ? 'members' : 'children'} found.</Text>}
       />
 
       {editingMember && (
@@ -363,13 +456,5 @@ export default function Members() {
         />
       )}
     </View>
-  )
-}
-
-function ScrollFilterChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
-  return (
-    <Text onPress={onPress} style={[styles.filterChip, active && styles.filterChipActive]}>
-      {label}
-    </Text>
   )
 }

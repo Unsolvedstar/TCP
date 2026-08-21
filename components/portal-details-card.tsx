@@ -55,7 +55,7 @@ export function PortalDetailsCard({ profile, onChanged }: { profile: Profile; on
               setPhoneDirty(true)
             }}
             keyboardType="phone-pad"
-            placeholder="072 000 0000"
+            placeholder="0760293340"
           />
           {phoneDirty ? <Button title="Save Phone" loading={busy} onPress={savePhone} /> : null}
         </View>

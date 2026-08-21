@@ -207,7 +207,7 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
                   ]}
                   placeholder="Select…"
                 />
-                <Field label="Sponsor / Godparent name" value={sponsorName} onChangeText={setSponsorName} placeholder="e.g. Thabo Mokoena" />
+                <Field label="Sponsor / Godparent name" value={sponsorName} onChangeText={setSponsorName} placeholder="e.g. Tshedza Tshikovhi" />
                 <Field label="Note (optional)" value={baptismNote} onChangeText={setBaptismNote} placeholder="Anything else the office should know" />
                 <SignaturePad value={baptismSignature} onChange={setBaptismSignature} />
                 <Button title="Submit Request" loading={busy} onPress={submitBaptismRequest} />

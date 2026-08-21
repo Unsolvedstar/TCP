@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Modal, ScrollView, Switch, Text, View } from 'react-native'
 import { Alert } from '../lib/alert'
-import { Button, DateField, Field, SelectField, formatDate } from './ui'
+import { Button, Chip, DateField, Field, SelectField, formatDate } from './ui'
 import { Wizard, type WizardStepDef } from './wizard'
 import { styles } from './edit-modal.styles'
 import { supabase } from '../lib/supabase'
 import { colors, genders } from '../theme'
 import { useCongregationData } from '../lib/congregation-context'
+import { applicationDetailText } from '../lib/application-detail'
 import type { Profile } from '../lib/types'
 
 export function EditMemberModal({
@@ -32,6 +33,28 @@ export function EditMemberModal({
   const [baptised, setBaptised] = useState(member.baptised)
   const [confirmed, setConfirmed] = useState(member.confirmed)
   const [saving, setSaving] = useState(false)
+  const [leagueAdminIds, setLeagueAdminIds] = useState<string[]>([])
+
+  const baptismDetail = applicationDetailText('baptism', member.baptism_application)
+  const confirmationDetail = applicationDetailText('confirmation', member.confirmation_application)
+
+  useEffect(() => {
+    supabase
+      .from('league_admins')
+      .select('league_id')
+      .eq('profile_id', member.id)
+      .then(({ data }) => setLeagueAdminIds(((data as { league_id: string }[]) ?? []).map((r) => r.league_id)))
+  }, [member.id])
+
+  async function toggleLeagueAdmin(leagueId: string) {
+    const makeAdmin = !leagueAdminIds.includes(leagueId)
+    const { error } = await supabase.rpc('admin_set_league_admin', { target_profile_id: member.id, target_league_id: leagueId, make_admin: makeAdmin })
+    if (error) {
+      Alert.alert('Could not update', error.message)
+      return
+    }
+    setLeagueAdminIds((ids) => (makeAdmin ? [...ids, leagueId] : ids.filter((id) => id !== leagueId)))
+  }
 
   async function save() {
     setSaving(true)
@@ -115,6 +138,22 @@ export function EditMemberModal({
       <ScrollView style={{ flex: 1, backgroundColor: colors.cream }} contentContainerStyle={{ padding: 20, paddingTop: 60 }}>
         <Text style={styles.modalHeading}>Edit Member</Text>
         {member.reviewed_at ? <Text style={styles.guardianNote}>Last reviewed {formatDate(member.reviewed_at.slice(0, 10))}</Text> : null}
+        {baptismDetail || confirmationDetail ? (
+          <View style={styles.recordBox}>
+            <Text style={styles.recordTitle}>Sacrament record</Text>
+            {baptismDetail ? <Text style={styles.recordText}>Baptism — {baptismDetail}</Text> : null}
+            {confirmationDetail ? <Text style={styles.recordText}>Confirmation — {confirmationDetail}</Text> : null}
+          </View>
+        ) : null}
+        <View style={styles.recordBox}>
+          <Text style={styles.recordTitle}>League admin access</Text>
+          <Text style={styles.recordText}>Which leagues can {member.full_name.split(' ')[0]} manage announcements, events, and join requests for?</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+            {leagues.map((l) => (
+              <Chip key={l.id} label={l.label} color={l.color} selected={leagueAdminIds.includes(l.id)} onPress={() => toggleLeagueAdmin(l.id)} />
+            ))}
+          </View>
+        </View>
         <Wizard steps={steps} onComplete={save} completeLabel="Save Changes" submitting={saving} />
         <View style={{ gap: 10, marginTop: 20 }}>
           <Button title="Cancel" variant="secondary" onPress={onClose} />

@@ -8,12 +8,25 @@ export type AppRole = 'member' | 'admin'
 export type WardRow = { id: string; name: string; color: string; bank_code: number }
 export type LeagueRow = { id: string; key: string; label: string; info: string | null; color: string; has_badge: boolean }
 
-export type BaptismApplication = { type: string | null; sponsor_name: string | null; note?: string | null; signature: string | null; signed_at: string }
+export type BaptismApplication = {
+  type: string | null
+  sponsor_name: string | null
+  note?: string | null
+  location?: string | null
+  officiant_name?: string | null
+  signature: string | null
+  signed_at: string
+}
 export type ConfirmationApplication = {
   mentor_name: string | null
   note?: string | null
+  location?: string | null
+  officiant_name?: string | null
   signature: string | null
   signed_at: string
+  // Only ever present on rows created via the post-registration portal
+  // request flow (components/portal-involvement-card.tsx), which still
+  // requires certificate uploads — registration itself no longer collects one.
   baptism_certificate?: string | null
 }
 export type LeagueApplication = {
@@ -43,6 +56,9 @@ export type Profile = {
   confirmation_application: ConfirmationApplication | null
   league_application: LeagueApplication | null
   reviewed_at: string | null
+  last_active_at: string | null
+  membership_confirmed_at: string | null
+  self_reported_left_at: string | null
   created_at: string
 }
 
@@ -75,6 +91,37 @@ export type Announcement = {
   body: string
   created_at: string
   created_by: string | null
+  league_id?: string | null
+  poster?: string | null
+}
+
+export type ChurchEventRow = {
+  id: string
+  congregation_id: string
+  league_id: string | null
+  title: string
+  event_date: string
+  end_date: string | null
+  description: string | null
+  created_at: string
+  created_by: string | null
+  source?: string
+}
+
+export type CeremonyKind = 'baptism' | 'confirmation' | 'league'
+
+export type CeremonyProposal = {
+  id: string
+  congregation_id: string
+  subject_profile_id: string | null
+  subject_dependent_id: string | null
+  kind: CeremonyKind
+  league_id: string | null
+  ceremony_date: string
+  status: 'proposed' | 'confirmed' | 'declined'
+  proposed_by: string | null
+  responded_at: string | null
+  created_at: string
 }
 
 export type WardStat = { ward_id: string; cnt: number }

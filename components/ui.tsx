@@ -56,14 +56,20 @@ export function SectionLabel({ children }: { children: React.ReactNode }) {
   return <Text style={styles.sectionLabel}>{children}</Text>
 }
 
-export function Chip({ label, color }: { label: string; color: string }) {
-  return (
-    <View style={[styles.chip, { backgroundColor: color + '26', borderColor: color + '55' }]}>
-      <Text style={[styles.chipText, { color }]} numberOfLines={1}>
+export function Chip({ label, color, onPress, selected }: { label: string; color: string; onPress?: () => void; selected?: boolean }) {
+  const body = (
+    <View
+      style={[
+        styles.chip,
+        selected ? { backgroundColor: color, borderColor: color } : { backgroundColor: color + '26', borderColor: color + '55' },
+      ]}
+    >
+      <Text style={[styles.chipText, { color: selected ? colors.white : color }]} numberOfLines={1}>
         {label}
       </Text>
     </View>
   )
+  return onPress ? <Pressable onPress={onPress} hitSlop={4}>{body}</Pressable> : body
 }
 
 export function BarRow({ label, sub, value, max, color }: { label: string; sub?: string; value: number; max: number; color: string }) {

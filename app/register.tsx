@@ -5,6 +5,7 @@ import { DateField, Field, GlassSheen, glassBlur, SelectField } from '../compone
 import { ChurchHeader } from '../components/church-header'
 import { SignaturePad } from '../components/signature-pad'
 import { CertificatePicker } from '../components/certificate-picker'
+import { ChipRow } from '../components/chip-row'
 import { Wizard, type WizardStepDef } from '../components/wizard'
 import { supabase } from '../lib/supabase'
 import { getRegistrationCongregation } from '../lib/congregation'
@@ -40,7 +41,11 @@ export default function Register() {
   const [alreadyConfirmed, setAlreadyConfirmed] = useState('')
   const [baptismType, setBaptismType] = useState('')
   const [sponsorName, setSponsorName] = useState('')
+  const [baptismLocation, setBaptismLocation] = useState('')
+  const [baptismOfficiant, setBaptismOfficiant] = useState('')
   const [mentorName, setMentorName] = useState('')
+  const [confirmationLocation, setConfirmationLocation] = useState('')
+  const [confirmationOfficiant, setConfirmationOfficiant] = useState('')
   const [leagueReason, setLeagueReason] = useState('')
   const [baptismCert, setBaptismCert] = useState<string | null>(null)
   const [confirmationCert, setConfirmationCert] = useState<string | null>(null)
@@ -76,7 +81,11 @@ export default function Register() {
           already_confirmed: alreadyConfirmed === 'yes',
           baptism_type: baptismType || null,
           sponsor_name: sponsorName.trim() || null,
+          baptism_location: baptismLocation.trim() || null,
+          baptism_officiant: baptismOfficiant.trim() || null,
           mentor_name: mentorName.trim() || null,
+          confirmation_location: confirmationLocation.trim() || null,
+          confirmation_officiant: confirmationOfficiant.trim() || null,
           league_reason: leagueReason.trim() || null,
           baptism_certificate: baptismCert,
           confirmation_certificate: confirmationCert,
@@ -109,7 +118,7 @@ export default function Register() {
       },
       render: () => (
         <>
-          <Field label="Full Name" value={fullName} onChangeText={setFullName} placeholder="e.g. Leshego Mogowe" />
+          <Field label="Full Name" value={fullName} onChangeText={setFullName} placeholder="e.g. Tshedza Tshikovhi" />
           <SelectField
             label="Gender (optional)"
             value={gender}
@@ -133,7 +142,7 @@ export default function Register() {
       subtitle: 'Both optional, and help us reach you and celebrate with you.',
       render: () => (
         <>
-          <Field label="Phone (optional)" value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="072 000 0000" />
+          <Field label="Phone (optional)" value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="0760293340" />
           <DateField label="Birthday (optional)" value={dob} maximumDate={new Date()} onChange={setDob} />
         </>
       ),
@@ -154,19 +163,18 @@ export default function Register() {
       },
       render: () => (
         <>
-          <SelectField
+          <ChipRow
             label="Already baptised?"
             value={alreadyBaptised}
             onChange={setAlreadyBaptised}
             options={[
               { value: 'yes', label: 'Yes' },
-              { value: 'no', label: 'No / Not yet' },
+              { value: 'no', label: 'No, not yet' },
             ]}
-            placeholder="Select…"
           />
           {alreadyBaptised === 'yes' ? (
             <>
-              <SelectField
+              <ChipRow
                 label="Baptism type"
                 value={baptismType}
                 onChange={setBaptismType}
@@ -174,33 +182,33 @@ export default function Register() {
                   { value: 'Infant', label: 'Infant' },
                   { value: 'Adult', label: 'Adult' },
                 ]}
-                placeholder="Select…"
               />
-              <Field label="Sponsor / Godparent name" value={sponsorName} onChangeText={setSponsorName} placeholder="e.g. Thabo Mokoena" />
+              <Field label="Sponsor / Godparent name (optional)" value={sponsorName} onChangeText={setSponsorName} placeholder="e.g. Tshedza Tshikovhi" />
+              <Field label="Where were you baptised? (optional)" value={baptismLocation} onChangeText={setBaptismLocation} placeholder="e.g. Tshwane City Parish" />
+              <Field label="Who baptised you? (optional, e.g. the pastor's name)" value={baptismOfficiant} onChangeText={setBaptismOfficiant} placeholder="Pastor's name" />
             </>
           ) : null}
-          <SelectField
+          <ChipRow
             label="Already confirmed?"
             value={alreadyConfirmed}
             onChange={setAlreadyConfirmed}
             options={[
               { value: 'yes', label: 'Yes' },
-              { value: 'no', label: 'No / Not yet' },
+              { value: 'no', label: 'No, not yet' },
             ]}
-            placeholder="Select…"
           />
           {alreadyConfirmed === 'yes' ? (
             <>
               <Field label="Confirmation mentor (optional)" value={mentorName} onChangeText={setMentorName} placeholder="If you had one" />
-              <CertificatePicker label="Baptism Certificate (optional, if applicable)" value={baptismCert} onChange={setBaptismCert} />
+              <Field label="Where were you confirmed? (optional)" value={confirmationLocation} onChangeText={setConfirmationLocation} placeholder="e.g. Tshwane City Parish" />
+              <Field label="Who confirmed you? (optional)" value={confirmationOfficiant} onChangeText={setConfirmationOfficiant} placeholder="Pastor's name" />
             </>
           ) : null}
-          <SelectField
-            label="League / Organisation (optional)"
+          <ChipRow
+            label="League / Organisation (optional — already belong to one?)"
             value={initialLeagueId}
             onChange={setInitialLeagueId}
-            options={leagues.map((l) => ({ value: l.id, label: l.label }))}
-            placeholder="Select if you already belong to one…"
+            options={leagues.map((l) => ({ value: l.id, label: l.label, color: l.color }))}
           />
           {initialLeagueId ? (
             <>

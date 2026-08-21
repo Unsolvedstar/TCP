@@ -159,21 +159,27 @@ the asset existed but nothing referenced it.
 
 **Registration collects sacraments/league too — and records them as fact.**
 Register (and "Add Child") also ask "already baptised?", "already confirmed?",
-and which league someone already belongs to. Unlike requesting these things
-*later* from the portal, claiming them at registration sets `baptised` /
-`confirmed` / `league` directly — the reasoning being that this is a statement
-about something that already happened (you already got baptised, you're
-already in a league), not a new event the church needs to schedule, so there's
-nothing for an admin to "approve." The signature, sponsor/mentor name, and any
-attached certificate are still captured and stored as an attestation record on
-the profile (`baptism_application` / `confirmation_application` /
-`league_application`) even though nothing needs to clear it. Requesting
-baptism, confirmation, or a league change *after* you're already a member is a
+and which league someone already belongs to, using tap-to-select chips rather
+than dropdowns or free text wherever the answer is a short, clearly-optional
+choice. Unlike requesting these things *later* from the portal, claiming them
+at registration sets `baptised` / `confirmed` / `league` directly — the
+reasoning being that this is a statement about something that already
+happened (you already got baptised, you're already in a league), not a new
+event the church needs to schedule, so there's nothing for an admin to
+"approve." The signature, sponsor/mentor name, and (for baptism/confirmation)
+*where* and *who* — the officiating pastor — are still captured and stored as
+an attestation record on the profile (`baptism_application` /
+`confirmation_application` / `league_application`) even though nothing needs
+to clear it. Registration deliberately does **not** ask for a baptism/
+confirmation certificate photo — asking a new sign-up to dig one up was the
+single biggest source of registration friction, and "where + who performed
+it" is enough for an admin to follow up on if needed. Requesting baptism,
+confirmation, or a league change *after* you're already a member is a
 different, forward-looking action — the church still has to actually schedule
 and perform that — so that still goes through the pending/admin-approval flow
-described below. Answering "already confirmed" without "already baptised" is
-rejected client-side and dropped server-side too, since confirmation always
-follows baptism.
+described below, certificate uploads included. Answering "already confirmed"
+without "already baptised" is rejected client-side and dropped server-side
+too, since confirmation always follows baptism.
 
 **Baptism, confirmation, and league requests are now real application forms,
 signed.** Requesting baptism asks for the type (Infant/Adult) and a
@@ -207,13 +213,16 @@ request, not a permanent record of who someone's godparent was.
 > in React Native, but I can't confirm it behaves in Expo Go here. Smoke-test
 > drawing and submitting a signature on an actual phone before relying on it.
 
-**Certificate photos, for confirmation and league requests.** Requesting
-confirmation can attach a baptism certificate "if applicable" — mainly for
-someone baptised elsewhere, where the parish has no record of their own to go
-on. Requesting a league can attach both a baptism *and* a confirmation
-certificate, since league membership generally assumes both. Neither is a hard
-requirement (nothing here blocks submission if you don't have one to hand) —
-they're supporting evidence for whoever reviews the request.
+**Certificate photos, for confirmation and league requests — from the portal,
+not at registration.** Requesting confirmation can attach a baptism
+certificate "if applicable" — mainly for someone baptised elsewhere, where the
+parish has no record of their own to go on. Requesting a league can attach
+both a baptism *and* a confirmation certificate, since league membership
+generally assumes both. Neither is a hard requirement (nothing here blocks
+submission if you don't have one to hand) — they're supporting evidence for
+whoever reviews the request. This applies to the portal's post-registration
+request flow only; the registration wizard itself never asks for a
+certificate (see above).
 
 `components/certificate-picker.tsx` uses `expo-image-picker` to choose or
 photograph an image, then `expo-image-manipulator` to resize it down (~1000px

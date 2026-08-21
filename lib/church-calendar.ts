@@ -99,3 +99,12 @@ export function getUpcomingChurchEvents(from: Date, count: number): ChurchEvent[
   const events = [...getChurchEventsForYear(from.getFullYear()), ...getChurchEventsForYear(from.getFullYear() + 1)]
   return events.filter((e) => (e.endDate ?? e.date) >= todayIso).sort((a, b) => a.date.localeCompare(b.date)).slice(0, count)
 }
+
+/** Events current or overlapping the inclusive [startIso, endIso] range — for rendering a single month's grid. */
+export function getChurchEventsInRange(startIso: string, endIso: string): ChurchEvent[] {
+  const startYear = Number(startIso.slice(0, 4))
+  const endYear = Number(endIso.slice(0, 4))
+  const years = startYear === endYear ? [startYear] : [startYear, endYear]
+  const events = years.flatMap((y) => getChurchEventsForYear(y))
+  return events.filter((e) => (e.endDate ?? e.date) >= startIso && e.date <= endIso).sort((a, b) => a.date.localeCompare(b.date))
+}

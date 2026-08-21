@@ -23,6 +23,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
     setProfile((data as Profile) ?? null)
   }
 
+  // Fire-and-forget: records "last active" both for a real sign-in and for
+  // opening the app with an already-valid session, since sessions persist
+  // for weeks and a sign-in-only signal would rarely reflect real usage.
+  function touchLastActive() {
+    supabase.rpc('touch_my_last_active').then(({ error }) => {
+      if (error) console.error('Failed to record activity', error)
+    })
+  }
+
   useEffect(() => {
     // getSession() and loadProfile() must never leave `loading` stuck true —
     // any rejection here (a network hiccup, a cold Supabase project waking up)
@@ -31,7 +40,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
       .getSession()
       .then(async ({ data }) => {
         setSession(data.session)
-        if (data.session) await loadProfile(data.session.user.id)
+        if (data.session) {
+          await loadProfile(data.session.user.id)
+          touchLastActive()
+        }
       })
       .catch((err) => console.error('Failed to load auth session', err))
       .finally(() => setLoading(false))
@@ -41,6 +53,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       try {
         if (newSession) {
           await loadProfile(newSession.user.id)
+          touchLastActive()
         } else {
           setProfile(null)
         }

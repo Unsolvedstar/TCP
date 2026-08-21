@@ -1,5 +1,5 @@
 /// <reference types="jest" />
-import { computeEasterSunday, computeAdventSunday, getChurchEventsForYear, getUpcomingChurchEvents, addDays } from '../church-calendar'
+import { computeEasterSunday, computeAdventSunday, getChurchEventsForYear, getUpcomingChurchEvents, getChurchEventsInRange, addDays } from '../church-calendar'
 
 describe('computeEasterSunday', () => {
   // Known Western/Gregorian Easter Sundays — independently verifiable against
@@ -131,5 +131,31 @@ describe('getUpcomingChurchEvents', () => {
   it('respects the requested count', () => {
     const upcoming = getUpcomingChurchEvents(new Date(2026, 0, 1), 3)
     expect(upcoming.length).toBe(3)
+  })
+})
+
+describe('getChurchEventsInRange', () => {
+  it('includes only events overlapping the requested month', () => {
+    const events = getChurchEventsInRange('2026-04-01', '2026-04-30')
+    expect(events.every((e) => (e.endDate ?? e.date) >= '2026-04-01' && e.date <= '2026-04-30')).toBe(true)
+    expect(events.some((e) => e.name === 'Easter Sunday')).toBe(true)
+  })
+
+  it('includes a season that starts before the month but still overlaps it', () => {
+    // Lent 2026 starts 2026-02-18 (Ash Wednesday) and runs through 2026-04-04 —
+    // it should still show up when viewing March, even though it didn't start then.
+    const events = getChurchEventsInRange('2026-03-01', '2026-03-31')
+    expect(events.some((e) => e.name === 'Lent')).toBe(true)
+  })
+
+  it('spans a year boundary correctly', () => {
+    const events = getChurchEventsInRange('2026-12-01', '2027-01-31')
+    expect(events.some((e) => e.name === 'Christmas Day')).toBe(true)
+    expect(events.some((e) => e.name === 'Epiphany' && e.date === '2027-01-06')).toBe(true)
+  })
+
+  it('excludes events outside the range', () => {
+    const events = getChurchEventsInRange('2026-06-01', '2026-06-30')
+    expect(events.some((e) => e.name === 'Christmas Day')).toBe(false)
   })
 })

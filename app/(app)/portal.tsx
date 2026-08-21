@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
-import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native'
+import { ActivityIndicator, Image, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { Card, Chip, GlassSheen, SectionLabel } from '../../components/ui'
 import { PortalDetailsCard } from '../../components/portal-details-card'
 import { PortalInvolvementCard } from '../../components/portal-involvement-card'
@@ -10,19 +10,23 @@ import { LeagueBreakdownCard } from '../../components/league-breakdown-card'
 import { LeaguesDirectoryCard } from '../../components/leagues-directory-card'
 import { GenderBreakdownCard } from '../../components/gender-breakdown-card'
 import { SacramentsCard } from '../../components/sacraments-card'
-import { BirthdaysCard } from '../../components/birthdays-card'
-import { ChurchCalendarCard } from '../../components/church-calendar-card'
+import { ParishCalendarCard } from '../../components/parish-calendar-card'
+import { LeagueLeaderboardCard } from '../../components/league-leaderboard-card'
+import { MyLeagueCard } from '../../components/my-league-card'
+import { MembershipCheckInBanner } from '../../components/membership-check-in-banner'
+import { CeremonyConfirmationCard } from '../../components/ceremony-confirmation-card'
 import { useAuth } from '../../lib/auth-context'
 import { useCongregationData } from '../../lib/congregation-context'
 import { supabase } from '../../lib/supabase'
 import { useLiturgicalSeason } from '../../lib/liturgical-theme'
+import { shouldShowMembershipCheckIn } from '../../lib/membership-check-in'
 import { colors } from '../../theme'
 import { styles } from '../../styles/portal.styles'
-import type { Birthday, Dependent, GenderStat, LeagueStat, SacramentStat, WardStat } from '../../lib/types'
+import type { Dependent, GenderStat, LeagueStat, SacramentStat, WardStat } from '../../lib/types'
 
 export { ErrorBoundary } from '../../components/error-boundary'
 
-type Announcement = { id: string; title: string; date_text: string; body: string }
+type Announcement = { id: string; title: string; date_text: string; body: string; poster: string | null }
 
 export default function Portal() {
   const { profile, refreshProfile } = useAuth()
@@ -35,17 +39,15 @@ export default function Portal() {
   const [genderStats, setGenderStats] = useState<GenderStat[]>([])
   const [sacraments, setSacraments] = useState<SacramentStat>({ total: 0, baptised: 0, confirmed: 0, adults: 0, children: 0 })
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
-  const [birthdays, setBirthdays] = useState<Birthday[]>([])
   const [dependents, setDependents] = useState<Dependent[]>([])
 
   const loadAll = useCallback(async () => {
-    const [{ data: ws }, { data: ls }, { data: gs }, { data: sac }, { data: ann }, { data: bdays }, { data: deps }] = await Promise.all([
+    const [{ data: ws }, { data: ls }, { data: gs }, { data: sac }, { data: ann }, { data: deps }] = await Promise.all([
       supabase.rpc('stats_by_ward'),
       supabase.rpc('stats_by_league'),
       supabase.rpc('stats_by_gender'),
       supabase.rpc('stats_sacraments'),
-      supabase.from('announcements').select('id,title,date_text,body').order('created_at', { ascending: false }),
-      supabase.rpc('upcoming_birthdays', { days_ahead: 30 }),
+      supabase.from('announcements').select('id,title,date_text,body,poster').order('created_at', { ascending: false }),
       supabase.from('dependents').select('*').order('full_name'),
     ])
     setWardStats((ws as WardStat[]) ?? [])
@@ -53,7 +55,6 @@ export default function Portal() {
     setGenderStats((gs as GenderStat[]) ?? [])
     if (sac && (sac as SacramentStat[]).length) setSacraments((sac as SacramentStat[])[0])
     setAnnouncements((ann as Announcement[]) ?? [])
-    setBirthdays((bdays as Birthday[]) ?? [])
     setDependents((deps as Dependent[]) ?? [])
     await refreshProfile()
   }, [refreshProfile])
@@ -94,6 +95,8 @@ export default function Portal() {
         <Text style={[styles.heroName, { color: season.text }]}>Welcome, {profile.full_name.split(' ')[0]}</Text>
         <Text style={[styles.heroSub, { color: season.text }]}>{myWard?.name ?? '—'} Ward, ELCSA Tshwane City Parish</Text>
       </View>
+
+      {shouldShowMembershipCheckIn(profile) ? <MembershipCheckInBanner /> : null}
 
       <View style={styles.statGrid}>
         <View style={styles.statCard}>
@@ -139,6 +142,7 @@ export default function Portal() {
 
       {section === 'dashboard' ? (
         <>
+          <CeremonyConfirmationCard />
           <PortalDetailsCard profile={profile} onChanged={loadAll} />
           <PortalInvolvementCard profile={profile} onChanged={loadAll} />
           <PortalHouseholdCard dependents={dependents} onChanged={loadAll} />
@@ -151,6 +155,7 @@ export default function Portal() {
                 <View key={a.id} style={styles.annItem}>
                   <Text style={styles.annDate}>{a.date_text}</Text>
                   <Text style={styles.annTitle}>{a.title}</Text>
+                  {a.poster ? <Image source={{ uri: a.poster }} style={styles.annPoster} resizeMode="cover" /> : null}
                   <Text style={styles.annBody}>{a.body}</Text>
                 </View>
               ))}
@@ -167,14 +172,13 @@ export default function Portal() {
         </>
       ) : section === 'leagues' ? (
         <>
+          <MyLeagueCard />
+          <LeagueLeaderboardCard />
           <LeaguesDirectoryCard leagueStats={leagueStats} />
           <LeagueBreakdownCard leagueStats={leagueStats} />
         </>
       ) : (
-        <>
-          <ChurchCalendarCard />
-          <BirthdaysCard birthdays={birthdays} />
-        </>
+        <ParishCalendarCard />
       )}
     </ScrollView>
   )

@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { Ionicons } from '@expo/vector-icons'
 import { Button } from '../../components/ui'
 import { useAuth } from '../../lib/auth-context'
+import { useLeagueAdmin } from '../../lib/league-admin-context'
 import { Alert } from '../../lib/alert'
 import { colors, radius } from '../../theme'
 
@@ -26,6 +27,7 @@ function SignOutButton() {
 
 export default function AppLayout() {
   const { session, profile, loading, signOut } = useAuth()
+  const { myLeagueIds } = useLeagueAdmin()
 
   if (loading) {
     return (
@@ -98,6 +100,15 @@ export default function AppLayout() {
         options={{
           title: 'Banking',
           tabBarIcon: ({ color, size }) => <Ionicons name="card-outline" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen name="banking-snapscan" options={{ title: 'SnapScan', href: null }} />
+      <Tabs.Screen
+        name="league-admin"
+        options={{
+          title: isAdmin ? 'League Tools' : 'My League',
+          href: myLeagueIds.length > 0 || isAdmin ? undefined : null,
+          tabBarIcon: ({ color, size }) => <Ionicons name="megaphone-outline" size={size} color={color} />,
         }}
       />
     </Tabs>
