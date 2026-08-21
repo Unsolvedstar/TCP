@@ -17,6 +17,21 @@ deliberate final step, done only with explicit go-ahead since it's the live
 project. See "Verification checklist" at the bottom for exactly what's been
 confirmed and what's still pending before that step.
 
+**Known pre-existing bug found during smoke testing, unrelated to this
+rewrite (2026-08-21):** `Alert.alert()` is a no-op stub on the web platform
+(`react-native-web`'s implementation is literally `static alert() {}`), and
+`vercel.json`/the `build:web` script confirm web is a real deployed target.
+Every error message and every destructive-action confirmation (remove
+member, remove dependent, promote/demote, the member-removal cascade
+warning) silently does nothing on web today — the action is wrapped inside
+the Alert callback, which never fires. Affects `dashboard.tsx`,
+`members.tsx`, `app/(app)/_layout.tsx`, `certificate-picker.tsx`,
+`dependent-card.tsx`, `edit-child-modal.tsx`, `edit-member-modal.tsx`,
+`portal-details-card.tsx`, `portal-household-card.tsx`,
+`portal-involvement-card.tsx`. Needs a cross-platform confirm/alert
+replacement — tracked here as a separate follow-up, not fixed as part of
+this rewrite.
+
 ## Scope split
 
 - **Phase 1 (below): backend multi-tenancy.** The security-critical part.
@@ -182,15 +197,34 @@ errors across every step:
 - [x] Admin: Members screen — ward filter chips, league filter dropdown,
       per-member ward/league chips, admin list, all DB-driven.
 - [x] Banking screen — ward codes table renders from the DB.
-- [ ] Not separately re-verified via the browser (unchanged code paths, or
-      covered indirectly by the RLS suite instead): login/logout/forgot-
-      password, portal request+cancel league/baptism/confirmation, edit/
-      remove a dependent, admin approve/deny requests, admin edit a member,
-      admin promote/demote + last-admin block, admin remove a member with
-      dependents (cascade warning), admin create/edit/delete an announcement,
-      landing page, "Account Not Found" screen. Worth a pass before the live
-      cutover if you want full manual coverage rather than relying on the
-      automated suites for the non-UI parts of these flows.
+- [x] Login, and "Account Not Found" for a removed member (both via a
+      real browser session).
+- [x] Portal: request + cancel a baptism, with backend state confirmed at
+      each step.
+- [x] Portal: add a dependent, expand their card, open the birthday-edit
+      form.
+- [x] Admin: approve a pending league request, and separately deny one —
+      both confirmed via UI click *and* independently via backend state
+      (first attempt showed stale-DOM click-timing artifacts from insufficient
+      settle time after tab navigation; a slower, isolated re-run confirmed
+      both work correctly).
+- [x] Admin: edit a member's full name — save pathway confirmed to execute
+      end-to-end (RPC call fires, DB is written); the exact input-clearing
+      behavior wasn't independently re-verified due to a `fill()` artifact in
+      the test script, not a suspected app issue.
+- [x] Admin: create and delete an announcement.
+- [ ] **Blocked by the `Alert.alert` web bug above, not by anything in this
+      rewrite**: admin promote/demote + last-admin block, admin remove a
+      member with dependents (cascade warning), portal remove-a-dependent —
+      the confirm button does nothing on web today. All three are covered
+      structurally instead: `admin_set_role`/`admin_remove_member`/
+      `remove_my_dependent` are exercised directly (bypassing the UI) by the
+      RLS test suite, including the per-congregation last-admin guard.
+- [ ] Not separately re-verified (same component/RPC patterns already proven
+      elsewhere in this pass, low residual risk): logout click, forgot-
+      password flow, portal request+cancel league/confirmation (baptism
+      variant proven), request league/baptism/confirmation *for a dependent*
+      specifically (own-account variant proven).
 
 ## Verification checklist before touching the live project
 
