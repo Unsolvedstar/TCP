@@ -31,19 +31,33 @@ function expandToVisibleDays(startIso: string, endIso: string | null, viewStart:
   return out
 }
 
+// Module-level, not component state, so it survives the card unmounting —
+// this screen's calendar tab only renders ParishCalendarCard while it's the
+// active tab, so without this every tab switch re-fetched from scratch and
+// showed a blank grid for a beat, even for a month already looked at this
+// session. Cleared on a full app reload, which is fine — this is a cache,
+// not a source of truth.
+const markerCache = new Map<string, CalendarMarker[]>()
+
 export function ParishCalendarCard() {
   const { leagues } = useCongregationData()
   const [month, setMonth] = useState(() => {
     const d = new Date()
     return new Date(d.getFullYear(), d.getMonth(), 1)
   })
-  const [markers, setMarkers] = useState<CalendarMarker[]>([])
 
   const monthStartIso = toLocalISODate(month)
   const monthEndIso = toLocalISODate(new Date(month.getFullYear(), month.getMonth() + 1, 0))
 
+  const [markers, setMarkers] = useState<CalendarMarker[]>(() => markerCache.get(monthStartIso) ?? [])
+
   useEffect(() => {
     let cancelled = false
+
+    // Show a cached month instantly while quietly refetching in the
+    // background, instead of dropping back to a blank grid every time.
+    const cached = markerCache.get(monthStartIso)
+    if (cached) setMarkers(cached)
 
     async function load() {
       const liturgical = getChurchEventsInRange(monthStartIso, monthEndIso)
@@ -87,7 +101,9 @@ export function ParishCalendarCard() {
         }))
       })
 
-      setMarkers([...liturgicalMarkers, ...birthdayMarkers, ...eventMarkers])
+      const all = [...liturgicalMarkers, ...birthdayMarkers, ...eventMarkers]
+      markerCache.set(monthStartIso, all)
+      setMarkers(all)
     }
 
     load()
