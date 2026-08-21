@@ -1,7 +1,7 @@
 import { ScrollView, Text, View } from 'react-native'
 import { Card } from '../../components/ui'
 import { useLiturgicalSeason } from '../../lib/liturgical-theme'
-import { wardCodes, wards } from '../../theme'
+import { useCongregationData } from '../../lib/congregation-context'
 import { styles } from '../../styles/banking.styles'
 
 export { ErrorBoundary } from '../../components/error-boundary'
@@ -19,6 +19,7 @@ const REFERENCE_CODES: { code: string; label: string; account: 'General' | 'Buil
 
 export default function Banking() {
   const season = useLiturgicalSeason()
+  const { wards } = useCongregationData()
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.content}>
       <View style={[styles.hero, { backgroundColor: season.color }]}>
@@ -69,9 +70,9 @@ export default function Banking() {
         <Text style={styles.cardTitle}>Ward Codes</Text>
         <View style={styles.wardRow}>
           {wards.map((w) => (
-            <View key={w} style={styles.wardCell}>
-              <Text style={styles.wardName}>{w}</Text>
-              <Text style={styles.wardCode}>{wardCodes[w]}</Text>
+            <View key={w.id} style={styles.wardCell}>
+              <Text style={styles.wardName}>{w.name}</Text>
+              <Text style={styles.wardCode}>{w.bank_code}</Text>
             </View>
           ))}
         </View>

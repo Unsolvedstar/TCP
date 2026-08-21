@@ -4,7 +4,8 @@ import { Button, DateField, Field, SelectField, formatDate } from './ui'
 import { Wizard, type WizardStepDef } from './wizard'
 import { styles } from './edit-modal.styles'
 import { supabase } from '../lib/supabase'
-import { colors, genders, leagueKeys, leagues, wards } from '../theme'
+import { colors, genders } from '../theme'
+import { useCongregationData } from '../lib/congregation-context'
 import type { Profile } from '../lib/types'
 
 export function EditMemberModal({
@@ -20,12 +21,13 @@ export function EditMemberModal({
   onRemoved: () => void
   onPromoted: () => void
 }) {
+  const { wards, leagues } = useCongregationData()
   const [fullName, setFullName] = useState(member.full_name)
   const [phone, setPhone] = useState(member.phone ?? '')
   const [dob, setDob] = useState<string | null>(member.date_of_birth)
   const [gender, setGender] = useState(member.gender ?? '')
-  const [ward, setWard] = useState(member.ward)
-  const [league, setLeague] = useState(member.league)
+  const [wardId, setWardId] = useState(member.ward_id)
+  const [leagueId, setLeagueId] = useState(member.league_id ?? '')
   const [baptised, setBaptised] = useState(member.baptised)
   const [confirmed, setConfirmed] = useState(member.confirmed)
   const [saving, setSaving] = useState(false)
@@ -36,8 +38,8 @@ export function EditMemberModal({
       target_id: member.id,
       p_full_name: fullName.trim(),
       p_phone: phone.trim() || null,
-      p_ward: ward,
-      p_league: league,
+      p_ward_id: wardId,
+      p_league_id: leagueId || null,
       p_baptised: baptised,
       p_confirmed: confirmed,
       p_date_of_birth: dob,
@@ -70,7 +72,7 @@ export function EditMemberModal({
         <>
           <DateField label="Birthday" value={dob} maximumDate={new Date()} onChange={setDob} />
           <SelectField label="Gender" value={gender} onChange={setGender} options={genders.map((g) => ({ value: g, label: g }))} placeholder="Not set" />
-          <SelectField label="Ward" value={ward} onChange={(v) => setWard(v as any)} options={wards.map((w) => ({ value: w, label: `${w} Ward` }))} />
+          <SelectField label="Ward" value={wardId} onChange={setWardId} options={wards.map((w) => ({ value: w.id, label: `${w.name} Ward` }))} />
         </>
       ),
     },
@@ -80,9 +82,12 @@ export function EditMemberModal({
       render: () => (
         <SelectField
           label="League / Organisation"
-          value={league}
-          onChange={(v) => setLeague(v as any)}
-          options={leagueKeys.map((k) => ({ value: k, label: leagues[k].label }))}
+          value={leagueId}
+          onChange={setLeagueId}
+          options={[
+            { value: '', label: 'No League / Organisation' },
+            ...leagues.map((l) => ({ value: l.id, label: l.label })),
+          ]}
         />
       ),
     },

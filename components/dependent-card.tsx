@@ -5,16 +5,22 @@ import { SignaturePad } from './signature-pad'
 import { CertificatePicker } from './certificate-picker'
 import { styles } from './dependent-card.styles'
 import { supabase } from '../lib/supabase'
-import { colors, genderColors, genders, leagueKeys, leagues, wardColors } from '../theme'
-import type { Dependent, LeagueKey } from '../lib/types'
+import { colors, genderColors, genders } from '../theme'
+import { useCongregationData } from '../lib/congregation-context'
+import type { Dependent } from '../lib/types'
+
+const NONE_LEAGUE = { label: 'No League / Organisation', color: '#9e9e9e' }
 
 export function DependentCard({ dependent, onChanged }: { dependent: Dependent; onChanged: () => void }) {
+  const { wards, leagues } = useCongregationData()
   const [expanded, setExpanded] = useState(false)
   const [busy, setBusy] = useState(false)
   const [editingDob, setEditingDob] = useState(false)
   const [editingGender, setEditingGender] = useState(false)
 
-  const [selectedLeague, setSelectedLeague] = useState<LeagueKey | null>(null)
+  // '' is the sentinel for "no league" — mirrors the null-means-None pattern
+  // in the schema, since a plain string state can't hold null cleanly here.
+  const [selectedLeague, setSelectedLeague] = useState<string | null>(null)
   const [leagueReason, setLeagueReason] = useState('')
   const [leagueSignature, setLeagueSignature] = useState<string | null>(null)
   const [leagueBaptismCert, setLeagueBaptismCert] = useState<string | null>(null)
@@ -45,8 +51,10 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
   }
 
   async function submitLeagueRequest() {
-    const target = selectedLeague ?? dependent.league
-    if (target === dependent.league) {
+    // '' means "explicitly selected No League"; normalize it to null (the
+    // schema's actual "no league" value) before comparing/sending.
+    const target = selectedLeague === null ? dependent.league_id : selectedLeague || null
+    if (target === dependent.league_id) {
       Alert.alert('Already there', `${dependent.full_name} is already in this league.`)
       return
     }
@@ -57,7 +65,7 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
     const ok = await run(() =>
       supabase.rpc('request_dependent_league', {
         target_id: dependent.id,
-        new_league: target,
+        new_league_id: target,
         p_reason: leagueReason.trim() || null,
         p_signature: leagueSignature,
         p_baptism_certificate: leagueBaptismCert,
@@ -119,7 +127,8 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
     }
   }
 
-  const league = leagues[dependent.league] ?? leagues.None
+  const league = leagues.find((l) => l.id === dependent.league_id) ?? NONE_LEAGUE
+  const ward = wards.find((w) => w.id === dependent.ward_id)
 
   return (
     <View style={styles.card}>
@@ -132,7 +141,7 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
       </Pressable>
 
       <View style={styles.chipRow}>
-        <Chip label={dependent.ward} color={wardColors[dependent.ward]} />
+        {ward ? <Chip label={ward.name} color={ward.color} /> : null}
         {dependent.gender ? <Chip label={dependent.gender} color={genderColors[dependent.gender]} /> : null}
         <Chip label={league.label} color={league.color} />
         <Chip label={dependent.baptised ? 'Baptised' : dependent.pending_baptism ? 'Baptism Pending' : 'Not Baptised'} color={dependent.baptised ? colors.g700 : dependent.pending_baptism ? colors.gold : colors.muted} />
@@ -143,25 +152,27 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
         <View style={styles.expandedBody}>
           <View style={styles.actionRow}>
             <Text style={styles.actionLabel}>League</Text>
-            {dependent.pending_league ? (
+            {dependent.pending_league_id ? (
               <View style={{ gap: 8 }}>
                 <Text style={styles.hint}>
-                  Request to join <Text style={{ fontWeight: '700' }}>{leagues[dependent.pending_league].label}</Text> is awaiting approval.
+                  Request to join{' '}
+                  <Text style={{ fontWeight: '700' }}>{leagues.find((l) => l.id === dependent.pending_league_id)?.label ?? NONE_LEAGUE.label}</Text> is
+                  awaiting approval.
                 </Text>
                 <Button title="Cancel Request" variant="danger" loading={busy} onPress={() => run(() => supabase.rpc('cancel_dependent_league_request', { target_id: dependent.id }))} />
               </View>
             ) : (
               <View style={{ gap: 8 }}>
-                {leagueKeys.map((k) => (
+                {[{ id: '', label: NONE_LEAGUE.label }, ...leagues].map((l) => (
                   <Text
-                    key={k}
-                    onPress={() => setSelectedLeague(k as LeagueKey)}
-                    style={[styles.leagueOption, (selectedLeague ?? dependent.league) === k && styles.leagueOptionActive]}
+                    key={l.id}
+                    onPress={() => setSelectedLeague(l.id)}
+                    style={[styles.leagueOption, (selectedLeague ?? dependent.league_id ?? '') === l.id && styles.leagueOptionActive]}
                   >
-                    {leagues[k].label}
+                    {l.label}
                   </Text>
                 ))}
-                {selectedLeague && selectedLeague !== dependent.league ? (
+                {selectedLeague !== null && (selectedLeague || null) !== dependent.league_id ? (
                   <>
                     <Field label="Why would they like to join? (optional)" value={leagueReason} onChangeText={setLeagueReason} placeholder="A short reason" />
                     <CertificatePicker label="Baptism Certificate (optional)" value={leagueBaptismCert} onChange={setLeagueBaptismCert} />
@@ -244,7 +255,7 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
                       target_id: dependent.id,
                       p_full_name: dependent.full_name,
                       p_date_of_birth: iso,
-                      p_ward: dependent.ward,
+                      p_ward_id: dependent.ward_id,
                       p_gender: dependent.gender,
                     })
                   )
@@ -271,7 +282,7 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
                       target_id: dependent.id,
                       p_full_name: dependent.full_name,
                       p_date_of_birth: dependent.date_of_birth,
-                      p_ward: dependent.ward,
+                      p_ward_id: dependent.ward_id,
                       p_gender: value,
                     })
                   )

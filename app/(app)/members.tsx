@@ -5,16 +5,22 @@ import { Card, Chip, GlassSheen, SelectField, formatDate } from '../../component
 import { EditMemberModal } from '../../components/edit-member-modal'
 import { EditChildModal } from '../../components/edit-child-modal'
 import { supabase } from '../../lib/supabase'
-import { colors, genderColors, leagueKeys, leagues, wardColors, wards } from '../../theme'
+import { colors, genderColors } from '../../theme'
+import { useCongregationData } from '../../lib/congregation-context'
 import { styles } from '../../styles/members.styles'
 import type { BaptismApplication, ChildRow, ConfirmationApplication, LeagueApplication, Profile } from '../../lib/types'
 
 export { ErrorBoundary } from '../../components/error-boundary'
 
+const NONE_LEAGUE = { id: '', key: 'None', label: 'No League / Organisation', color: '#9e9e9e' }
+// Distinct from '' (the "All leagues" filter sentinel) so the filter can
+// still isolate members with no league at all.
+const NO_LEAGUE_FILTER = '__none__'
+
 type PendingItem = {
   id: string
   name: string
-  ward: string
+  ward_id: string
   type: 'league' | 'baptism' | 'confirmation'
   label: string
   isChild: boolean
@@ -51,6 +57,7 @@ function applicationCertificates(p: PendingItem): { label: string; uri: string }
 }
 
 export default function Members() {
+  const { wards, leagues } = useCongregationData()
   const [tab, setTab] = useState<'adults' | 'children'>('adults')
   const [members, setMembers] = useState<Profile[]>([])
   const [children, setChildren] = useState<ChildRow[]>([])
@@ -88,39 +95,43 @@ export default function Members() {
   }
 
   const pending = useMemo<PendingItem[]>(() => {
+    const leagueLabel = (id: string | null) => (leagues.find((l) => l.id === id) ?? NONE_LEAGUE).label
     const items: PendingItem[] = []
     members.forEach((m) => {
-      if (m.pending_league)
-        items.push({ id: m.id, name: m.full_name, ward: m.ward, type: 'league', label: `Wants to join ${leagues[m.pending_league].label}`, isChild: false, application: m.league_application })
+      if (m.pending_league_id)
+        items.push({ id: m.id, name: m.full_name, ward_id: m.ward_id, type: 'league', label: `Wants to join ${leagueLabel(m.pending_league_id)}`, isChild: false, application: m.league_application })
       if (m.pending_baptism)
-        items.push({ id: m.id, name: m.full_name, ward: m.ward, type: 'baptism', label: 'Requesting Baptism', isChild: false, application: m.baptism_application })
+        items.push({ id: m.id, name: m.full_name, ward_id: m.ward_id, type: 'baptism', label: 'Requesting Baptism', isChild: false, application: m.baptism_application })
       if (m.pending_confirmation)
-        items.push({ id: m.id, name: m.full_name, ward: m.ward, type: 'confirmation', label: 'Requesting Confirmation', isChild: false, application: m.confirmation_application })
+        items.push({ id: m.id, name: m.full_name, ward_id: m.ward_id, type: 'confirmation', label: 'Requesting Confirmation', isChild: false, application: m.confirmation_application })
     })
     children.forEach((c) => {
       const guardianName = c.guardian?.full_name ?? 'Unknown guardian'
-      if (c.pending_league)
-        items.push({ id: c.id, name: c.full_name, ward: c.ward, type: 'league', label: `Wants to join ${leagues[c.pending_league].label}`, isChild: true, guardianName, application: c.league_application })
+      if (c.pending_league_id)
+        items.push({ id: c.id, name: c.full_name, ward_id: c.ward_id, type: 'league', label: `Wants to join ${leagueLabel(c.pending_league_id)}`, isChild: true, guardianName, application: c.league_application })
       if (c.pending_baptism)
-        items.push({ id: c.id, name: c.full_name, ward: c.ward, type: 'baptism', label: 'Requesting Baptism', isChild: true, guardianName, application: c.baptism_application })
+        items.push({ id: c.id, name: c.full_name, ward_id: c.ward_id, type: 'baptism', label: 'Requesting Baptism', isChild: true, guardianName, application: c.baptism_application })
       if (c.pending_confirmation)
-        items.push({ id: c.id, name: c.full_name, ward: c.ward, type: 'confirmation', label: 'Requesting Confirmation', isChild: true, guardianName, application: c.confirmation_application })
+        items.push({ id: c.id, name: c.full_name, ward_id: c.ward_id, type: 'confirmation', label: 'Requesting Confirmation', isChild: true, guardianName, application: c.confirmation_application })
     })
     return items
-  }, [members, children])
+  }, [members, children, leagues])
+
+  const matchesLeagueFilter = (leagueId: string | null) =>
+    !leagueFilter || (leagueFilter === NO_LEAGUE_FILTER ? leagueId === null : leagueId === leagueFilter)
 
   const filteredMembers = useMemo(
     () =>
       members.filter(
         (m) =>
           (m.full_name.toLowerCase().includes(search.toLowerCase()) || (m.phone ?? '').toLowerCase().includes(search.toLowerCase())) &&
-          (!wardFilter || m.ward === wardFilter) &&
-          (!leagueFilter || m.league === leagueFilter)
+          (!wardFilter || m.ward_id === wardFilter) &&
+          matchesLeagueFilter(m.league_id)
       ),
     [members, search, wardFilter, leagueFilter]
   )
   const filteredChildren = useMemo(
-    () => children.filter((c) => c.full_name.toLowerCase().includes(search.toLowerCase()) && (!wardFilter || c.ward === wardFilter) && (!leagueFilter || c.league === leagueFilter)),
+    () => children.filter((c) => c.full_name.toLowerCase().includes(search.toLowerCase()) && (!wardFilter || c.ward_id === wardFilter) && matchesLeagueFilter(c.league_id)),
     [children, search, wardFilter, leagueFilter]
   )
 
@@ -225,7 +236,7 @@ export default function Members() {
                             {p.name} {p.isChild ? '👶' : ''}
                           </Text>
                           <Text style={styles.pendingDetail}>
-                            {p.ward} Ward, {p.label}
+                            {wards.find((w) => w.id === p.ward_id)?.name ?? 'Unknown'} Ward, {p.label}
                             {p.isChild ? ` (Guardian: ${p.guardianName})` : ''}
                           </Text>
                         </View>
@@ -276,7 +287,7 @@ export default function Members() {
             <View style={styles.filterRow}>
               <ScrollFilterChip label="All Wards" active={!wardFilter} onPress={() => setWardFilter('')} />
               {wards.map((w) => (
-                <ScrollFilterChip key={w} label={w} active={wardFilter === w} onPress={() => setWardFilter(w)} />
+                <ScrollFilterChip key={w.id} label={w.name} active={wardFilter === w.id} onPress={() => setWardFilter(w.id)} />
               ))}
             </View>
             <View style={{ marginBottom: 16 }}>
@@ -285,7 +296,11 @@ export default function Members() {
                 value={leagueFilter}
                 onChange={setLeagueFilter}
                 placeholder="All leagues & organisations"
-                options={[{ value: '', label: 'All leagues & organisations' }, ...leagueKeys.map((k) => ({ value: k, label: leagues[k].label }))]}
+                options={[
+                  { value: '', label: 'All leagues & organisations' },
+                  { value: NO_LEAGUE_FILTER, label: 'No League / Organisation' },
+                  ...leagues.map((l) => ({ value: l.id, label: l.label })),
+                ]}
               />
             </View>
 
@@ -306,6 +321,8 @@ export default function Members() {
         renderItem={({ item }) => {
           const isChild = tab === 'children'
           const child = item as ChildRow
+          const itemWard = wards.find((w) => w.id === item.ward_id)
+          const itemLeague = leagues.find((l) => l.id === item.league_id) ?? NONE_LEAGUE
           return (
             <Pressable style={styles.memberCard} onPress={() => (isChild ? setEditingChild(child) : setEditingMember(item as Profile))}>
               <GlassSheen />
@@ -314,9 +331,9 @@ export default function Members() {
                 {isChild ? <Text style={styles.guardianLine}>Guardian: {child.guardian?.full_name ?? 'Unknown'}</Text> : null}
                 {item.date_of_birth ? <Text style={styles.guardianLine}>{formatDate(item.date_of_birth)}</Text> : null}
                 <View style={styles.memberChips}>
-                  <Chip label={item.ward} color={wardColors[item.ward]} />
+                  {itemWard ? <Chip label={itemWard.name} color={itemWard.color} /> : null}
                   {item.gender ? <Chip label={item.gender} color={genderColors[item.gender]} /> : null}
-                  <Chip label={leagues[item.league].label} color={leagues[item.league].color} />
+                  <Chip label={itemLeague.label} color={itemLeague.color} />
                   <Chip label={item.baptised ? 'Baptised' : 'Not Baptised'} color={item.baptised ? colors.g700 : colors.muted} />
                   <Chip label={item.confirmed ? 'Confirmed' : 'Not Confirmed'} color={item.confirmed ? colors.g700 : colors.muted} />
                 </View>

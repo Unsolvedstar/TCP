@@ -1,20 +1,12 @@
-export type Ward = 'North' | 'East' | 'Central' | 'West' | 'South'
-
 export type Gender = 'Male' | 'Female'
 
 export type AppRole = 'member' | 'admin'
 
-export type LeagueKey =
-  | 'None'
-  | 'PrayerMens'
-  | 'PrayerWomens'
-  | 'PrayerYouth'
-  | 'YoungAdults'
-  | 'SundaySchool'
-  | 'ConfirmationClass'
-  | 'ELCSAMO'
-  | 'ELCSASO'
-  | 'DiaconateMinistry'
+// Wards and leagues are per-congregation data now, not a fixed global list —
+// see lib/congregation-context.tsx. WardRow/LeagueRow are what the app reads;
+// Profile/Dependent only ever store the id.
+export type WardRow = { id: string; name: string; color: string; bank_code: number }
+export type LeagueRow = { id: string; key: string; label: string; info: string | null; color: string; has_badge: boolean }
 
 export type BaptismApplication = { type: string | null; sponsor_name: string | null; note?: string | null; signature: string | null; signed_at: string }
 export type ConfirmationApplication = {
@@ -38,12 +30,13 @@ export type Profile = {
   phone: string | null
   date_of_birth: string | null
   gender: Gender | null
-  ward: Ward
+  congregation_id: string
+  ward_id: string
   role: AppRole
-  league: LeagueKey
+  league_id: string | null
   baptised: boolean
   confirmed: boolean
-  pending_league: LeagueKey | null
+  pending_league_id: string | null
   pending_baptism: boolean
   pending_confirmation: boolean
   baptism_application: BaptismApplication | null
@@ -59,11 +52,11 @@ export type Dependent = {
   full_name: string
   date_of_birth: string | null
   gender: Gender | null
-  ward: Ward
-  league: LeagueKey
+  ward_id: string
+  league_id: string | null
   baptised: boolean
   confirmed: boolean
-  pending_league: LeagueKey | null
+  pending_league_id: string | null
   pending_baptism: boolean
   pending_confirmation: boolean
   baptism_application: BaptismApplication | null
@@ -84,8 +77,8 @@ export type Announcement = {
   created_by: string | null
 }
 
-export type WardStat = { ward: string; cnt: number }
+export type WardStat = { ward_id: string; cnt: number }
 export type GenderStat = { gender: string; cnt: number }
-export type LeagueStat = { league: string; cnt: number }
+export type LeagueStat = { league_id: string | null; cnt: number }
 export type SacramentStat = { total: number; baptised: number; confirmed: number; adults: number; children: number }
-export type Birthday = { full_name: string; date_of_birth: string; is_child: boolean; ward: string; next_birthday: string }
+export type Birthday = { full_name: string; date_of_birth: string; is_child: boolean; ward_id: string; next_birthday: string }

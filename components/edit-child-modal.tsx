@@ -4,7 +4,8 @@ import { Button, DateField, Field, SelectField, formatDate } from './ui'
 import { Wizard, type WizardStepDef } from './wizard'
 import { styles } from './edit-modal.styles'
 import { supabase } from '../lib/supabase'
-import { colors, genders, leagueKeys, leagues, wards } from '../theme'
+import { colors, genders } from '../theme'
+import { useCongregationData } from '../lib/congregation-context'
 import type { ChildRow } from '../lib/types'
 
 export function EditChildModal({
@@ -18,11 +19,12 @@ export function EditChildModal({
   onSaved: () => void
   onRemoved: () => void
 }) {
+  const { wards, leagues } = useCongregationData()
   const [fullName, setFullName] = useState(child.full_name)
   const [dob, setDob] = useState<string | null>(child.date_of_birth)
   const [gender, setGender] = useState(child.gender ?? '')
-  const [ward, setWard] = useState(child.ward)
-  const [league, setLeague] = useState(child.league)
+  const [wardId, setWardId] = useState(child.ward_id)
+  const [leagueId, setLeagueId] = useState(child.league_id ?? '')
   const [baptised, setBaptised] = useState(child.baptised)
   const [confirmed, setConfirmed] = useState(child.confirmed)
   const [saving, setSaving] = useState(false)
@@ -33,8 +35,8 @@ export function EditChildModal({
       target_id: child.id,
       p_full_name: fullName.trim(),
       p_date_of_birth: dob,
-      p_ward: ward,
-      p_league: league,
+      p_ward_id: wardId,
+      p_league_id: leagueId || null,
       p_baptised: baptised,
       p_confirmed: confirmed,
       p_gender: gender || null,
@@ -61,7 +63,7 @@ export function EditChildModal({
         <>
           <DateField label="Birthday" value={dob} maximumDate={new Date()} onChange={setDob} />
           <SelectField label="Gender" value={gender} onChange={setGender} options={genders.map((g) => ({ value: g, label: g }))} placeholder="Not set" />
-          <SelectField label="Ward" value={ward} onChange={(v) => setWard(v as any)} options={wards.map((w) => ({ value: w, label: `${w} Ward` }))} />
+          <SelectField label="Ward" value={wardId} onChange={setWardId} options={wards.map((w) => ({ value: w.id, label: `${w.name} Ward` }))} />
         </>
       ),
     },
@@ -71,9 +73,12 @@ export function EditChildModal({
       render: () => (
         <SelectField
           label="League / Organisation"
-          value={league}
-          onChange={(v) => setLeague(v as any)}
-          options={leagueKeys.map((k) => ({ value: k, label: leagues[k].label }))}
+          value={leagueId}
+          onChange={setLeagueId}
+          options={[
+            { value: '', label: 'No League / Organisation' },
+            ...leagues.map((l) => ({ value: l.id, label: l.label })),
+          ]}
         />
       ),
     },

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native'
 import { Link, router } from 'expo-router'
 import { DateField, Field, GlassSheen, glassBlur, SelectField } from '../components/ui'
@@ -7,18 +7,35 @@ import { SignaturePad } from '../components/signature-pad'
 import { CertificatePicker } from '../components/certificate-picker'
 import { Wizard, type WizardStepDef } from '../components/wizard'
 import { supabase } from '../lib/supabase'
-import { genders, leagueKeys, leagues, radius, wards } from '../theme'
+import { getRegistrationCongregation } from '../lib/congregation'
+import type { WardRow, LeagueRow } from '../lib/types'
+import { genders, radius } from '../theme'
 import { styles } from '../styles/register.styles'
 
 export { ErrorBoundary } from '../components/error-boundary'
 
 export default function Register() {
+  const [congregationId, setCongregationId] = useState('')
+  const [wards, setWards] = useState<WardRow[]>([])
+  const [leagues, setLeagues] = useState<LeagueRow[]>([])
+  const [loadError, setLoadError] = useState('')
+
+  useEffect(() => {
+    getRegistrationCongregation()
+      .then(({ congregation, wards, leagues }) => {
+        setCongregationId(congregation.id)
+        setWards(wards)
+        setLeagues(leagues)
+      })
+      .catch((err) => setLoadError(err.message ?? 'Could not load registration options.'))
+  }, [])
+
   const [fullName, setFullName] = useState('')
   const [gender, setGender] = useState('')
-  const [ward, setWard] = useState('')
+  const [wardId, setWardId] = useState('')
   const [phone, setPhone] = useState('')
   const [dob, setDob] = useState<string | null>(null)
-  const [initialLeague, setInitialLeague] = useState('')
+  const [initialLeagueId, setInitialLeagueId] = useState('')
   const [alreadyBaptised, setAlreadyBaptised] = useState('')
   const [alreadyConfirmed, setAlreadyConfirmed] = useState('')
   const [baptismType, setBaptismType] = useState('')
@@ -38,6 +55,10 @@ export default function Register() {
   async function onSubmit() {
     setError('')
     setNotice('')
+    if (!congregationId) {
+      setError('Registration options are still loading. Please try again in a moment.')
+      return
+    }
     setLoading(true)
     const { data, error: err } = await supabase.auth.signUp({
       email: email.trim(),
@@ -48,8 +69,9 @@ export default function Register() {
           phone: phone.trim() || null,
           date_of_birth: dob,
           gender: gender || null,
-          ward,
-          initial_league: initialLeague || null,
+          congregation_id: congregationId,
+          ward_id: wardId,
+          league_id: initialLeagueId || null,
           already_baptised: alreadyBaptised === 'yes',
           already_confirmed: alreadyConfirmed === 'yes',
           baptism_type: baptismType || null,
@@ -82,7 +104,7 @@ export default function Register() {
       subtitle: 'Tell us your name and which ward you belong to.',
       validate: () => {
         if (!fullName.trim()) return 'Please enter your full name.'
-        if (!ward) return 'Please select your ward.'
+        if (!wardId) return 'Please select your ward.'
         return null
       },
       render: () => (
@@ -97,9 +119,9 @@ export default function Register() {
           />
           <SelectField
             label="Ward"
-            value={ward}
-            onChange={setWard}
-            options={wards.map((w) => ({ value: w, label: `${w} Ward` }))}
+            value={wardId}
+            onChange={setWardId}
+            options={wards.map((w) => ({ value: w.id, label: `${w.name} Ward` }))}
             placeholder="Select your ward…"
           />
         </>
@@ -124,7 +146,7 @@ export default function Register() {
         if (alreadyConfirmed === 'yes' && alreadyBaptised !== 'yes') {
           return 'Confirmation always follows baptism. Please also answer "Yes" to already baptised, or leave both blank if you\'re not sure.'
         }
-        const claimingSomething = alreadyBaptised === 'yes' || alreadyConfirmed === 'yes' || !!initialLeague
+        const claimingSomething = alreadyBaptised === 'yes' || alreadyConfirmed === 'yes' || !!initialLeagueId
         if (claimingSomething && !signature) {
           return 'Please sign below to confirm what you told us here is accurate.'
         }
@@ -175,19 +197,19 @@ export default function Register() {
           ) : null}
           <SelectField
             label="League / Organisation (optional)"
-            value={initialLeague}
-            onChange={setInitialLeague}
-            options={leagueKeys.map((k) => ({ value: k, label: leagues[k].label }))}
+            value={initialLeagueId}
+            onChange={setInitialLeagueId}
+            options={leagues.map((l) => ({ value: l.id, label: l.label }))}
             placeholder="Select if you already belong to one…"
           />
-          {initialLeague ? (
+          {initialLeagueId ? (
             <>
               <Field label="Why would you like to join? (optional)" value={leagueReason} onChangeText={setLeagueReason} placeholder="A short reason" />
               {alreadyConfirmed !== 'yes' ? <CertificatePicker label="Baptism Certificate (optional)" value={baptismCert} onChange={setBaptismCert} /> : null}
               <CertificatePicker label="Confirmation Certificate (optional)" value={confirmationCert} onChange={setConfirmationCert} />
             </>
           ) : null}
-          {alreadyBaptised === 'yes' || alreadyConfirmed === 'yes' || initialLeague ? (
+          {alreadyBaptised === 'yes' || alreadyConfirmed === 'yes' || initialLeagueId ? (
             <SignaturePad value={signature} onChange={setSignature} />
           ) : null}
         </>
@@ -220,6 +242,7 @@ export default function Register() {
 
         <View style={[styles.card, glassBlur]}>
           <GlassSheen cornerRadius={radius.xl} />
+          {loadError ? <Text style={styles.error}>{loadError}</Text> : null}
           {error ? <Text style={styles.error}>{error}</Text> : null}
           {notice ? <Text style={styles.notice}>{notice}</Text> : null}
           <Wizard steps={steps} onComplete={onSubmit} completeLabel="Create Account" submitting={loading} />

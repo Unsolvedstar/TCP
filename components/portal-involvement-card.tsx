@@ -6,13 +6,17 @@ import { SignaturePad } from './signature-pad'
 import { CertificatePicker } from './certificate-picker'
 import { styles } from './portal-involvement-card.styles'
 import { supabase } from '../lib/supabase'
-import { leagueKeys, leagues } from '../theme'
-import type { LeagueKey, Profile } from '../lib/types'
+import { useCongregationData } from '../lib/congregation-context'
+import type { Profile } from '../lib/types'
+
+const NONE_LEAGUE = { id: '', key: 'None', label: 'No League / Organisation', info: null as string | null }
 
 export function PortalInvolvementCard({ profile, onChanged }: { profile: Profile; onChanged: () => void }) {
+  const { leagues } = useCongregationData()
   const [busy, setBusy] = useState(false)
 
-  const [selectedLeague, setSelectedLeague] = useState<LeagueKey | null>(null)
+  // '' is the sentinel for "no league" (null-means-None mirrors the schema).
+  const [selectedLeague, setSelectedLeague] = useState<string | null>(null)
   const [leagueReason, setLeagueReason] = useState('')
   const [leagueSignature, setLeagueSignature] = useState<string | null>(null)
   const [leagueBaptismCert, setLeagueBaptismCert] = useState<string | null>(null)
@@ -43,8 +47,8 @@ export function PortalInvolvementCard({ profile, onChanged }: { profile: Profile
   }
 
   async function submitLeagueRequest() {
-    const target = selectedLeague ?? profile.league
-    if (target === profile.league) {
+    const target = selectedLeague === null ? profile.league_id : selectedLeague || null
+    if (target === profile.league_id) {
       Alert.alert('Already there', 'You are already in this league.')
       return
     }
@@ -54,7 +58,7 @@ export function PortalInvolvementCard({ profile, onChanged }: { profile: Profile
     }
     const ok = await runAction(() =>
       supabase.rpc('request_league', {
-        new_league: target,
+        new_league_id: target,
         p_reason: leagueReason.trim() || null,
         p_signature: leagueSignature,
         p_baptism_certificate: leagueBaptismCert,
@@ -109,6 +113,8 @@ export function PortalInvolvementCard({ profile, onChanged }: { profile: Profile
     }
   }
 
+  const currentLeague = leagues.find((l) => l.id === (selectedLeague ?? profile.league_id)) ?? NONE_LEAGUE
+
   return (
     <Card>
       <Text style={styles.cardTitle}>Update Your Involvement</Text>
@@ -116,31 +122,33 @@ export function PortalInvolvementCard({ profile, onChanged }: { profile: Profile
 
       <View style={styles.actionRow}>
         <Text style={styles.actionLabel}>League</Text>
-        {profile.pending_league ? (
+        {profile.pending_league_id ? (
           <View style={styles.actionCol}>
             <Text style={styles.hintText}>
-              Your request to join <Text style={{ fontWeight: '700' }}>{leagues[profile.pending_league].label}</Text> is awaiting approval.
+              Your request to join{' '}
+              <Text style={{ fontWeight: '700' }}>{leagues.find((l) => l.id === profile.pending_league_id)?.label ?? NONE_LEAGUE.label}</Text> is
+              awaiting approval.
             </Text>
             <Button title="Cancel Request" variant="danger" loading={busy} onPress={() => runAction(() => supabase.rpc('cancel_league_request'))} />
           </View>
         ) : (
           <View style={styles.actionCol}>
-            {leagueKeys.map((k) => (
+            {[NONE_LEAGUE, ...leagues].map((l) => (
               <Text
-                key={k}
-                onPress={() => setSelectedLeague(k as LeagueKey)}
-                style={[styles.leagueOption, (selectedLeague ?? profile.league) === k && styles.leagueOptionActive]}
+                key={l.id}
+                onPress={() => setSelectedLeague(l.id)}
+                style={[styles.leagueOption, (selectedLeague ?? profile.league_id ?? '') === l.id && styles.leagueOptionActive]}
               >
-                {leagues[k].label}
+                {l.label}
               </Text>
             ))}
-            {leagues[selectedLeague ?? profile.league]?.info ? (
+            {currentLeague.info ? (
               <View style={styles.infoRow}>
-                <LeagueBadge leagueKey={(selectedLeague ?? profile.league) as LeagueKey} size={36} />
-                <Text style={[styles.hintText, { flex: 1 }]}>{leagues[selectedLeague ?? profile.league].info}</Text>
+                <LeagueBadge leagueKey={currentLeague.key} size={36} />
+                <Text style={[styles.hintText, { flex: 1 }]}>{currentLeague.info}</Text>
               </View>
             ) : null}
-            {selectedLeague && selectedLeague !== profile.league ? (
+            {selectedLeague !== null && (selectedLeague || null) !== profile.league_id ? (
               <>
                 <Field label="Why would you like to join? (optional)" value={leagueReason} onChangeText={setLeagueReason} placeholder="A short reason" />
                 <CertificatePicker label="Baptism Certificate (optional)" value={leagueBaptismCert} onChange={setLeagueBaptismCert} />

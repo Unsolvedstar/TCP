@@ -7,10 +7,12 @@ import { Wizard, type WizardStepDef } from './wizard'
 import { DependentCard } from './dependent-card'
 import { styles } from './portal-household-card.styles'
 import { supabase } from '../lib/supabase'
-import { genders, leagueKeys, leagues, wards } from '../theme'
+import { genders } from '../theme'
+import { useCongregationData } from '../lib/congregation-context'
 import type { Dependent } from '../lib/types'
 
 export function PortalHouseholdCard({ dependents, onChanged }: { dependents: Dependent[]; onChanged: () => void }) {
+  const { wards, leagues } = useCongregationData()
   const [addingChild, setAddingChild] = useState(false)
   const [childName, setChildName] = useState('')
   const [childDob, setChildDob] = useState<string | null>(null)
@@ -33,9 +35,9 @@ export function PortalHouseholdCard({ dependents, onChanged }: { dependents: Dep
     const { error } = await supabase.rpc('add_dependent', {
       p_full_name: childName.trim(),
       p_date_of_birth: childDob,
-      p_ward: childWard,
+      p_ward_id: childWard,
       p_gender: childGender || null,
-      p_initial_league: childLeague || null,
+      p_initial_league_id: childLeague || null,
       p_already_baptised: childBaptised === 'yes',
       p_already_confirmed: childConfirmed === 'yes',
       p_baptism_type: childBaptismType || null,
@@ -88,7 +90,7 @@ export function PortalHouseholdCard({ dependents, onChanged }: { dependents: Dep
       validate: () => (!childWard ? 'Please select a ward.' : null),
       render: () => (
         <>
-          <SelectField label="Ward" value={childWard} onChange={setChildWard} options={wards.map((w) => ({ value: w, label: `${w} Ward` }))} />
+          <SelectField label="Ward" value={childWard} onChange={setChildWard} options={wards.map((w) => ({ value: w.id, label: `${w.name} Ward` }))} />
           <SelectField label="Gender (optional)" value={childGender} onChange={setChildGender} options={genders.map((g) => ({ value: g, label: g }))} placeholder="Select…" />
         </>
       ),
@@ -154,7 +156,7 @@ export function PortalHouseholdCard({ dependents, onChanged }: { dependents: Dep
             label="League / Organisation (optional)"
             value={childLeague}
             onChange={setChildLeague}
-            options={leagueKeys.map((k) => ({ value: k, label: leagues[k].label }))}
+            options={leagues.map((l) => ({ value: l.id, label: l.label }))}
             placeholder="Select if they already belong to one…"
           />
           {childLeague ? (

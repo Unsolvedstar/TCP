@@ -13,9 +13,10 @@ import { SacramentsCard } from '../../components/sacraments-card'
 import { BirthdaysCard } from '../../components/birthdays-card'
 import { ChurchCalendarCard } from '../../components/church-calendar-card'
 import { useAuth } from '../../lib/auth-context'
+import { useCongregationData } from '../../lib/congregation-context'
 import { supabase } from '../../lib/supabase'
 import { useLiturgicalSeason } from '../../lib/liturgical-theme'
-import { colors, leagues, wardColors } from '../../theme'
+import { colors } from '../../theme'
 import { styles } from '../../styles/portal.styles'
 import type { Birthday, Dependent, GenderStat, LeagueStat, SacramentStat, WardStat } from '../../lib/types'
 
@@ -25,6 +26,7 @@ type Announcement = { id: string; title: string; date_text: string; body: string
 
 export default function Portal() {
   const { profile, refreshProfile } = useAuth()
+  const { wards, leagues } = useCongregationData()
   const season = useLiturgicalSeason()
   const [section, setSection] = useState<'dashboard' | 'leagues' | 'calendar'>('dashboard')
   const [refreshing, setRefreshing] = useState(false)
@@ -76,7 +78,8 @@ export default function Portal() {
     )
   }
 
-  const myLeague = leagues[profile.league] ?? leagues.None
+  const myWard = wards.find((w) => w.id === profile.ward_id)
+  const myLeague = leagues.find((l) => l.id === profile.league_id) ?? { label: 'No League / Organisation', color: '#9e9e9e' }
 
   return (
     <ScrollView
@@ -89,20 +92,20 @@ export default function Portal() {
           <Text style={[styles.heroSeasonPillText, { color: season.text }]}>{season.name.toUpperCase()}</Text>
         </View>
         <Text style={[styles.heroName, { color: season.text }]}>Welcome, {profile.full_name.split(' ')[0]}</Text>
-        <Text style={[styles.heroSub, { color: season.text }]}>{profile.ward} Ward, ELCSA Tshwane City Parish</Text>
+        <Text style={[styles.heroSub, { color: season.text }]}>{myWard?.name ?? '—'} Ward, ELCSA Tshwane City Parish</Text>
       </View>
 
       <View style={styles.statGrid}>
         <View style={styles.statCard}>
           <GlassSheen />
           <SectionLabel>Ward</SectionLabel>
-          <Chip label={profile.ward} color={wardColors[profile.ward]} />
+          {myWard ? <Chip label={myWard.name} color={myWard.color} /> : null}
         </View>
         <View style={styles.statCard}>
           <GlassSheen />
           <SectionLabel>League</SectionLabel>
           <Chip label={myLeague.label} color={myLeague.color} />
-          {profile.pending_league ? <Text style={styles.pendingNote}>Pending review</Text> : null}
+          {profile.pending_league_id ? <Text style={styles.pendingNote}>Pending review</Text> : null}
         </View>
         <View style={styles.statCard}>
           <GlassSheen />

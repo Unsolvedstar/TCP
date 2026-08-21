@@ -11,7 +11,9 @@ import { BirthdaysCard } from '../../components/birthdays-card'
 import { ChurchCalendarCard } from '../../components/church-calendar-card'
 import { supabase } from '../../lib/supabase'
 import { useLiturgicalSeason } from '../../lib/liturgical-theme'
-import { colors, radius, wardColors, wardCodes, wards } from '../../theme'
+import { useAuth } from '../../lib/auth-context'
+import { useCongregationData } from '../../lib/congregation-context'
+import { colors, radius } from '../../theme'
 import { styles } from '../../styles/dashboard.styles'
 import type { Birthday, GenderStat, LeagueStat, SacramentStat, WardStat } from '../../lib/types'
 
@@ -21,6 +23,8 @@ type Announcement = { id: string; title: string; date_text: string; body: string
 
 export default function Dashboard() {
   const router = useRouter()
+  const { profile } = useAuth()
+  const { wards } = useCongregationData()
   const season = useLiturgicalSeason()
   const [section, setSection] = useState<'dashboard' | 'leagues' | 'calendar'>('dashboard')
   const [refreshing, setRefreshing] = useState(false)
@@ -44,8 +48,8 @@ export default function Dashboard() {
       supabase.rpc('stats_sacraments'),
       supabase.from('announcements').select('id,title,date_text,body').order('created_at', { ascending: false }),
       supabase.rpc('upcoming_birthdays', { days_ahead: 30 }),
-      supabase.from('profiles').select('pending_league,pending_baptism,pending_confirmation').eq('role', 'member'),
-      supabase.from('dependents').select('pending_league,pending_baptism,pending_confirmation'),
+      supabase.from('profiles').select('pending_league_id,pending_baptism,pending_confirmation').eq('role', 'member'),
+      supabase.from('dependents').select('pending_league_id,pending_baptism,pending_confirmation'),
     ])
     setWardStats((ws as WardStat[]) ?? [])
     setLeagueStats((ls as LeagueStat[]) ?? [])
@@ -53,7 +57,7 @@ export default function Dashboard() {
     if (sac && (sac as SacramentStat[]).length) setSacraments((sac as SacramentStat[])[0])
     setAnnouncements((ann as Announcement[]) ?? [])
     setBirthdays((bdays as Birthday[]) ?? [])
-    const countIn = (rows: any[] | null) => (rows ?? []).reduce((n: number, m: any) => n + (m.pending_league ? 1 : 0) + (m.pending_baptism ? 1 : 0) + (m.pending_confirmation ? 1 : 0), 0)
+    const countIn = (rows: any[] | null) => (rows ?? []).reduce((n: number, m: any) => n + (m.pending_league_id ? 1 : 0) + (m.pending_baptism ? 1 : 0) + (m.pending_confirmation ? 1 : 0), 0)
     setPendingCount(countIn(pending) + countIn(depPending))
   }, [])
 
@@ -74,8 +78,11 @@ export default function Dashboard() {
       Alert.alert('Title required', 'Please enter a title.')
       return
     }
+    if (!profile) return
     setSaving(true)
-    const { error } = await supabase.from('announcements').insert({ title: title.trim(), date_text: dateText.trim(), body: body.trim() })
+    const { error } = await supabase
+      .from('announcements')
+      .insert({ congregation_id: profile.congregation_id, title: title.trim(), date_text: dateText.trim(), body: body.trim() })
     setSaving(false)
     if (error) {
       Alert.alert('Could not save', error.message)
@@ -139,11 +146,11 @@ export default function Dashboard() {
         <>
           <View style={styles.wardGrid}>
             {wards.map((w) => (
-              <View key={w} style={[styles.wardCard, { borderTopColor: wardColors[w] }]}>
+              <View key={w.id} style={[styles.wardCard, { borderTopColor: w.color }]}>
                 <GlassSheen cornerRadius={radius.md} />
-                <Text style={styles.wardLabel}>{w}</Text>
-                <Text style={styles.wardNum}>{wardStats.find((s) => s.ward === w)?.cnt ?? 0}</Text>
-                <Text style={styles.wardCode}>Ward {wardCodes[w]}</Text>
+                <Text style={styles.wardLabel}>{w.name}</Text>
+                <Text style={styles.wardNum}>{wardStats.find((s) => s.ward_id === w.id)?.cnt ?? 0}</Text>
+                <Text style={styles.wardCode}>Ward {w.bank_code}</Text>
               </View>
             ))}
           </View>
