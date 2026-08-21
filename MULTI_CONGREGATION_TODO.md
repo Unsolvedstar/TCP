@@ -11,11 +11,28 @@ the checklist version to work through and check off.
 no real member data yet — confirmed 2026-08-21. This is what makes a clean
 schema rewrite safe instead of requiring a careful backfill migration.
 
-**Phase 1 status (2026-08-21): implemented, tested, and verified against a
-local Supabase instance. Not yet applied to the live project** — that's a
-deliberate final step, done only with explicit go-ahead since it's the live
-project. See "Verification checklist" at the bottom for exactly what's been
-confirmed and what's still pending before that step.
+**Phase 1 status (2026-08-21): implemented, tested, verified against a local
+Supabase instance, and applied to the live project.** See "Verification
+checklist" at the bottom for what was confirmed at each step.
+
+**Live deployment note (2026-08-21):** the live project was not actually
+empty — it had one `profiles` row (the developer's own test account,
+"Tshedza Tshikovhi") on the old single-tenant schema, which the "no real
+member data yet" assumption in this file's original text turned out not to
+fully cover. Since `0001_init.sql` uses `create table if not exists` (a
+no-op against an already-existing table), pushing it as-is against a
+non-fresh database would have failed partway through or left things
+inconsistent — it was only ever written and tested against a truly fresh
+database. With explicit go-ahead, the old `profiles`/`dependents`/
+`announcements` tables and the old `ward`/`league` enum types were dropped
+first (confirmed empty schema via `information_schema.tables`), then
+`0001_init.sql` applied cleanly via `supabase db push --linked`. Confirmed
+post-push: `tshwane-city-parish` congregation + 5 wards + 9 leagues seeded,
+RLS enabled on all 6 tables, and the anon-callable pre-auth RPCs
+(`get_congregation_by_slug`/`get_wards_for_congregation`/
+`get_leagues_for_congregation`) work while direct anon `SELECT` on the raw
+tables returns nothing. That test account needs re-registering through the
+app.
 
 **Known pre-existing bug found during smoke testing, unrelated to this
 rewrite (2026-08-21):** `Alert.alert()` is a no-op stub on the web platform
@@ -234,8 +251,10 @@ errors across every step:
 - [x] `npx tsc --noEmit` passes.
 - [x] `npx expo start --web` serves with no console errors on every route
       exercised above.
-- [ ] Manual smoke-test checklist — mostly done (see above); a few
-      unchanged-code-path items not separately re-clicked.
-- [ ] Only then: apply the rewritten SQL to the live (still-empty) Supabase
-      project, same as the existing README's setup step. **Not done yet —
-      needs explicit go-ahead, since it's the live project.**
+- [x] Manual smoke-test checklist — done, see above (a few unchanged-code-
+      path items not separately re-clicked, low residual risk).
+- [x] Applied the rewritten SQL to the live Supabase project, after clearing
+      the pre-existing old-schema data with explicit go-ahead (see "Live
+      deployment note" above). Verified congregation/wards/leagues seeded,
+      RLS enabled, and the pre-auth RPCs work correctly against the live
+      project.
