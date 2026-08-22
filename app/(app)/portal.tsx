@@ -37,7 +37,7 @@ export default function Portal() {
   const [wardStats, setWardStats] = useState<WardStat[]>([])
   const [leagueStats, setLeagueStats] = useState<LeagueStat[]>([])
   const [genderStats, setGenderStats] = useState<GenderStat[]>([])
-  const [sacraments, setSacraments] = useState<SacramentStat>({ total: 0, baptised: 0, confirmed: 0, adults: 0, children: 0 })
+  const [sacraments, setSacraments] = useState<SacramentStat>({ total: 0, baptised: 0, confirmed: 0, adults: 0, children: 0, elders: 0 })
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [dependents, setDependents] = useState<Dependent[]>([])
 
@@ -165,7 +165,7 @@ export default function Portal() {
           <WardBreakdownCard
             wardStats={wardStats}
             title="Parish at a Glance"
-            subtitle={`${sacraments.total} people across 5 wards: ${sacraments.adults} adults, ${sacraments.children} children`}
+            subtitle={`${sacraments.total} people across 5 wards: ${sacraments.adults} adults, ${sacraments.elders} elders, ${sacraments.children} children`}
           />
           <GenderBreakdownCard genderStats={genderStats} />
           <SacramentsCard sacraments={sacraments} />

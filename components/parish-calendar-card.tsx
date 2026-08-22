@@ -14,7 +14,7 @@ const LITURGICAL_COLOR = '#b08d2b'
 const BIRTHDAY_COLOR = '#c1447e'
 const CONGREGATION_EVENT_COLOR = colors.g700
 
-type BirthdayMonthRow = { full_name: string; is_child: boolean; day_of_month: number }
+type BirthdayMonthRow = { full_name: string; age_group: 'child' | 'adult' | 'elder' | null; day_of_month: number }
 
 /** ISO dates from `startIso` through `endIso ?? startIso`, clamped to [viewStart, viewEnd]. */
 function expandToVisibleDays(startIso: string, endIso: string | null, viewStart: string, viewEnd: string): string[] {
@@ -87,7 +87,7 @@ export function ParishCalendarCard() {
         kind: 'birthday' as const,
         label: `${b.full_name}'s birthday`,
         color: BIRTHDAY_COLOR,
-        detail: b.is_child ? 'Child' : undefined,
+        detail: b.age_group === 'child' ? 'Child' : b.age_group === 'elder' ? 'Elder' : undefined,
       }))
 
       const eventMarkers: CalendarMarker[] = ((events as ChurchEventRow[]) ?? []).flatMap((e) => {

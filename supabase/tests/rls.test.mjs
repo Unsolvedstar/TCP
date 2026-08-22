@@ -603,6 +603,40 @@ describe('ceremony scheduling', () => {
   })
 })
 
+// --- 11. Age-group categorization is by actual date of birth, not by which table a row is in ---
+
+describe('age-group categorization', () => {
+  test('a self-registered member who is a child and a dependent who is an adult are both classified correctly', async () => {
+    // memberB is a `profiles` row (a self-registered account) and depB is a
+    // `dependents` row (guardian-managed) — deliberately picking ages that
+    // contradict what table-based guessing would assume for each. (Admins
+    // are excluded from these two RPCs entirely, by design, same as before
+    // this change — they're not part of the congregation "people" stats.)
+    await admin.from('profiles').update({ date_of_birth: '2015-06-01' }).eq('id', memberB.id) // a "member" who's actually a child
+    await admin.from('dependents').update({ date_of_birth: '1985-01-01' }).eq('id', depB) // a "dependent" who's actually an adult
+
+    const [stats] = await expectOk(memberB.client.rpc('stats_sacraments'), 'memberB stats_sacraments')
+    assert.equal(stats.total, 2) // memberB + depB
+    assert.equal(stats.children, 1) // memberB only, despite being a profiles row
+    assert.equal(stats.adults, 1) // depB only, despite being a dependents row
+    assert.equal(stats.elders, 0)
+
+    const bdays = await expectOk(memberB.client.rpc('upcoming_birthdays', { days_ahead: 400 }), 'memberB upcoming_birthdays')
+    const ageGroupByDob = Object.fromEntries(bdays.map((r) => [r.date_of_birth, r.age_group]))
+    assert.equal(ageGroupByDob['2015-06-01'], 'child')
+    assert.equal(ageGroupByDob['1985-01-01'], 'adult')
+  })
+
+  test('age_group() reclassifies purely from the birthdate, with no memory of past results', async () => {
+    const child = await expectOk(memberB.client.rpc('age_group', { dob: '2015-06-01' }), 'age_group child')
+    const elder = await expectOk(memberB.client.rpc('age_group', { dob: '1950-01-01' }), 'age_group elder')
+    const unknown = await expectOk(memberB.client.rpc('age_group', { dob: null }), 'age_group unknown')
+    assert.equal(child, 'child')
+    assert.equal(elder, 'elder')
+    assert.equal(unknown, null)
+  })
+})
+
 after(async () => {
   // Best-effort cleanup so repeated runs against the same local instance
   // don't accumulate test users/congregations. Not load-bearing for the

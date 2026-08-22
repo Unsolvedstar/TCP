@@ -1,3 +1,5 @@
+import type { AgeGroup } from './age-groups'
+
 export type Gender = 'Male' | 'Female'
 
 export type AppRole = 'member' | 'admin'
@@ -127,5 +129,5 @@ export type CeremonyProposal = {
 export type WardStat = { ward_id: string; cnt: number }
 export type GenderStat = { gender: string; cnt: number }
 export type LeagueStat = { league_id: string | null; cnt: number }
-export type SacramentStat = { total: number; baptised: number; confirmed: number; adults: number; children: number }
-export type Birthday = { full_name: string; date_of_birth: string; is_child: boolean; ward_id: string; next_birthday: string }
+export type SacramentStat = { total: number; baptised: number; confirmed: number; adults: number; children: number; elders: number }
+export type Birthday = { full_name: string; date_of_birth: string; age_group: AgeGroup | null; ward_id: string; next_birthday: string }

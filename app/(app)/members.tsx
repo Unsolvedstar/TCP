@@ -12,8 +12,11 @@ import { supabase } from '../../lib/supabase'
 import { colors, genderColors } from '../../theme'
 import { useCongregationData } from '../../lib/congregation-context'
 import { applicationDetailText, applicationCertificateList } from '../../lib/application-detail'
+import { classifyAge, AGE_GROUP_LABELS } from '../../lib/age-groups'
 import { styles } from '../../styles/members.styles'
 import type { BaptismApplication, ChildRow, ConfirmationApplication, LeagueApplication, Profile } from '../../lib/types'
+
+const AGE_GROUP_COLORS = { child: '#c1447e', adult: colors.g700, elder: colors.brandNavy } as const
 
 export { ErrorBoundary } from '../../components/error-boundary'
 
@@ -257,7 +260,7 @@ export default function Members() {
           <View>
             <Text style={styles.screenTitle}>Congregation Registry</Text>
             <Text style={styles.screenSub}>
-              {members.length} adult{members.length !== 1 ? 's' : ''}, {children.length} child{children.length !== 1 ? 'ren' : ''}
+              {members.length} member{members.length !== 1 ? 's' : ''}, {children.length} dependent{children.length !== 1 ? 's' : ''}
             </Text>
 
             {pending.length > 0 && (
@@ -335,10 +338,10 @@ export default function Members() {
 
             <View style={styles.tabRow}>
               <Text onPress={() => setTab('adults')} style={[styles.tabBtn, tab === 'adults' && styles.tabBtnActive]}>
-                Adults ({members.length})
+                Members ({members.length})
               </Text>
               <Text onPress={() => setTab('children')} style={[styles.tabBtn, tab === 'children' && styles.tabBtnActive]}>
-                Children ({children.length})
+                Dependents ({children.length})
               </Text>
               <Text onPress={() => setTab('activity')} style={[styles.tabBtn, tab === 'activity' && styles.tabBtnActive]}>
                 Activity
@@ -417,6 +420,11 @@ export default function Members() {
           const child = item as ChildRow
           const itemWard = wards.find((w) => w.id === item.ward_id)
           const itemLeague = leagues.find((l) => l.id === item.league_id) ?? NONE_LEAGUE
+          // Computed live from date_of_birth, not from which tab/table this
+          // row came from — a self-registered member isn't necessarily an
+          // adult, and a guardian-managed dependent isn't necessarily a
+          // minor, so this can't be inferred from "Members" vs "Dependents".
+          const ageGroup = classifyAge(item.date_of_birth)
           return (
             <Pressable style={styles.memberCard} onPress={() => (isChild ? setEditingChild(child) : setEditingMember(item as Profile))}>
               <GlassSheen />
@@ -425,6 +433,7 @@ export default function Members() {
                 {isChild ? <Text style={styles.guardianLine}>Guardian: {child.guardian?.full_name ?? 'Unknown'}</Text> : null}
                 {item.date_of_birth ? <Text style={styles.guardianLine}>{formatDate(item.date_of_birth)}</Text> : null}
                 <View style={styles.memberChips}>
+                  {ageGroup ? <Chip label={AGE_GROUP_LABELS[ageGroup]} color={AGE_GROUP_COLORS[ageGroup]} /> : null}
                   {itemWard ? <Chip label={itemWard.name} color={itemWard.color} /> : null}
                   {item.gender ? <Chip label={item.gender} color={genderColors[item.gender]} /> : null}
                   <Chip label={itemLeague.label} color={itemLeague.color} />
@@ -435,7 +444,7 @@ export default function Members() {
             </Pressable>
           )
         }}
-        ListEmptyComponent={tab === 'activity' ? null : <Text style={styles.emptyText}>No {tab === 'adults' ? 'members' : 'children'} found.</Text>}
+        ListEmptyComponent={tab === 'activity' ? null : <Text style={styles.emptyText}>No {tab === 'adults' ? 'members' : 'dependents'} found.</Text>}
       />
 
       {editingMember && (

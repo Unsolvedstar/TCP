@@ -16,7 +16,7 @@ export function BirthdaysCard({ birthdays, subtitle = 'Next 30 days', showWard =
       {birthdays.map((b, i) => (
         <View key={i} style={styles.bdayRow}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1 }}>
-            {b.is_child ? <Ionicons name="body-outline" size={14} color={colors.muted} /> : null}
+            {b.age_group === 'child' ? <Ionicons name="body-outline" size={14} color={colors.muted} /> : null}
             <Text style={styles.bdayName}>
               {b.full_name}
               {showWard ? <Text style={styles.bdayWard}> ({wards.find((w) => w.id === b.ward_id)?.name ?? '—'})</Text> : null}

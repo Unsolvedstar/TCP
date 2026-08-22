@@ -35,7 +35,7 @@ export default function Dashboard() {
   const [wardStats, setWardStats] = useState<WardStat[]>([])
   const [leagueStats, setLeagueStats] = useState<LeagueStat[]>([])
   const [genderStats, setGenderStats] = useState<GenderStat[]>([])
-  const [sacraments, setSacraments] = useState<SacramentStat>({ total: 0, baptised: 0, confirmed: 0, adults: 0, children: 0 })
+  const [sacraments, setSacraments] = useState<SacramentStat>({ total: 0, baptised: 0, confirmed: 0, adults: 0, children: 0, elders: 0 })
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [pendingCount, setPendingCount] = useState(0)
   const [title, setTitle] = useState('')
@@ -120,7 +120,7 @@ export default function Dashboard() {
           <Text style={[styles.heroTotalL, { color: season.text }]}>People In The Church</Text>
         </View>
         <Text style={[styles.heroBreakdown, { color: season.text }]}>
-          {sacraments.adults} adults, {sacraments.children} children
+          {sacraments.adults} adults, {sacraments.elders} elders, {sacraments.children} children
         </Text>
       </View>
 
