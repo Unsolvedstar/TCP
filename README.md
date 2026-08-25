@@ -166,8 +166,8 @@ at registration sets `baptised` / `confirmed` / `league` directly — the
 reasoning being that this is a statement about something that already
 happened (you already got baptised, you're already in a league), not a new
 event the church needs to schedule, so there's nothing for an admin to
-"approve." The signature, sponsor/mentor name, and (for baptism/confirmation)
-*where* and *who* — the officiating pastor — are still captured and stored as
+"approve." The sponsor/mentor name, and (for baptism/confirmation) *where* and
+*who* — the officiating pastor — are still captured and stored as
 an attestation record on the profile (`baptism_application` /
 `confirmation_application` / `league_application`) even though nothing needs
 to clear it. Registration deliberately does **not** ask for a baptism/
@@ -181,37 +181,21 @@ described below, certificate uploads included. Answering "already confirmed"
 without "already baptised" is rejected client-side and dropped server-side
 too, since confirmation always follows baptism.
 
-**Baptism, confirmation, and league requests are now real application forms,
-signed.** Requesting baptism asks for the type (Infant/Adult) and a
-sponsor/godparent name; requesting confirmation asks for a mentor; requesting a
-league asks why. All three now require a drawn signature — draw with your
-finger (native) or mouse (web) in `components/signature-pad.native.tsx` /
-`signature-pad.web.tsx` — before the request can be submitted, at registration,
-from the portal, and for a child in the household. Admins see the answers and a
-thumbnail of the signature right next to each pending request in **Members**,
-not just a bare "wants to join X" line.
+**Baptism, confirmation, and league requests are real application forms.**
+Requesting baptism asks for the type (Infant/Adult) and a sponsor/godparent
+name; requesting confirmation asks for a mentor; requesting a league asks why.
+These can be submitted at registration, from the portal, and for a child in
+the household. Admins see the answers right next to each pending request in
+**Members**, not just a bare "wants to join X" line. The app does **not**
+collect a drawn signature for any of this — POPIA (South Africa's data
+protection act) treats a captured signature image as personal data the app
+has no real need to retain, so it's deliberately left out.
 
-The signature pad is two separate files rather than one file with a
-`Platform.OS` check: `react-native-view-shot` (used to snapshot the on-screen
-drawing into a PNG on native) has no web build, and Metro resolves
-`signature-pad` to whichever platform file exists at bundle time — so the web
-bundle never even sees that import, rather than merely skipping it at runtime.
-This needed one extra tsconfig setting (`moduleSuffixes`) since Expo's default
-config doesn't teach plain `tsc` about that convention the way Metro already
-knows it.
-
-Answers and the signature are stored as `jsonb` (`baptism_application` /
+Answers are stored as `jsonb` (`baptism_application` /
 `confirmation_application` / `league_application` on both `profiles` and
-`dependents`) — a signature is a small enough image that storing it inline was
-simpler than standing up Supabase Storage for it. Both are cleared once an
+`dependents`), each with a `submitted_at` timestamp. These are cleared once an
 admin approves or denies the request; they're for reviewing *this* pending
 request, not a permanent record of who someone's godparent was.
-
-> **Native signature capture isn't verified against a real device.** The web
-> canvas is standard-issue HTML5 and low-risk. The native path — react-native-svg
-> + PanResponder + react-native-view-shot — is the conventional way to build this
-> in React Native, but I can't confirm it behaves in Expo Go here. Smoke-test
-> drawing and submitting a signature on an actual phone before relying on it.
 
 **Certificate photos, for confirmation and league requests — from the portal,
 not at registration.** Requesting confirmation can attach a baptism
@@ -226,11 +210,10 @@ certificate (see above).
 
 `components/certificate-picker.tsx` uses `expo-image-picker` to choose or
 photograph an image, then `expo-image-manipulator` to resize it down (~1000px
-wide, JPEG) before it's stored as a data URI the same way a signature is —
-without that resize step a full-resolution phone photo would be several MB,
-too big to store inline this way. Unlike the signature pad, this one didn't
-need a `.native`/`.web` split: both underlying packages have real web
-support, confirmed by checking their source rather than assuming it.
+wide, JPEG) before it's stored as a data URI — without that resize step a
+full-resolution phone photo would be several MB, too big to store inline this
+way. It doesn't need a `.native`/`.web` split: both underlying packages have
+real web support, confirmed by checking their source rather than assuming it.
 
 **Password reset.** "Forgot your password?" on the sign-in screen sends a reset
 link via Supabase Auth. Clicking it re-opens the app (native) or the site (web) at
@@ -284,7 +267,6 @@ components/
   church-header.tsx               — crest + seasonal ring, used on every public screen
   landing-page.tsx                — the signed-out landing page
   league-badge.tsx                — real badge artwork for the 3 leagues that have any
-  signature-pad.native.tsx / .web.tsx — drawn-signature capture, split by platform on purpose
   certificate-picker.tsx          — attach a baptism/confirmation certificate photo
 assets/brand/                     — church crest + league badges, scanned from the parish's own bulletins
 theme.ts                          — colours (sampled from the real crest), wards, leagues, liturgical palette

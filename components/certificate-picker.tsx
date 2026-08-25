@@ -9,10 +9,9 @@ import { styles } from './certificate-picker.styles'
 /**
  * Lets someone attach a photo of a certificate (baptism/confirmation) to a
  * request. Picked images are resized/compressed client-side before being
- * stored as a data URI — same reasoning as the signature pad: a parish this
- * size doesn't need Supabase Storage stood up just for this, as long as the
- * image is kept small (~1000px wide, JPEG) rather than a full-resolution
- * phone photo.
+ * stored as a data URI — a parish this size doesn't need Supabase Storage
+ * stood up just for this, as long as the image is kept small (~1000px wide,
+ * JPEG) rather than a full-resolution phone photo.
  */
 export function CertificatePicker({ label, value, onChange }: { label: string; value: string | null; onChange: (dataUri: string | null) => void }) {
   const [busy, setBusy] = useState(false)

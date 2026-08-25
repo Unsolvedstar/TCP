@@ -3,7 +3,6 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } fro
 import { Link, router } from 'expo-router'
 import { DateField, Field, GlassSheen, glassBlur, SelectField } from '../components/ui'
 import { ChurchHeader } from '../components/church-header'
-import { SignaturePad } from '../components/signature-pad'
 import { CertificatePicker } from '../components/certificate-picker'
 import { ChipRow } from '../components/chip-row'
 import { Wizard, type WizardStepDef } from '../components/wizard'
@@ -49,7 +48,6 @@ export default function Register() {
   const [leagueReason, setLeagueReason] = useState('')
   const [baptismCert, setBaptismCert] = useState<string | null>(null)
   const [confirmationCert, setConfirmationCert] = useState<string | null>(null)
-  const [signature, setSignature] = useState<string | null>(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [password2, setPassword2] = useState('')
@@ -89,7 +87,6 @@ export default function Register() {
           league_reason: leagueReason.trim() || null,
           baptism_certificate: baptismCert,
           confirmation_certificate: confirmationCert,
-          signature,
         },
       },
     })
@@ -155,10 +152,6 @@ export default function Register() {
         if (alreadyConfirmed === 'yes' && alreadyBaptised !== 'yes') {
           return 'Confirmation always follows baptism. Please also answer "Yes" to already baptised, or leave both blank if you\'re not sure.'
         }
-        const claimingSomething = alreadyBaptised === 'yes' || alreadyConfirmed === 'yes' || !!initialLeagueId
-        if (claimingSomething && !signature) {
-          return 'Please sign below to confirm what you told us here is accurate.'
-        }
         return null
       },
       render: () => (
@@ -216,9 +209,6 @@ export default function Register() {
               {alreadyConfirmed !== 'yes' ? <CertificatePicker label="Baptism Certificate (optional)" value={baptismCert} onChange={setBaptismCert} /> : null}
               <CertificatePicker label="Confirmation Certificate (optional)" value={confirmationCert} onChange={setConfirmationCert} />
             </>
-          ) : null}
-          {alreadyBaptised === 'yes' || alreadyConfirmed === 'yes' || initialLeagueId ? (
-            <SignaturePad value={signature} onChange={setSignature} />
           ) : null}
         </>
       ),

@@ -294,7 +294,7 @@ export default function Members() {
                           </View>
                         )}
                       </View>
-                      {detail || p.application?.signature || certs.length > 0 ? (
+                      {detail || certs.length > 0 ? (
                         <View style={styles.pendingAppRow}>
                           {detail ? <Text style={styles.pendingAppText}>{detail}</Text> : null}
                           <View style={{ flexDirection: 'row', gap: 6 }}>
@@ -304,12 +304,6 @@ export default function Members() {
                                 <Text style={styles.pendingThumbLabel}>{c.label}</Text>
                               </View>
                             ))}
-                            {p.application?.signature ? (
-                              <View style={{ alignItems: 'center' }}>
-                                <Image source={{ uri: p.application.signature }} style={styles.pendingSignature} />
-                                <Text style={styles.pendingThumbLabel}>Signature</Text>
-                              </View>
-                            ) : null}
                           </View>
                         </View>
                       ) : null}

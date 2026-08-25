@@ -43,8 +43,8 @@ confirmation (remove member, remove dependent, promote/demote, the
 member-removal cascade warning) was silently doing nothing on web.
 
 Fixed with a drop-in replacement using the platform-file-split convention
-already used elsewhere in this codebase (see `signature-pad.native.tsx` /
-`.web.tsx`): `lib/alert.native.tsx` re-exports React Native's real `Alert`
+(a `.native.tsx` / `.web.tsx` pair that Metro resolves per platform at bundle
+time): `lib/alert.native.tsx` re-exports React Native's real `Alert`
 unchanged; `lib/alert.web.tsx` implements the same `Alert.alert(title,
 message, buttons)` signature as an actual on-screen modal (styled to match
 the app's existing bottom-sheet/picker modals), backed by an `<AlertHost />`

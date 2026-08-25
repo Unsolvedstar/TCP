@@ -3,7 +3,6 @@ import { Text, View } from 'react-native'
 import { Alert } from '../lib/alert'
 import { Button, Card, Field, SelectField } from './ui'
 import { LeagueBadge } from './league-badge'
-import { SignaturePad } from './signature-pad'
 import { CertificatePicker } from './certificate-picker'
 import { styles } from './portal-involvement-card.styles'
 import { supabase } from '../lib/supabase'
@@ -19,7 +18,6 @@ export function PortalInvolvementCard({ profile, onChanged }: { profile: Profile
   // '' is the sentinel for "no league" (null-means-None mirrors the schema).
   const [selectedLeague, setSelectedLeague] = useState<string | null>(null)
   const [leagueReason, setLeagueReason] = useState('')
-  const [leagueSignature, setLeagueSignature] = useState<string | null>(null)
   const [leagueBaptismCert, setLeagueBaptismCert] = useState<string | null>(null)
   const [leagueConfirmationCert, setLeagueConfirmationCert] = useState<string | null>(null)
 
@@ -27,12 +25,10 @@ export function PortalInvolvementCard({ profile, onChanged }: { profile: Profile
   const [baptismType, setBaptismType] = useState('')
   const [sponsorName, setSponsorName] = useState('')
   const [baptismNote, setBaptismNote] = useState('')
-  const [baptismSignature, setBaptismSignature] = useState<string | null>(null)
 
   const [showConfirmationForm, setShowConfirmationForm] = useState(false)
   const [mentorName, setMentorName] = useState('')
   const [confirmationNote, setConfirmationNote] = useState('')
-  const [confirmationSignature, setConfirmationSignature] = useState<string | null>(null)
   const [confirmationBaptismCert, setConfirmationBaptismCert] = useState<string | null>(null)
 
   async function runAction(fn: () => PromiseLike<{ error: any }>) {
@@ -53,15 +49,10 @@ export function PortalInvolvementCard({ profile, onChanged }: { profile: Profile
       Alert.alert('Already there', 'You are already in this league.')
       return
     }
-    if (!leagueSignature) {
-      Alert.alert('Please sign', 'Sign below to confirm this request.')
-      return
-    }
     const ok = await runAction(() =>
       supabase.rpc('request_league', {
         new_league_id: target,
         p_reason: leagueReason.trim() || null,
-        p_signature: leagueSignature,
         p_baptism_certificate: leagueBaptismCert,
         p_confirmation_certificate: leagueConfirmationCert,
       })
@@ -69,39 +60,28 @@ export function PortalInvolvementCard({ profile, onChanged }: { profile: Profile
     if (ok) {
       setSelectedLeague(null)
       setLeagueReason('')
-      setLeagueSignature(null)
       setLeagueBaptismCert(null)
       setLeagueConfirmationCert(null)
     }
   }
 
   async function submitBaptismRequest() {
-    if (!baptismSignature) {
-      Alert.alert('Please sign', 'Sign below to confirm this request.')
-      return
-    }
     const ok = await runAction(() =>
-      supabase.rpc('request_baptism', { p_type: baptismType || null, p_sponsor_name: sponsorName.trim() || null, p_note: baptismNote.trim() || null, p_signature: baptismSignature })
+      supabase.rpc('request_baptism', { p_type: baptismType || null, p_sponsor_name: sponsorName.trim() || null, p_note: baptismNote.trim() || null })
     )
     if (ok) {
       setShowBaptismForm(false)
       setBaptismType('')
       setSponsorName('')
       setBaptismNote('')
-      setBaptismSignature(null)
     }
   }
 
   async function submitConfirmationRequest() {
-    if (!confirmationSignature) {
-      Alert.alert('Please sign', 'Sign below to confirm this request.')
-      return
-    }
     const ok = await runAction(() =>
       supabase.rpc('request_confirmation', {
         p_mentor_name: mentorName.trim() || null,
         p_note: confirmationNote.trim() || null,
-        p_signature: confirmationSignature,
         p_baptism_certificate: confirmationBaptismCert,
       })
     )
@@ -109,7 +89,6 @@ export function PortalInvolvementCard({ profile, onChanged }: { profile: Profile
       setShowConfirmationForm(false)
       setMentorName('')
       setConfirmationNote('')
-      setConfirmationSignature(null)
       setConfirmationBaptismCert(null)
     }
   }
@@ -154,7 +133,6 @@ export function PortalInvolvementCard({ profile, onChanged }: { profile: Profile
                 <Field label="Why would you like to join? (optional)" value={leagueReason} onChangeText={setLeagueReason} placeholder="A short reason" />
                 <CertificatePicker label="Baptism Certificate (optional)" value={leagueBaptismCert} onChange={setLeagueBaptismCert} />
                 <CertificatePicker label="Confirmation Certificate (optional)" value={leagueConfirmationCert} onChange={setLeagueConfirmationCert} />
-                <SignaturePad value={leagueSignature} onChange={setLeagueSignature} />
               </>
             ) : null}
             <Button title="Request Change" loading={busy} onPress={submitLeagueRequest} />
@@ -185,7 +163,6 @@ export function PortalInvolvementCard({ profile, onChanged }: { profile: Profile
             />
             <Field label="Sponsor / Godparent name" value={sponsorName} onChangeText={setSponsorName} placeholder="e.g. Tshedza Tshikovhi" />
             <Field label="Note (optional)" value={baptismNote} onChangeText={setBaptismNote} placeholder="Anything else the office should know" />
-            <SignaturePad value={baptismSignature} onChange={setBaptismSignature} />
             <Button title="Submit Request" loading={busy} onPress={submitBaptismRequest} />
             <Button title="Cancel" variant="secondary" onPress={() => setShowBaptismForm(false)} />
           </View>
@@ -210,7 +187,6 @@ export function PortalInvolvementCard({ profile, onChanged }: { profile: Profile
             <Field label="Confirmation mentor (optional)" value={mentorName} onChangeText={setMentorName} placeholder="If you have one" />
             <Field label="Note (optional)" value={confirmationNote} onChangeText={setConfirmationNote} placeholder="Anything else the office should know" />
             <CertificatePicker label="Baptism Certificate (optional, if applicable)" value={confirmationBaptismCert} onChange={setConfirmationBaptismCert} />
-            <SignaturePad value={confirmationSignature} onChange={setConfirmationSignature} />
             <Button title="Submit Request" loading={busy} onPress={submitConfirmationRequest} />
             <Button title="Cancel" variant="secondary" onPress={() => setShowConfirmationForm(false)} />
           </View>

@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Text, View } from 'react-native'
 import { Alert } from '../lib/alert'
 import { Button, Card, DateField, Field, SelectField } from './ui'
-import { SignaturePad } from './signature-pad'
 import { CertificatePicker } from './certificate-picker'
 import { ChipRow } from './chip-row'
 import { Wizard, type WizardStepDef } from './wizard'
@@ -33,7 +32,6 @@ export function PortalHouseholdCard({ dependents, onChanged }: { dependents: Dep
   const [childLeagueReason, setChildLeagueReason] = useState('')
   const [childBaptismCert, setChildBaptismCert] = useState<string | null>(null)
   const [childConfirmationCert, setChildConfirmationCert] = useState<string | null>(null)
-  const [childSignature, setChildSignature] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
   async function addChild() {
@@ -50,7 +48,6 @@ export function PortalHouseholdCard({ dependents, onChanged }: { dependents: Dep
       p_sponsor_name: childSponsorName.trim() || null,
       p_mentor_name: childMentorName.trim() || null,
       p_league_reason: childLeagueReason.trim() || null,
-      p_signature: childSignature,
       p_baptism_certificate: childBaptismCert,
       p_confirmation_certificate: childConfirmationCert,
       p_baptism_location: childBaptismLocation.trim() || null,
@@ -80,7 +77,6 @@ export function PortalHouseholdCard({ dependents, onChanged }: { dependents: Dep
     setChildLeagueReason('')
     setChildBaptismCert(null)
     setChildConfirmationCert(null)
-    setChildSignature(null)
     setAddingChild(false)
     onChanged()
   }
@@ -116,10 +112,6 @@ export function PortalHouseholdCard({ dependents, onChanged }: { dependents: Dep
       validate: () => {
         if (childConfirmed === 'yes' && childBaptised !== 'yes') {
           return 'Confirmation always follows baptism. Please also answer "Yes" to already baptised, or leave both blank if you\'re not sure.'
-        }
-        const claimingSomething = childBaptised === 'yes' || childConfirmed === 'yes' || !!childLeague
-        if (claimingSomething && !childSignature) {
-          return 'Please sign below to confirm what you told us here is accurate.'
         }
         return null
       },
@@ -177,12 +169,6 @@ export function PortalHouseholdCard({ dependents, onChanged }: { dependents: Dep
               <Field label="Why would they like to join? (optional)" value={childLeagueReason} onChangeText={setChildLeagueReason} placeholder="A short reason" />
               {childConfirmed !== 'yes' ? <CertificatePicker label="Baptism Certificate (optional)" value={childBaptismCert} onChange={setChildBaptismCert} /> : null}
               <CertificatePicker label="Confirmation Certificate (optional)" value={childConfirmationCert} onChange={setChildConfirmationCert} />
-            </>
-          ) : null}
-          {childBaptised === 'yes' || childConfirmed === 'yes' || childLeague ? (
-            <>
-              <Text style={styles.signatureNote}>As their guardian, sign to confirm the above is accurate.</Text>
-              <SignaturePad value={childSignature} onChange={setChildSignature} />
             </>
           ) : null}
         </>

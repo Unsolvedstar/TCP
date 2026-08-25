@@ -16,16 +16,14 @@ export type BaptismApplication = {
   note?: string | null
   location?: string | null
   officiant_name?: string | null
-  signature: string | null
-  signed_at: string
+  submitted_at: string
 }
 export type ConfirmationApplication = {
   mentor_name: string | null
   note?: string | null
   location?: string | null
   officiant_name?: string | null
-  signature: string | null
-  signed_at: string
+  submitted_at: string
   // Only ever present on rows created via the post-registration portal
   // request flow (components/portal-involvement-card.tsx), which still
   // requires certificate uploads — registration itself no longer collects one.
@@ -33,8 +31,7 @@ export type ConfirmationApplication = {
 }
 export type LeagueApplication = {
   reason: string | null
-  signature: string | null
-  signed_at: string
+  submitted_at: string
   baptism_certificate?: string | null
   confirmation_certificate?: string | null
 }
