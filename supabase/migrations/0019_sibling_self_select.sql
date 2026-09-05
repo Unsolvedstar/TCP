@@ -85,6 +85,10 @@ grant execute on function public.join_sibling_family(uuid) to authenticated;
 
 -- Re-declared from 0017 to also surface match_type to the admin review UI,
 -- so the Needs Review card can say which kind of match each row was.
+-- Dropped first: the OUT-parameter row shape changed (added match_type), and
+-- Postgres refuses `create or replace` across a return-type change.
+drop function if exists public.admin_list_auto_merge_flags();
+
 create or replace function public.admin_list_auto_merge_flags()
 returns table(
   id uuid,

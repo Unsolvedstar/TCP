@@ -348,8 +348,17 @@ test('confirmation is still blocked without baptism', async () => {
 })
 
 test('a member still cannot set their own role/baptised/confirmed via a raw table update', async () => {
-  await expectError(memberA.client.from('profiles').update({ role: 'admin' }).eq('id', memberA.id), null, 'memberA raw-updating own role')
-  await expectError(memberA.client.from('profiles').update({ baptised: true }).eq('id', memberA.id), null, 'memberA raw-updating own baptised flag')
+  // profiles has no UPDATE policy at all (every mutation goes through a
+  // security-definer RPC instead) — with row security enabled and no
+  // applicable policy, Postgres doesn't raise an error here, it just treats
+  // no row as eligible for update, so this returns success with 0 rows
+  // affected rather than throwing. Assert on the actual invariant (the
+  // value never changes) instead of an error that never comes.
+  await expectOk(memberA.client.from('profiles').update({ role: 'admin' }).eq('id', memberA.id), 'memberA raw-updating own role')
+  await expectOk(memberA.client.from('profiles').update({ baptised: true }).eq('id', memberA.id), 'memberA raw-updating own baptised flag')
+  const { data: afterRaw } = await admin.from('profiles').select('role, baptised').eq('id', memberA.id).single()
+  assert.equal(afterRaw.role, 'member')
+  assert.equal(afterRaw.baptised, false)
 })
 
 test('self-service RPCs only ever touch the caller\'s own row', async () => {
@@ -432,7 +441,7 @@ test('add_dependent inherits the guardian\'s household automatically', async () 
   await admin.from('households').delete().eq('id', householdId)
 })
 
-// --- 7b. Family codes: mandatory registration, self-service joining, and admin-minted code pools ----
+// --- 7b. Family codes: optional at registration (auto-matched if omitted), self-service joining, and admin-minted code pools ----
 
 test('registering with a fresh code claims it and auto-names the family from the registrant\'s surname', async () => {
   const { id: householdId, code } = await mintHouseholdCode(congA.id)
@@ -458,14 +467,23 @@ test('registering with a fresh code claims it and auto-names the family from the
 // screen before ever attempting signUp — see register.tsx) is what's
 // actually responsible for a readable error message, and gets its own tests.
 
-test('registration is rejected without a family code', async () => {
-  const { error } = await admin.auth.admin.createUser({
+test('registration without a family code auto-starts a new family (0017 made family_code optional)', async () => {
+  const uniqueSurname = `Nocode${Date.now().toString(36)}`
+  const { data: created, error } = await admin.auth.admin.createUser({
     email: `no-code-test-${Date.now()}@test.local`,
     password: 'Test-password-1',
     email_confirm: true,
-    user_metadata: { full_name: 'No Code Test', congregation_id: congA.id, ward_id: wardA.id },
+    user_metadata: { full_name: `Registrant ${uniqueSurname}`, congregation_id: congA.id, ward_id: wardA.id },
   })
-  assert.ok(error, 'expected registration without a family code to fail')
+  assert.ok(!error, `registering without a family code: ${error?.message}`)
+  const { data: profile } = await admin.from('profiles').select('household_id').eq('id', created.user.id).single()
+  assert.ok(profile.household_id, 'expected a household to be auto-minted since no surname+ward match existed')
+  const { data: household } = await admin.from('households').select('name').eq('id', profile.household_id).single()
+  assert.equal(household.name, `${uniqueSurname} Family`)
+
+  // Cleanup.
+  await admin.auth.admin.deleteUser(created.user.id)
+  await admin.from('households').delete().eq('id', profile.household_id)
 })
 
 test('registration is rejected with an invalid family code', async () => {
@@ -512,7 +530,7 @@ test('check_family_code gives a clear error message the registration screen can 
 // first in my family" branch of the registration screen calls, pre-auth, to
 // self-mint a code instead of requiring an admin-minted one.
 test('start_new_family mints a fresh, working code for whoever is first in their family', async () => {
-  const { data: code } = await expectOk(
+  const code = await expectOk(
     rpcRetryColdSchemaCache(() => anonClient().rpc('start_new_family', { p_congregation_id: congA.id })),
     'minting a self-service family code'
   )

@@ -14,7 +14,7 @@
 -- `wards`/`leagues` row belongs to exactly one congregation. `profiles` carries
 -- its own `congregation_id`; `dependents` has no `congregation_id` column of its
 -- own — it's always derived via `guardian_id -> profiles.congregation_id`, since
--- a dependent's tenancy can never differ from the guardian who owns the record.th
+-- a dependent's tenancy can never differ from the guardian who owns the record.
 -- Every RLS policy and admin RPC below scopes cross-member reads/writes to "same
 -- congregation as the target", not just "is an admin somewhere".
 
