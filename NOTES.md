@@ -87,13 +87,22 @@ separate, already-completed project's own checklist — don't merge into it.)
   or by picking a sibling — admins should check it periodically and
   Confirm/Split Off each entry, since nothing else surfaces it.
 
-## Testing caveat for this session's changes
+## Testing status
 
-- `supabase/migrations/0021_service_accounts.sql` (service-account stats
-  exclusion) was reviewed carefully by hand against the migrations it
-  re-declares, but **not actually applied** to a database — Docker wasn't
-  running in this environment, and `supabase/tests/rls.test.mjs` requires a
-  local Supabase instance (`npx supabase start && npx supabase db reset`).
-  Since it touches `handle_new_user()` (the signup trigger), run
-  `node --test supabase/tests/rls.test.mjs` locally before this reaches
-  production — a broken signup trigger blocks every new registration.
+- [x] **All migrations (0001–0021) and the full RLS suite now actually run
+      and pass, done.** Docker/Supabase came up fine once started — the
+      earlier "not actually applied" caveat is stale. `db reset` initially
+      failed on `0019_sibling_self_select.sql`: it re-declared
+      `admin_list_auto_merge_flags()` with an extra `match_type` output
+      column via `create or replace`, which Postgres rejects for a
+      return-shape change without a `drop function` first — fixed by adding
+      the drop. Running the suite also turned up two bugs in the test file
+      itself (not the migrations): a wrong destructuring of `expectOk()`'s
+      return value, and a test still asserting family_code as mandatory
+      after 0017 deliberately made it optional (auto-match/auto-start
+      instead). One more test expected a raw table UPDATE to error, but
+      Postgres just silently affects 0 rows when RLS has no UPDATE policy —
+      confirmed by direct repro that the row is genuinely never mutated, so
+      fixed the assertion to check the real invariant instead. All 86
+      `rls.test.mjs` cases and the full jest suite (58 tests) pass against a
+      fresh `npx supabase db reset`.
