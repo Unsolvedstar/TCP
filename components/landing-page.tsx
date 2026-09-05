@@ -37,7 +37,7 @@ export function LandingPage() {
             <Button title="Sign In" onPress={() => router.push('/login')} />
           </View>
           <View style={{ flex: 1 }}>
-            <Button title="Create Account" variant="secondary" onPress={() => router.push('/register')} />
+            <Button title="Create Account" variant="secondary" onPress={() => router.push('/welcome')} />
           </View>
         </View>
       </View>

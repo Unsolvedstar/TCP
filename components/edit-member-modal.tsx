@@ -8,16 +8,18 @@ import { supabase } from '../lib/supabase'
 import { colors, genders } from '../theme'
 import { useCongregationData } from '../lib/congregation-context'
 import { applicationDetailText } from '../lib/application-detail'
-import type { Profile } from '../lib/types'
+import type { Household, Profile } from '../lib/types'
 
 export function EditMemberModal({
   member,
+  households,
   onClose,
   onSaved,
   onRemoved,
   onPromoted,
 }: {
   member: Profile
+  households: Household[]
   onClose: () => void
   onSaved: () => void
   onRemoved: () => void
@@ -32,6 +34,7 @@ export function EditMemberModal({
   const [leagueId, setLeagueId] = useState(member.league_id ?? '')
   const [baptised, setBaptised] = useState(member.baptised)
   const [confirmed, setConfirmed] = useState(member.confirmed)
+  const [familyId, setFamilyId] = useState(member.household_id ?? '')
   const [saving, setSaving] = useState(false)
   const [leagueAdminIds, setLeagueAdminIds] = useState<string[]>([])
 
@@ -58,6 +61,9 @@ export function EditMemberModal({
 
   async function save() {
     setSaving(true)
+
+    const targetFamilyId: string | null = familyId || null
+
     const { error } = await supabase.rpc('admin_update_member', {
       target_id: member.id,
       p_full_name: fullName.trim(),
@@ -69,11 +75,22 @@ export function EditMemberModal({
       p_date_of_birth: dob,
       p_gender: gender || null,
     })
-    setSaving(false)
     if (error) {
+      setSaving(false)
       Alert.alert('Could not save', error.message)
       return
     }
+
+    if (targetFamilyId !== (member.household_id ?? null)) {
+      const { error: familyErr } = await supabase.rpc('admin_set_profile_household', { target_id: member.id, p_household_id: targetFamilyId })
+      if (familyErr) {
+        setSaving(false)
+        Alert.alert('Could not save family', familyErr.message)
+        return
+      }
+    }
+
+    setSaving(false)
     onSaved()
   }
 
@@ -131,12 +148,30 @@ export function EditMemberModal({
         </>
       ),
     },
+    {
+      key: 'family',
+      title: 'Family',
+      subtitle: 'Assign this member to a family that already exists — new families are started by registering or joining with a code, not from here.',
+      render: () => (
+        <SelectField
+          label="Family"
+          value={familyId}
+          onChange={setFamilyId}
+          options={[{ value: '', label: 'No Family' }, ...households.filter((h) => h.name).map((h) => ({ value: h.id, label: h.name as string }))]}
+        />
+      ),
+    },
   ]
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.cream }} contentContainerStyle={{ padding: 20, paddingTop: 60 }}>
         <Text style={styles.modalHeading}>Edit Member</Text>
+        {member.email ? <Text style={styles.guardianNote}>{member.email}</Text> : null}
+        {member.profession ? <Text style={styles.guardianNote}>{member.profession}</Text> : null}
+        <Text style={styles.guardianNote}>
+          Family: {member.household_id ? households.find((h) => h.id === member.household_id)?.name ?? 'Unknown' : 'None'}
+        </Text>
         {member.reviewed_at ? <Text style={styles.guardianNote}>Last reviewed {formatDate(member.reviewed_at.slice(0, 10))}</Text> : null}
         {baptismDetail || confirmationDetail ? (
           <View style={styles.recordBox}>

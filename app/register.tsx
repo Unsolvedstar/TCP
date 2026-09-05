@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native'
 import { Link, router } from 'expo-router'
-import { DateField, Field, GlassSheen, glassBlur, SelectField } from '../components/ui'
+import { Field, GlassSheen, glassBlur, SelectField } from '../components/ui'
 import { ChurchHeader } from '../components/church-header'
 import { CertificatePicker } from '../components/certificate-picker'
 import { ChipRow } from '../components/chip-row'
@@ -9,7 +9,7 @@ import { Wizard, type WizardStepDef } from '../components/wizard'
 import { supabase } from '../lib/supabase'
 import { getRegistrationCongregation } from '../lib/congregation'
 import type { WardRow, LeagueRow } from '../lib/types'
-import { genders, radius } from '../theme'
+import { radius } from '../theme'
 import { styles } from '../styles/register.styles'
 
 export { ErrorBoundary } from '../components/error-boundary'
@@ -31,10 +31,7 @@ export default function Register() {
   }, [])
 
   const [fullName, setFullName] = useState('')
-  const [gender, setGender] = useState('')
   const [wardId, setWardId] = useState('')
-  const [phone, setPhone] = useState('')
-  const [dob, setDob] = useState<string | null>(null)
   const [initialLeagueId, setInitialLeagueId] = useState('')
   const [alreadyBaptised, setAlreadyBaptised] = useState('')
   const [alreadyConfirmed, setAlreadyConfirmed] = useState('')
@@ -63,15 +60,13 @@ export default function Register() {
       return
     }
     setLoading(true)
+
     const { data, error: err } = await supabase.auth.signUp({
       email: email.trim(),
       password,
       options: {
         data: {
           full_name: fullName.trim(),
-          phone: phone.trim() || null,
-          date_of_birth: dob,
-          gender: gender || null,
           congregation_id: congregationId,
           ward_id: wardId,
           league_id: initialLeagueId || null,
@@ -93,7 +88,10 @@ export default function Register() {
     setLoading(false)
 
     if (err) {
-      setError(err.message)
+      // A trigger-rejected signup (bad ward/league/congregation) also comes
+      // back from GoTrue with no usable message — same reason the family
+      // code is checked separately above.
+      setError(err.message && err.message !== '{}' ? err.message : 'Could not create your account. Please check your details and try again.')
       return
     }
     if (!data.session) {
@@ -107,7 +105,7 @@ export default function Register() {
     {
       key: 'about',
       title: 'About You',
-      subtitle: 'Tell us your name and which ward you belong to.',
+      subtitle: 'Tell us your name and which ward you belong to. Gender, phone, and birthday can be added later from your portal.',
       validate: () => {
         if (!fullName.trim()) return 'Please enter your full name.'
         if (!wardId) return 'Please select your ward.'
@@ -117,30 +115,12 @@ export default function Register() {
         <>
           <Field label="Full Name" value={fullName} onChangeText={setFullName} placeholder="e.g. Tshedza Tshikovhi" />
           <SelectField
-            label="Gender (optional)"
-            value={gender}
-            onChange={setGender}
-            options={genders.map((g) => ({ value: g, label: g }))}
-            placeholder="Select…"
-          />
-          <SelectField
             label="Ward"
             value={wardId}
             onChange={setWardId}
             options={wards.map((w) => ({ value: w.id, label: `${w.name} Ward` }))}
             placeholder="Select your ward…"
           />
-        </>
-      ),
-    },
-    {
-      key: 'contact',
-      title: 'Contact & Birthday',
-      subtitle: 'Both optional, and help us reach you and celebrate with you.',
-      render: () => (
-        <>
-          <Field label="Phone (optional)" value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="0760293340" />
-          <DateField label="Birthday (optional)" value={dob} maximumDate={new Date()} onChange={setDob} />
         </>
       ),
     },

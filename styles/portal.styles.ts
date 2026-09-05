@@ -26,6 +26,7 @@ export const styles = StyleSheet.create({
     elevation: 2,
   },
   pendingNote: { fontSize: 11, color: colors.gold, fontWeight: '700' },
+  certLink: { fontSize: 11, color: colors.g700, fontWeight: '700', textDecorationLine: 'underline' },
   cardTitle: { fontSize: 16, fontWeight: '700', color: colors.g800 },
   cardSub: { fontSize: 12.5, color: colors.muted, marginBottom: 14, marginTop: 2 },
   annItem: { borderTopWidth: 1, borderTopColor: colors.cream, paddingTop: 10, marginTop: 10 },

@@ -96,6 +96,13 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen
+        name="directory"
+        options={{
+          title: 'Directory',
+          tabBarIcon: ({ color, size }) => <Ionicons name="briefcase-outline" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="banking"
         options={{
           title: 'Banking',

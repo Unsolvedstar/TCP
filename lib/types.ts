@@ -10,6 +10,10 @@ export type AppRole = 'member' | 'admin'
 export type WardRow = { id: string; name: string; color: string; bank_code: number }
 export type LeagueRow = { id: string; key: string; label: string; info: string | null; color: string; has_badge: boolean }
 
+// name is null until someone actually claims the code (registers or joins
+// with it) — an admin-generated code starts as an unclaimed, unnamed slot.
+export type Household = { id: string; congregation_id: string; name: string | null; code: string; created_at: string }
+
 export type BaptismApplication = {
   type: string | null
   sponsor_name: string | null
@@ -39,12 +43,15 @@ export type LeagueApplication = {
 export type Profile = {
   id: string
   full_name: string
+  email: string | null
   phone: string | null
   date_of_birth: string | null
   gender: Gender | null
   congregation_id: string
   ward_id: string
+  household_id: string | null
   role: AppRole
+  is_service_account: boolean
   league_id: string | null
   baptised: boolean
   confirmed: boolean
@@ -59,7 +66,11 @@ export type Profile = {
   membership_confirmed_at: string | null
   self_reported_left_at: string | null
   created_at: string
+  profession: string | null
 }
+
+// congregation_directory() — only members who've set a profession appear here.
+export type DirectoryEntry = { id: string; full_name: string; profession: string; ward_id: string }
 
 export type Dependent = {
   id: string
@@ -68,6 +79,7 @@ export type Dependent = {
   date_of_birth: string | null
   gender: Gender | null
   ward_id: string
+  household_id: string | null
   league_id: string | null
   baptised: boolean
   confirmed: boolean

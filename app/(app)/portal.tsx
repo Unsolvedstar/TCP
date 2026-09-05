@@ -5,6 +5,7 @@ import { Card, Chip, GlassSheen, SectionLabel } from '../../components/ui'
 import { PortalDetailsCard } from '../../components/portal-details-card'
 import { PortalInvolvementCard } from '../../components/portal-involvement-card'
 import { PortalHouseholdCard } from '../../components/portal-household-card'
+import { PortalFamilyCard } from '../../components/portal-family-card'
 import { WardBreakdownCard } from '../../components/ward-breakdown-card'
 import { LeagueBreakdownCard } from '../../components/league-breakdown-card'
 import { LeaguesDirectoryCard } from '../../components/leagues-directory-card'
@@ -15,6 +16,7 @@ import { LeagueLeaderboardCard } from '../../components/league-leaderboard-card'
 import { MyLeagueCard } from '../../components/my-league-card'
 import { MembershipCheckInBanner } from '../../components/membership-check-in-banner'
 import { CeremonyConfirmationCard } from '../../components/ceremony-confirmation-card'
+import { CertificateModal } from '../../components/certificate-modal'
 import { useAuth } from '../../lib/auth-context'
 import { useCongregationData } from '../../lib/congregation-context'
 import { supabase } from '../../lib/supabase'
@@ -22,7 +24,7 @@ import { useLiturgicalSeason } from '../../lib/liturgical-theme'
 import { shouldShowMembershipCheckIn } from '../../lib/membership-check-in'
 import { colors } from '../../theme'
 import { styles } from '../../styles/portal.styles'
-import type { Dependent, GenderStat, LeagueStat, SacramentStat, WardStat } from '../../lib/types'
+import type { CeremonyKind, Dependent, GenderStat, LeagueStat, SacramentStat, WardStat } from '../../lib/types'
 
 export { ErrorBoundary } from '../../components/error-boundary'
 
@@ -40,6 +42,8 @@ export default function Portal() {
   const [sacraments, setSacraments] = useState<SacramentStat>({ total: 0, baptised: 0, confirmed: 0, adults: 0, children: 0, elders: 0 })
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [dependents, setDependents] = useState<Dependent[]>([])
+  const [certKind, setCertKind] = useState<CeremonyKind | null>(null)
+  const [showAllAnnouncements, setShowAllAnnouncements] = useState(false)
 
   const loadAll = useCallback(async () => {
     const [{ data: ws }, { data: ls }, { data: gs }, { data: sac }, { data: ann }, { data: deps }] = await Promise.all([
@@ -109,6 +113,7 @@ export default function Portal() {
           <SectionLabel>League</SectionLabel>
           <Chip label={myLeague.label} color={myLeague.color} />
           {profile.pending_league_id ? <Text style={styles.pendingNote}>Pending review</Text> : null}
+          {profile.league_id ? <Text style={styles.certLink} onPress={() => setCertKind('league')}>View Certificate</Text> : null}
         </View>
         <View style={styles.statCard}>
           <GlassSheen />
@@ -117,6 +122,7 @@ export default function Portal() {
             label={profile.baptised ? 'Confirmed ✓' : profile.pending_baptism ? 'Pending Review' : 'Not Yet'}
             color={profile.baptised ? colors.g700 : profile.pending_baptism ? colors.gold : colors.muted}
           />
+          {profile.baptised ? <Text style={styles.certLink} onPress={() => setCertKind('baptism')}>View Certificate</Text> : null}
         </View>
         <View style={styles.statCard}>
           <GlassSheen />
@@ -125,8 +131,23 @@ export default function Portal() {
             label={profile.confirmed ? 'Confirmed ✓' : profile.pending_confirmation ? 'Pending Review' : 'Not Yet'}
             color={profile.confirmed ? colors.g700 : profile.pending_confirmation ? colors.gold : colors.muted}
           />
+          {profile.confirmed ? <Text style={styles.certLink} onPress={() => setCertKind('confirmation')}>View Certificate</Text> : null}
         </View>
       </View>
+
+      {certKind ? (
+        <CertificateModal
+          visible
+          onClose={() => setCertKind(null)}
+          kind={certKind}
+          subjectId={profile.id}
+          isDependent={false}
+          name={profile.full_name}
+          application={certKind === 'baptism' ? profile.baptism_application : certKind === 'confirmation' ? profile.confirmation_application : profile.league_application}
+          reviewedAt={profile.reviewed_at}
+          league={certKind === 'league' ? leagues.find((l) => l.id === profile.league_id) ?? null : null}
+        />
+      ) : null}
 
       <View style={styles.tabRow}>
         <Text onPress={() => setSection('dashboard')} style={[styles.tabBtn, section === 'dashboard' && styles.tabBtnActive]}>
@@ -145,13 +166,14 @@ export default function Portal() {
           <CeremonyConfirmationCard />
           <PortalDetailsCard profile={profile} onChanged={loadAll} />
           <PortalInvolvementCard profile={profile} onChanged={loadAll} />
+          <PortalFamilyCard />
           <PortalHouseholdCard dependents={dependents} onChanged={loadAll} />
 
           {announcements.length ? (
             <Card>
               <Text style={styles.cardTitle}>Parish Announcements</Text>
               <Text style={styles.cardSub}>What's coming up at Tshwane City Parish</Text>
-              {announcements.map((a) => (
+              {(showAllAnnouncements ? announcements : announcements.slice(0, 3)).map((a) => (
                 <View key={a.id} style={styles.annItem}>
                   <Text style={styles.annDate}>{a.date_text}</Text>
                   <Text style={styles.annTitle}>{a.title}</Text>
@@ -159,6 +181,11 @@ export default function Portal() {
                   <Text style={styles.annBody}>{a.body}</Text>
                 </View>
               ))}
+              {announcements.length > 3 ? (
+                <Text style={styles.certLink} onPress={() => setShowAllAnnouncements((v) => !v)}>
+                  {showAllAnnouncements ? 'Show fewer' : `Show all ${announcements.length} announcements`}
+                </Text>
+              ) : null}
             </Card>
           ) : null}
 

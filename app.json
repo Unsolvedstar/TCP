@@ -39,7 +39,8 @@
           "photosPermission": "Used to attach a photo of your baptism or confirmation certificate to a request.",
           "cameraPermission": "Used to photograph your baptism or confirmation certificate to attach to a request."
         }
-      ]
+      ],
+      "expo-sharing"
     ]
   }
 }

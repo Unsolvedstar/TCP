@@ -10,6 +10,8 @@ import type { Profile } from '../lib/types'
 export function PortalDetailsCard({ profile, onChanged }: { profile: Profile; onChanged: () => void }) {
   const [phone, setPhone] = useState('')
   const [phoneDirty, setPhoneDirty] = useState(false)
+  const [profession, setProfession] = useState('')
+  const [professionDirty, setProfessionDirty] = useState(false)
   const [busy, setBusy] = useState(false)
 
   async function savePhone() {
@@ -21,6 +23,18 @@ export function PortalDetailsCard({ profile, onChanged }: { profile: Profile; on
       return
     }
     setPhoneDirty(false)
+    onChanged()
+  }
+
+  async function saveProfession() {
+    setBusy(true)
+    const { error } = await supabase.rpc('update_my_profession', { new_profession: profession.trim() || null })
+    setBusy(false)
+    if (error) {
+      Alert.alert('Could not save', error.message)
+      return
+    }
+    setProfessionDirty(false)
     onChanged()
   }
 
@@ -41,6 +55,7 @@ export function PortalDetailsCard({ profile, onChanged }: { profile: Profile; on
   }
 
   const currentPhone = phoneDirty ? phone : profile.phone ?? ''
+  const currentProfession = professionDirty ? profession : profile.profession ?? ''
 
   return (
     <Card>
@@ -67,6 +82,18 @@ export function PortalDetailsCard({ profile, onChanged }: { profile: Profile; on
           options={genders.map((g) => ({ value: g, label: g }))}
           placeholder="Not set"
         />
+        <View style={{ gap: 6 }}>
+          <Field
+            label="Profession (optional)"
+            value={currentProfession}
+            onChangeText={(v) => {
+              setProfession(v)
+              setProfessionDirty(true)
+            }}
+            placeholder="e.g. Teacher, Plumber, Nurse"
+          />
+          {professionDirty ? <Button title="Save Profession" loading={busy} onPress={saveProfession} /> : null}
+        </View>
       </View>
     </Card>
   )

@@ -16,6 +16,7 @@
     "expo-linear-gradient": "~57.0.1",
     "expo-linking": "~57.0.6",
     "expo-router": "~57.0.14",
+    "expo-sharing": "~57.0.16",
     "expo-splash-screen": "~57.0.7",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
@@ -24,6 +25,7 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
     "react-native-url-polyfill": "^4.0.0",
+    "react-native-view-shot": "5.1.0",
     "react-native-web": "^0.21.2"
   },
   "devDependencies": {

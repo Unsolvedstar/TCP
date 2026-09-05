@@ -5,16 +5,19 @@ import { Ionicons } from '@expo/vector-icons'
 import { Alert } from '../../lib/alert'
 import { Button, Card, Chip, DateField, GlassSheen, SelectField, formatDate } from '../../components/ui'
 import { EditMemberModal } from '../../components/edit-member-modal'
+import { MemberProfileModal } from '../../components/member-profile-modal'
 import { EditChildModal } from '../../components/edit-child-modal'
 import { ActivityList } from '../../components/activity-list'
 import { ChipRow } from '../../components/chip-row'
+import { HouseholdCard } from '../../components/household-card'
+import { CollapsibleSection } from '../../components/collapsible-section'
 import { supabase } from '../../lib/supabase'
 import { colors, genderColors } from '../../theme'
 import { useCongregationData } from '../../lib/congregation-context'
 import { applicationDetailText, applicationCertificateList } from '../../lib/application-detail'
 import { classifyAge, AGE_GROUP_LABELS } from '../../lib/age-groups'
 import { styles } from '../../styles/members.styles'
-import type { BaptismApplication, ChildRow, ConfirmationApplication, LeagueApplication, Profile } from '../../lib/types'
+import type { BaptismApplication, ChildRow, ConfirmationApplication, Household, LeagueApplication, Profile } from '../../lib/types'
 
 const AGE_GROUP_COLORS = { child: '#c1447e', adult: colors.g700, elder: colors.brandNavy } as const
 
@@ -39,35 +42,55 @@ type PendingItem = {
 
 type LeagueAdminRow = { profile_id: string; league_id: string; profiles: { full_name: string } | null }
 
+type AutoMergeFlag = {
+  id: string
+  household_id: string
+  household_name: string | null
+  profile_id: string
+  profile_name: string
+  matched_surname: string
+  match_type: 'surname_ward' | 'self_selected'
+  created_at: string
+}
+
 export default function Members() {
   const { wards, leagues } = useCongregationData()
-  const [tab, setTab] = useState<'adults' | 'children' | 'activity'>('adults')
+  const [tab, setTab] = useState<'adults' | 'children' | 'families' | 'activity'>('adults')
   const [members, setMembers] = useState<Profile[]>([])
   const [children, setChildren] = useState<ChildRow[]>([])
   const [admins, setAdmins] = useState<Profile[]>([])
   const [leagueAdmins, setLeagueAdmins] = useState<LeagueAdminRow[]>([])
+  const [households, setHouseholds] = useState<Household[]>([])
+  const [autoMergeFlags, setAutoMergeFlags] = useState<AutoMergeFlag[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [search, setSearch] = useState('')
   const [wardFilter, setWardFilter] = useState('')
   const [leagueFilter, setLeagueFilter] = useState('')
   const [editingMember, setEditingMember] = useState<Profile | null>(null)
+  const [viewingMember, setViewingMember] = useState<Profile | null>(null)
   const [editingChild, setEditingChild] = useState<ChildRow | null>(null)
   const [schedulingKey, setSchedulingKey] = useState<string | null>(null)
   const [ceremonyDate, setCeremonyDate] = useState<string | null>(null)
   const [sendingDate, setSendingDate] = useState(false)
+  const [familySearch, setFamilySearch] = useState('')
+  const [generatingCodes, setGeneratingCodes] = useState(false)
 
   const loadAll = useCallback(async () => {
-    const [{ data: mem, error: memErr }, { data: dep, error: depErr }, { data: adm, error: admErr }, { data: la }] = await Promise.all([
+    const [{ data: mem, error: memErr }, { data: dep, error: depErr }, { data: adm, error: admErr }, { data: la }, { data: hh }, { data: amf }] = await Promise.all([
       supabase.from('profiles').select('*').eq('role', 'member').order('full_name'),
       supabase.from('dependents').select('*, guardian:profiles(full_name)').order('full_name'),
       supabase.from('profiles').select('*').eq('role', 'admin').order('full_name'),
       supabase.from('league_admins').select('profile_id, league_id, profiles(full_name)'),
+      supabase.from('households').select('*').order('name'),
+      supabase.rpc('admin_list_auto_merge_flags'),
     ])
     if (!memErr) setMembers((mem as Profile[]) ?? [])
     if (!depErr) setChildren((dep as unknown as ChildRow[]) ?? [])
     if (!admErr) setAdmins((adm as Profile[]) ?? [])
     setLeagueAdmins((la as unknown as LeagueAdminRow[]) ?? [])
+    setHouseholds((hh as Household[]) ?? [])
+    setAutoMergeFlags((amf as AutoMergeFlag[]) ?? [])
     setLoading(false)
   }, [])
 
@@ -136,20 +159,86 @@ export default function Members() {
   const matchesLeagueFilter = (leagueId: string | null) =>
     !leagueFilter || (leagueFilter === NO_LEAGUE_FILTER ? leagueId === null : leagueId === leagueFilter)
 
+  const householdsById = useMemo(() => new Map(households.map((h) => [h.id, h])), [households])
+  const familyNameOf = (householdId: string | null) => (householdId ? householdsById.get(householdId)?.name ?? '' : '')
+  const matchesSearch = (name: string, householdId: string | null, extra = '') => {
+    const q = search.toLowerCase()
+    return !q || name.toLowerCase().includes(q) || extra.toLowerCase().includes(q) || familyNameOf(householdId).toLowerCase().includes(q)
+  }
+
   const filteredMembers = useMemo(
     () =>
       members.filter(
         (m) =>
-          (m.full_name.toLowerCase().includes(search.toLowerCase()) || (m.phone ?? '').toLowerCase().includes(search.toLowerCase())) &&
+          matchesSearch(m.full_name, m.household_id, [m.phone, m.email, m.profession].filter(Boolean).join(' ')) &&
           (!wardFilter || m.ward_id === wardFilter) &&
           matchesLeagueFilter(m.league_id)
       ),
-    [members, search, wardFilter, leagueFilter]
+    [members, search, wardFilter, leagueFilter, householdsById]
   )
   const filteredChildren = useMemo(
-    () => children.filter((c) => c.full_name.toLowerCase().includes(search.toLowerCase()) && (!wardFilter || c.ward_id === wardFilter) && matchesLeagueFilter(c.league_id)),
-    [children, search, wardFilter, leagueFilter]
+    () => children.filter((c) => matchesSearch(c.full_name, c.household_id) && (!wardFilter || c.ward_id === wardFilter) && matchesLeagueFilter(c.league_id)),
+    [children, search, wardFilter, leagueFilter, householdsById]
   )
+
+  const householdPeople = useMemo(() => {
+    const map = new Map<string, { members: Profile[]; dependents: ChildRow[] }>()
+    households.forEach((h) => map.set(h.id, { members: [], dependents: [] }))
+    members.forEach((m) => {
+      if (m.household_id && map.has(m.household_id)) map.get(m.household_id)!.members.push(m)
+    })
+    children.forEach((c) => {
+      if (c.household_id && map.has(c.household_id)) map.get(c.household_id)!.dependents.push(c)
+    })
+    return map
+  }, [households, members, children])
+
+  const unassignedMembers = useMemo(() => members.filter((m) => !m.household_id), [members])
+  const unassignedChildren = useMemo(() => children.filter((c) => !c.household_id), [children])
+
+  const filteredHouseholds = useMemo(() => {
+    const q = familySearch.trim().toLowerCase()
+    if (!q) return households
+    return households.filter((h) => (h.name ?? '').toLowerCase().includes(q) || h.code.toLowerCase().includes(q))
+  }, [households, familySearch])
+
+  async function generateCodes() {
+    setGeneratingCodes(true)
+    const { data, error } = await supabase.rpc('admin_generate_household_codes', { p_count: 20 })
+    setGeneratingCodes(false)
+    if (error) {
+      Alert.alert('Could not generate codes', error.message)
+      return
+    }
+    const codes = ((data as { id: string; code: string }[]) ?? []).map((r) => r.code)
+    Alert.alert('20 new family codes', `Hand these out — the first person to register or join with each one starts that family:\n\n${codes.join('   ')}`)
+    loadAll()
+  }
+
+  async function confirmAutoMerge(flag: AutoMergeFlag) {
+    const { error } = await supabase.rpc('admin_confirm_auto_merge', { target_id: flag.id })
+    if (error) Alert.alert('Could not confirm', error.message)
+    else loadAll()
+  }
+
+  function splitAutoMerge(flag: AutoMergeFlag) {
+    Alert.alert(
+      'Split into a new family',
+      `Move ${flag.profile_name} out of "${flag.household_name}" into their own new family? They keep any children already on their record.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Split',
+          style: 'destructive',
+          onPress: async () => {
+            const { error } = await supabase.rpc('admin_split_auto_merge', { target_id: flag.id })
+            if (error) Alert.alert('Could not split', error.message)
+            else loadAll()
+          },
+        },
+      ]
+    )
+  }
 
   function pendingKey(item: PendingItem) {
     return `${item.id}-${item.type}`
@@ -337,6 +426,9 @@ export default function Members() {
               <Text onPress={() => setTab('children')} style={[styles.tabBtn, tab === 'children' && styles.tabBtnActive]}>
                 Dependents ({children.length})
               </Text>
+              <Text onPress={() => setTab('families')} style={[styles.tabBtn, tab === 'families' && styles.tabBtnActive]}>
+                Families ({households.length})
+              </Text>
               <Text onPress={() => setTab('activity')} style={[styles.tabBtn, tab === 'activity' && styles.tabBtnActive]}>
                 Activity
               </Text>
@@ -344,9 +436,90 @@ export default function Members() {
 
             {tab === 'activity' ? (
               <ActivityList people={[...members, ...admins]} />
+            ) : tab === 'families' ? (
+              <View>
+                <Card>
+                  <Text style={styles.cardTitle}>Family Codes</Text>
+                  <Text style={styles.adminHint}>
+                    Generate a batch of codes and hand them out. A code is required to register — whoever registers or joins with a fresh code becomes
+                    that family's first member, and the family is named after them automatically.
+                  </Text>
+                  <View style={{ marginTop: 10 }}>
+                    <Button title="Generate 20 Codes" variant="secondary" onPress={generateCodes} loading={generatingCodes} />
+                  </View>
+                </Card>
+
+                {autoMergeFlags.length > 0 && (
+                  <Card>
+                    <Text style={styles.cardTitle}>Needs Review ({autoMergeFlags.length})</Text>
+                    <Text style={styles.adminHint}>
+                      Registration matches new members onto an existing family automatically (by surname + ward) or when someone points at a sibling
+                      by name — no code needed either way. These were matched that way — confirm they're really the same family, or split the person
+                      off into their own new family if not.
+                    </Text>
+                    {autoMergeFlags.map((f) => (
+                      <View key={f.id} style={styles.pendingRow}>
+                        <Text style={{ fontSize: 13.5, color: colors.text }}>
+                          {f.profile_name} → {f.household_name ?? 'Unnamed family'} (
+                          {f.match_type === 'self_selected' ? 'picked as their own sibling' : `matched surname: ${f.matched_surname}`})
+                        </Text>
+                        <View style={styles.pendingActions}>
+                          <Text style={styles.approveBtn} onPress={() => confirmAutoMerge(f)}>Confirm</Text>
+                          <Text style={styles.denyBtn} onPress={() => splitAutoMerge(f)}>Split Off</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </Card>
+                )}
+
+                <Text style={styles.screenSub}>Search to find a family and manage who's in it.</Text>
+                <TextInput
+                  style={styles.search}
+                  value={familySearch}
+                  onChangeText={setFamilySearch}
+                  placeholder="Search families by name or code…"
+                  placeholderTextColor="#a99"
+                />
+
+                {filteredHouseholds.map((h) => (
+                  <HouseholdCard
+                    key={h.id}
+                    household={h}
+                    members={householdPeople.get(h.id)?.members ?? []}
+                    dependents={householdPeople.get(h.id)?.dependents ?? []}
+                    onChanged={loadAll}
+                  />
+                ))}
+
+                {filteredHouseholds.length === 0 && <Text style={styles.emptyText}>No families found.</Text>}
+
+                {(unassignedMembers.length > 0 || unassignedChildren.length > 0) && (
+                  <Card>
+                    <Text style={styles.cardTitle}>Unassigned ({unassignedMembers.length + unassignedChildren.length})</Text>
+                    {unassignedMembers.map((m) => (
+                      <View key={m.id} style={[styles.pendingRow, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
+                        <Text style={{ flex: 1, fontSize: 13.5, color: colors.text }}>{m.full_name}</Text>
+                      </View>
+                    ))}
+                    {unassignedChildren.map((c) => (
+                      <View key={c.id} style={[styles.pendingRow, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
+                        <Ionicons name="body-outline" size={13} color={colors.muted} />
+                        <Text style={{ flex: 1, fontSize: 13.5, color: colors.text }}>{c.full_name}</Text>
+                      </View>
+                    ))}
+                    <Text style={styles.adminHint}>Assign someone to a family by opening their profile under Members or Dependents.</Text>
+                  </Card>
+                )}
+              </View>
             ) : (
               <>
-                <TextInput style={styles.search} value={search} onChangeText={setSearch} placeholder="Search by name or phone…" placeholderTextColor="#a99" />
+                <TextInput
+                  style={styles.search}
+                  value={search}
+                  onChangeText={setSearch}
+                  placeholder="Search by name, phone, email, profession, or family…"
+                  placeholderTextColor="#a99"
+                />
                 <View style={{ marginBottom: 16 }}>
                   <ChipRow
                     options={[{ value: '', label: 'All Wards' }, ...wards.map((w) => ({ value: w.id, label: w.name, color: w.color }))]}
@@ -368,8 +541,7 @@ export default function Members() {
                   />
                 </View>
 
-                <Card>
-                  <Text style={styles.cardTitle}>Admins ({admins.length})</Text>
+                <CollapsibleSection title={`Admins (${admins.length})`}>
                   {admins.map((a) => (
                     <View key={a.id} style={[styles.pendingRow, { flexDirection: 'row', alignItems: 'center' }]}>
                       <Text style={{ flex: 1, fontSize: 13.5, color: colors.text }}>{a.full_name}</Text>
@@ -379,10 +551,9 @@ export default function Members() {
                     </View>
                   ))}
                   <Text style={styles.adminHint}>To give someone admin access, open their profile below and tap "Promote to Admin".</Text>
-                </Card>
+                </CollapsibleSection>
 
-                <Card>
-                  <Text style={styles.cardTitle}>League Admins</Text>
+                <CollapsibleSection title="League Admins">
                   {leagues.map((l) => {
                     const assigned = leagueAdminsByLeague.get(l.id) ?? []
                     return (
@@ -404,7 +575,7 @@ export default function Members() {
                     )
                   })}
                   <Text style={styles.adminHint}>To make someone a league admin, open their profile below and choose leagues under "League admin access".</Text>
-                </Card>
+                </CollapsibleSection>
               </>
             )}
           </View>
@@ -419,14 +590,23 @@ export default function Members() {
           // adult, and a guardian-managed dependent isn't necessarily a
           // minor, so this can't be inferred from "Members" vs "Dependents".
           const ageGroup = classifyAge(item.date_of_birth)
+          const familyName = item.household_id ? householdsById.get(item.household_id)?.name : null
           return (
-            <Pressable style={styles.memberCard} onPress={() => (isChild ? setEditingChild(child) : setEditingMember(item as Profile))}>
+            <Pressable style={styles.memberCard} onPress={() => (isChild ? setEditingChild(child) : setViewingMember(item as Profile))}>
               <GlassSheen />
               <View style={{ flex: 1 }}>
                 <Text style={styles.memberName}>{item.full_name}</Text>
                 {isChild ? <Text style={styles.guardianLine}>Guardian: {child.guardian?.full_name ?? 'Unknown'}</Text> : null}
                 {item.date_of_birth ? <Text style={styles.guardianLine}>{formatDate(item.date_of_birth)}</Text> : null}
+                {!isChild
+                  ? [(item as Profile).phone, (item as Profile).email, (item as Profile).profession].filter(Boolean).length > 0 && (
+                      <Text style={styles.guardianLine}>
+                        {[(item as Profile).phone, (item as Profile).email, (item as Profile).profession].filter(Boolean).join('  ·  ')}
+                      </Text>
+                    )
+                  : null}
                 <View style={styles.memberChips}>
+                  {familyName ? <Chip label={familyName} color={colors.brandNavy} /> : null}
                   {ageGroup ? <Chip label={AGE_GROUP_LABELS[ageGroup]} color={AGE_GROUP_COLORS[ageGroup]} /> : null}
                   {itemWard ? <Chip label={itemWard.name} color={itemWard.color} /> : null}
                   {item.gender ? <Chip label={item.gender} color={genderColors[item.gender]} /> : null}
@@ -438,12 +618,29 @@ export default function Members() {
             </Pressable>
           )
         }}
-        ListEmptyComponent={tab === 'activity' ? null : <Text style={styles.emptyText}>No {tab === 'adults' ? 'members' : 'dependents'} found.</Text>}
+        ListEmptyComponent={tab === 'activity' || tab === 'families' ? null : <Text style={styles.emptyText}>No {tab === 'adults' ? 'members' : 'dependents'} found.</Text>}
       />
 
+      {viewingMember && (
+        <MemberProfileModal
+          member={viewingMember}
+          ward={wards.find((w) => w.id === viewingMember.ward_id)}
+          league={leagues.find((l) => l.id === viewingMember.league_id)}
+          household={viewingMember.household_id ? householdsById.get(viewingMember.household_id) ?? null : null}
+          familyMembers={(householdPeople.get(viewingMember.household_id ?? '')?.members ?? []).filter((m) => m.id !== viewingMember.id)}
+          familyDependents={householdPeople.get(viewingMember.household_id ?? '')?.dependents ?? []}
+          leagueAdminFor={leagues.filter((l) => leagueAdmins.some((la) => la.profile_id === viewingMember.id && la.league_id === l.id))}
+          onClose={() => setViewingMember(null)}
+          onEdit={() => {
+            setEditingMember(viewingMember)
+            setViewingMember(null)
+          }}
+        />
+      )}
       {editingMember && (
         <EditMemberModal
           member={editingMember}
+          households={households}
           onClose={() => setEditingMember(null)}
           onSaved={() => { setEditingMember(null); loadAll() }}
           onRemoved={() => { setEditingMember(null); confirmRemoveMember(editingMember) }}
@@ -453,6 +650,7 @@ export default function Members() {
       {editingChild && (
         <EditChildModal
           child={editingChild}
+          households={households}
           onClose={() => setEditingChild(null)}
           onSaved={() => { setEditingChild(null); loadAll() }}
           onRemoved={() => { setEditingChild(null); confirmRemoveChild(editingChild) }}

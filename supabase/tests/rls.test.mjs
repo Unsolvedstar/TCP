@@ -58,14 +58,55 @@ async function expectOk(promise, label) {
   return data
 }
 
+// This local Supabase setup appears to round-robin requests across more
+// than one PostgREST worker, each with its own schema cache — so even after
+// the first call to a function from a brand-new migration succeeds, a
+// *later* call to the very same function can still land on a worker that
+// hasn't reloaded yet and report it missing. That specific error string is
+// always spurious infrastructure noise, never a real test outcome, so it's
+// always safe to retry regardless of whether the call is expected to
+// succeed or to fail for a domain reason (e.g. "not authorized") — a real
+// domain error is returned immediately, unretried.
+async function rpcRetryColdSchemaCache(fn, attempts = 10, delayMs = 250) {
+  let result
+  for (let i = 0; i < attempts; i++) {
+    result = await fn()
+    if (!result.error || !/schema cache/i.test(result.error.message)) return result
+    await new Promise((r) => setTimeout(r, delayMs))
+  }
+  return result
+}
+
 let congA, congB
 let wardA, leagueA, wardB, leagueB
 let adminA, memberA, adminB, memberB // { id, email, client }
 let depA, depB // dependent ids, owned by memberA / memberB
 let leagueA2, memberA2, memberA3 // second league in congA, plus two more congA members, for the league-admin section below
 
-async function createTestUser({ email, congregationId, wardId, leagueId, role }) {
+// A family code is mandatory at registration (0014_family_codes.sql), so
+// every test user needs one. This mints a fresh, never-before-used code
+// directly via the service-role client — the same "operator seeds a code"
+// bootstrap an admin's admin_generate_household_codes() does at runtime,
+// just without needing an admin (or even a congregation with one yet) to
+// already exist. Each call gives the caller their own private singleton
+// family unless a test deliberately reuses the same code for two users.
+// TCP (congA) is never torn down between local runs the way congB is, so
+// every id minted here is tracked and best-effort cleaned up in after() —
+// otherwise these would silently pile up in TCP's household list forever.
+let mintCounter = 0
+const mintedHouseholdIds = []
+async function mintHouseholdCode(congregationId) {
+  mintCounter += 1
+  const code = `T${Date.now().toString(36)}${mintCounter}`.toUpperCase()
+  const { data, error } = await admin.from('households').insert({ congregation_id: congregationId, code }).select('id, code').single()
+  assert.ok(!error, `minting a household code: ${error?.message}`)
+  mintedHouseholdIds.push(data.id)
+  return data
+}
+
+async function createTestUser({ email, congregationId, wardId, leagueId, role, householdCode }) {
   const password = 'Test-password-1'
+  const code = householdCode ?? (await mintHouseholdCode(congregationId)).code
   const { data: created, error: createErr } = await admin.auth.admin.createUser({
     email,
     password,
@@ -75,6 +116,7 @@ async function createTestUser({ email, congregationId, wardId, leagueId, role })
       congregation_id: congregationId,
       ward_id: wardId,
       league_id: leagueId ?? null,
+      family_code: code,
     },
   })
   assert.ok(!createErr, `creating ${email}: ${createErr?.message}`)
@@ -335,6 +377,255 @@ test('add_dependent inherits the guardian\'s congregation automatically', async 
   const { data: guardianRow } = await admin.from('profiles').select('congregation_id').eq('id', depRow.guardian_id).single()
   const { data: wardRow } = await admin.from('wards').select('congregation_id').eq('id', depRow.ward_id).single()
   assert.equal(guardianRow.congregation_id, wardRow.congregation_id)
+})
+
+// --- 7a. Households (registration bootstrap + admin find/manage tools) ------
+//
+// Every test user minted by createTestUser already has their own private
+// singleton household from the moment they were created (a family code is
+// mandatory at registration — see mintHouseholdCode/createTestUser above),
+// so there's no "start from nothing" step here the way there used to be.
+
+test('adminB (cross-tenant) cannot read, rename, delete, or assign into memberA\'s home household', async () => {
+  const { data: mem } = await admin.from('profiles').select('household_id').eq('id', memberA.id).single()
+  const homeAId = mem.household_id
+  const { data: seenByB } = await adminB.client.from('households').select('id').eq('id', homeAId)
+  assert.deepEqual(seenByB, [])
+  await expectError(rpcRetryColdSchemaCache(() => adminB.client.rpc('admin_rename_household', { target_id: homeAId, p_name: 'Hijacked' })), 'not authorized', 'adminB renaming memberA\'s household')
+  await expectError(rpcRetryColdSchemaCache(() => adminB.client.rpc('admin_delete_household', { target_id: homeAId })), 'not authorized', 'adminB deleting memberA\'s household')
+  await expectError(rpcRetryColdSchemaCache(() => adminB.client.rpc('admin_set_profile_household', { target_id: memberB.id, p_household_id: homeAId })), 'invalid family', 'adminB assigning memberB into memberA\'s household')
+})
+
+test('admin_set_profile_household rejects a household belonging to another congregation', async () => {
+  const { data: mem } = await admin.from('profiles').select('household_id').eq('id', memberB.id).single()
+  await expectError(
+    rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_set_profile_household', { target_id: memberA.id, p_household_id: mem.household_id })),
+    'invalid family',
+    'adminA assigning memberA into congB\'s household'
+  )
+})
+
+test('clearing a household assignment and deleting a household leaves members/dependents intact but unassigned', async () => {
+  const { data: memBefore } = await admin.from('profiles').select('household_id').eq('id', memberA.id).single()
+  await expectOk(rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_set_profile_household', { target_id: memberA.id, p_household_id: null })), 'adminA clearing memberA\'s household')
+  await expectOk(rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_delete_household', { target_id: memBefore.household_id })), 'adminA deleting memberA\'s original household')
+  const { data: dep } = await admin.from('dependents').select('household_id').eq('id', depA).single()
+  assert.equal(dep.household_id, null)
+  const mine = await expectOk(rpcRetryColdSchemaCache(() => memberA.client.rpc('my_family')), 'memberA reading my_family once unassigned')
+  assert.deepEqual(mine, [])
+})
+
+test('add_dependent inherits the guardian\'s household automatically', async () => {
+  const { code } = await mintHouseholdCode(congA.id)
+  const householdId = await expectOk(rpcRetryColdSchemaCache(() => memberA.client.rpc('join_family_by_code', { p_code: code })), 'memberA joining a minted code')
+  const newDepId = await expectOk(
+    rpcRetryColdSchemaCache(() => memberA.client.rpc('add_dependent', { p_full_name: 'Inherited Dependent', p_date_of_birth: '2018-01-01', p_ward_id: wardA.id })),
+    'memberA adding a new dependent after joining a household'
+  )
+  const { data: newDep } = await admin.from('dependents').select('household_id').eq('id', newDepId).single()
+  assert.equal(newDep.household_id, householdId)
+  // Cleanup so later counts (e.g. stats_sacraments-style assertions) aren't affected.
+  // join_family_by_code also cascaded onto depA (memberA's pre-existing dependent), so clear that too.
+  await admin.from('dependents').delete().eq('id', newDepId)
+  await admin.from('dependents').update({ household_id: null }).eq('id', depA)
+  await admin.from('profiles').update({ household_id: null }).eq('id', memberA.id)
+  await admin.from('households').delete().eq('id', householdId)
+})
+
+// --- 7b. Family codes: mandatory registration, self-service joining, and admin-minted code pools ----
+
+test('registering with a fresh code claims it and auto-names the family from the registrant\'s surname', async () => {
+  const { id: householdId, code } = await mintHouseholdCode(congA.id)
+  const { data: created, error } = await admin.auth.admin.createUser({
+    email: `naming-test-${Date.now()}@test.local`,
+    password: 'Test-password-1',
+    email_confirm: true,
+    user_metadata: { full_name: 'Naming Test Surname', congregation_id: congA.id, ward_id: wardA.id, family_code: code },
+  })
+  assert.ok(!error, `registering with a fresh code: ${error?.message}`)
+  const { data: household } = await admin.from('households').select('name').eq('id', householdId).single()
+  assert.equal(household.name, 'Surname Family')
+
+  // Cleanup.
+  await admin.auth.admin.deleteUser(created.user.id)
+  await admin.from('households').delete().eq('id', householdId)
+})
+
+// GoTrue collapses any rejected-signup trigger failure into an opaque,
+// message-less 500 — createUser()/signUp() never surface *why* it failed,
+// only *that* it did. So the trigger-level tests below only assert
+// rejection; check_family_code (a normal RPC, called by the registration
+// screen before ever attempting signUp — see register.tsx) is what's
+// actually responsible for a readable error message, and gets its own tests.
+
+test('registration is rejected without a family code', async () => {
+  const { error } = await admin.auth.admin.createUser({
+    email: `no-code-test-${Date.now()}@test.local`,
+    password: 'Test-password-1',
+    email_confirm: true,
+    user_metadata: { full_name: 'No Code Test', congregation_id: congA.id, ward_id: wardA.id },
+  })
+  assert.ok(error, 'expected registration without a family code to fail')
+})
+
+test('registration is rejected with an invalid family code', async () => {
+  const { error } = await admin.auth.admin.createUser({
+    email: `bad-code-test-${Date.now()}@test.local`,
+    password: 'Test-password-1',
+    email_confirm: true,
+    user_metadata: { full_name: 'Bad Code Test', congregation_id: congA.id, ward_id: wardA.id, family_code: 'NOTREAL' },
+  })
+  assert.ok(error, 'expected registration with an invalid family code to fail')
+})
+
+test('registration rejects a code from another congregation', async () => {
+  const { id: householdId, code } = await mintHouseholdCode(congB.id)
+  const { error } = await admin.auth.admin.createUser({
+    email: `cross-cong-code-test-${Date.now()}@test.local`,
+    password: 'Test-password-1',
+    email_confirm: true,
+    user_metadata: { full_name: 'Cross Cong Test', congregation_id: congA.id, ward_id: wardA.id, family_code: code },
+  })
+  assert.ok(error, 'expected registering into congA with congB\'s code to fail')
+  await admin.from('households').delete().eq('id', householdId)
+})
+
+test('check_family_code gives a clear error message the registration screen can show, unlike the createUser trigger path above', async () => {
+  const { id: householdId, code } = await mintHouseholdCode(congA.id)
+  await expectOk(rpcRetryColdSchemaCache(() => anonClient().rpc('check_family_code', { p_congregation_id: congA.id, p_code: code })), 'checking a valid code')
+  await expectError(
+    rpcRetryColdSchemaCache(() => anonClient().rpc('check_family_code', { p_congregation_id: congA.id, p_code: 'NOTREAL' })),
+    'invalid family code',
+    'checking a garbage code'
+  )
+  const { id: householdBId, code: codeB } = await mintHouseholdCode(congB.id)
+  await expectError(
+    rpcRetryColdSchemaCache(() => anonClient().rpc('check_family_code', { p_congregation_id: congA.id, p_code: codeB })),
+    'invalid family code',
+    'checking congB\'s code against congA'
+  )
+  await admin.from('households').delete().eq('id', householdId)
+  await admin.from('households').delete().eq('id', householdBId)
+})
+
+// start_new_family (0016_self_service_family_code.sql) is what the "No, I'm
+// first in my family" branch of the registration screen calls, pre-auth, to
+// self-mint a code instead of requiring an admin-minted one.
+test('start_new_family mints a fresh, working code for whoever is first in their family', async () => {
+  const { data: code } = await expectOk(
+    rpcRetryColdSchemaCache(() => anonClient().rpc('start_new_family', { p_congregation_id: congA.id })),
+    'minting a self-service family code'
+  )
+  assert.equal(typeof code, 'string')
+  assert.equal(code.length, 6)
+
+  // The minted code has to actually work end to end: check_family_code
+  // accepts it, and a real signup can claim it.
+  await expectOk(rpcRetryColdSchemaCache(() => anonClient().rpc('check_family_code', { p_congregation_id: congA.id, p_code: code })), 'checking a self-minted code')
+  const { error: signupErr, data: signupData } = await admin.auth.admin.createUser({
+    email: `self-minted-code-test-${Date.now()}@test.local`,
+    password: 'Test-password-1',
+    email_confirm: true,
+    user_metadata: { full_name: 'Self Minted Surname', congregation_id: congA.id, ward_id: wardA.id, family_code: code },
+  })
+  assert.ok(!signupErr, `registering with a self-minted code: ${signupErr?.message}`)
+
+  const { data: household } = await admin.from('households').select('id, name').eq('code', code).single()
+  assert.equal(household.name, 'Surname Family')
+  mintedHouseholdIds.push(household.id)
+})
+
+test('start_new_family rejects an invalid congregation', async () => {
+  await expectError(
+    rpcRetryColdSchemaCache(() => anonClient().rpc('start_new_family', { p_congregation_id: '00000000-0000-0000-0000-000000000000' })),
+    'invalid or missing congregation',
+    'minting a code for a made-up congregation'
+  )
+})
+
+test('a member can join a family by code, it cascades to existing dependents, and auto-names the family on first claim', async () => {
+  const { id: householdId, code } = await mintHouseholdCode(congA.id)
+  await expectOk(rpcRetryColdSchemaCache(() => memberA.client.rpc('join_family_by_code', { p_code: code })), 'memberA joining by code')
+  const { data: mem } = await admin.from('profiles').select('household_id').eq('id', memberA.id).single()
+  const { data: dep } = await admin.from('dependents').select('household_id').eq('id', depA).single()
+  assert.equal(mem.household_id, householdId)
+  assert.equal(dep.household_id, householdId, 'existing dependent should cascade onto the same family')
+
+  const { data: household } = await admin.from('households').select('name').eq('id', householdId).single()
+  assert.ok(household.name, 'household should be auto-named on first claim')
+
+  const mine = await expectOk(rpcRetryColdSchemaCache(() => memberA.client.rpc('my_family')), 'memberA reading my_family')
+  assert.equal(mine[0].id, householdId)
+  assert.equal(mine[0].code, code)
+
+  // Cleanup so later tests/counts elsewhere in the suite aren't affected.
+  await admin.from('profiles').update({ household_id: null }).eq('id', memberA.id)
+  await admin.from('dependents').update({ household_id: null }).eq('id', depA)
+  await admin.from('households').delete().eq('id', householdId)
+})
+
+test('joining an already-named family does not overwrite its name', async () => {
+  const { id: householdId, code } = await mintHouseholdCode(congA.id)
+  await admin.from('households').update({ name: 'Established Family' }).eq('id', householdId)
+  await expectOk(rpcRetryColdSchemaCache(() => memberA.client.rpc('join_family_by_code', { p_code: code })), 'memberA joining an already-named family')
+  const { data: household } = await admin.from('households').select('name').eq('id', householdId).single()
+  assert.equal(household.name, 'Established Family')
+
+  await admin.from('profiles').update({ household_id: null }).eq('id', memberA.id)
+  await admin.from('dependents').update({ household_id: null }).eq('id', depA)
+  await admin.from('households').delete().eq('id', householdId)
+})
+
+test('a code from another congregation is rejected', async () => {
+  const { id: householdId, code } = await mintHouseholdCode(congA.id)
+  await expectError(
+    rpcRetryColdSchemaCache(() => memberB.client.rpc('join_family_by_code', { p_code: code })),
+    'invalid family code',
+    'memberB joining congA\'s family code'
+  )
+  await admin.from('households').delete().eq('id', householdId)
+})
+
+test('a garbage code is rejected with a clear error', async () => {
+  await expectError(rpcRetryColdSchemaCache(() => memberA.client.rpc('join_family_by_code', { p_code: 'NOTREAL' })), 'invalid family code', 'memberA joining a made-up code')
+})
+
+test('admin_regenerate_household_code is blocked cross-tenant, and issues a working new code', async () => {
+  const { id: householdId, code } = await mintHouseholdCode(congA.id)
+  await expectError(
+    rpcRetryColdSchemaCache(() => adminB.client.rpc('admin_regenerate_household_code', { target_id: householdId })),
+    'not authorized',
+    'adminB regenerating congA\'s household code'
+  )
+  const newCode = await expectOk(rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_regenerate_household_code', { target_id: householdId })), 'adminA regenerating own household code')
+  assert.notEqual(newCode, code)
+  await expectOk(rpcRetryColdSchemaCache(() => memberA.client.rpc('join_family_by_code', { p_code: newCode })), 'memberA joining with the freshly regenerated code')
+
+  // Cleanup.
+  await admin.from('profiles').update({ household_id: null }).eq('id', memberA.id)
+  await admin.from('households').delete().eq('id', householdId)
+})
+
+test('admin_generate_household_codes creates unclaimed codes scoped to the admin\'s own congregation', async () => {
+  const rows = await expectOk(rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_generate_household_codes', { p_count: 3 })), 'adminA generating 3 codes')
+  assert.equal(rows.length, 3)
+  const ids = rows.map((r) => r.id)
+  const { data: created } = await admin.from('households').select('id, congregation_id, name').in('id', ids)
+  assert.equal(created.length, 3)
+  created.forEach((h) => {
+    assert.equal(h.congregation_id, congA.id)
+    assert.equal(h.name, null)
+  })
+  await admin.from('households').delete().in('id', ids)
+})
+
+test('a non-admin cannot generate household codes', async () => {
+  await expectError(rpcRetryColdSchemaCache(() => memberA.client.rpc('admin_generate_household_codes', { p_count: 1 })), 'not authorized', 'memberA generating codes')
+})
+
+test('admin_generate_household_codes rejects an out-of-range count', async () => {
+  await expectError(rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_generate_household_codes', { p_count: 0 })), 'between 1 and 100', 'adminA generating 0 codes')
+  await expectError(rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_generate_household_codes', { p_count: 101 })), 'between 1 and 100', 'adminA generating 101 codes')
 })
 
 // --- 8 & 9. League admins and league points --------------------------------
@@ -637,6 +928,46 @@ describe('age-group categorization', () => {
   })
 })
 
+// --- 12. Professions & the congregation directory ---------------------------
+
+test('update_my_profession only ever touches the caller\'s own row, and is visible in congregation_directory', async () => {
+  await expectOk(rpcRetryColdSchemaCache(() => memberA.client.rpc('update_my_profession', { new_profession: 'Electrician' })), 'memberA setting their profession')
+  const { data: a } = await admin.from('profiles').select('profession').eq('id', memberA.id).single()
+  assert.equal(a.profession, 'Electrician')
+  const { data: b } = await admin.from('profiles').select('profession').eq('id', memberB.id).single()
+  assert.notEqual(b.profession, 'Electrician')
+
+  const directory = await expectOk(rpcRetryColdSchemaCache(() => memberA.client.rpc('congregation_directory')), 'memberA reading the directory')
+  const entry = directory.find((d) => d.id === memberA.id)
+  assert.ok(entry, 'memberA should appear in their own congregation\'s directory')
+  assert.equal(entry.profession, 'Electrician')
+
+  // Cleanup so later counts/other tests aren't affected.
+  await admin.from('profiles').update({ profession: null }).eq('id', memberA.id)
+})
+
+test('congregation_directory omits members who have not set a profession, and never crosses tenants', async () => {
+  const directoryA = await expectOk(rpcRetryColdSchemaCache(() => memberA.client.rpc('congregation_directory')), 'memberA reading the directory with no profession set')
+  assert.deepEqual(directoryA, [])
+
+  await expectOk(rpcRetryColdSchemaCache(() => memberB.client.rpc('update_my_profession', { new_profession: 'Nurse' })), 'memberB setting their profession')
+  const directoryAAfter = await expectOk(rpcRetryColdSchemaCache(() => memberA.client.rpc('congregation_directory')), 'memberA reading the directory after memberB (a different congregation) sets theirs')
+  assert.ok(!directoryAAfter.some((d) => d.id === memberB.id), 'memberB is in congB, must not appear in congA\'s directory')
+
+  const directoryB = await expectOk(rpcRetryColdSchemaCache(() => memberB.client.rpc('congregation_directory')), 'memberB reading their own directory')
+  assert.ok(directoryB.some((d) => d.id === memberB.id && d.profession === 'Nurse'))
+
+  // Cleanup.
+  await admin.from('profiles').update({ profession: null }).eq('id', memberB.id)
+})
+
+test('a blank profession clears it back out of the directory', async () => {
+  await expectOk(rpcRetryColdSchemaCache(() => memberA.client.rpc('update_my_profession', { new_profession: 'Teacher' })), 'memberA setting their profession')
+  await expectOk(rpcRetryColdSchemaCache(() => memberA.client.rpc('update_my_profession', { new_profession: '  ' })), 'memberA clearing their profession with blank input')
+  const { data: a } = await admin.from('profiles').select('profession').eq('id', memberA.id).single()
+  assert.equal(a.profession, null)
+})
+
 after(async () => {
   // Best-effort cleanup so repeated runs against the same local instance
   // don't accumulate test users/congregations. Not load-bearing for the
@@ -651,6 +982,11 @@ after(async () => {
   if (congB?.id) {
     try {
       await admin.from('congregations').delete().eq('id', congB.id)
+    } catch {}
+  }
+  if (mintedHouseholdIds.length) {
+    try {
+      await admin.from('households').delete().in('id', mintedHouseholdIds)
     } catch {}
   }
 })

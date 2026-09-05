@@ -12,12 +12,15 @@ function baseProfile(overrides: Partial<Profile>): Profile {
   return {
     id: 'p1',
     full_name: 'Test Person',
+    email: null,
     phone: null,
     date_of_birth: null,
     gender: null,
     congregation_id: 'c1',
     ward_id: 'w1',
+    household_id: null,
     role: 'member',
+    is_service_account: false,
     league_id: null,
     baptised: false,
     confirmed: false,
@@ -32,6 +35,7 @@ function baseProfile(overrides: Partial<Profile>): Profile {
     membership_confirmed_at: null,
     self_reported_left_at: null,
     created_at: daysBefore(1000),
+    profession: null,
     ...overrides,
   }
 }

@@ -98,7 +98,7 @@ export default function Login() {
           </View>
         )}
 
-        <Link href="/register" asChild>
+        <Link href="/welcome" asChild>
           <Pressable>
             <Text style={styles.registerLink}>New here? Create a member account →</Text>
           </Pressable>

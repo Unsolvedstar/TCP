@@ -43,6 +43,7 @@ export default function Dashboard() {
   const [body, setBody] = useState('')
   const [poster, setPoster] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [composerOpen, setComposerOpen] = useState(false)
 
   const loadAll = useCallback(async () => {
     const [{ data: ws }, { data: ls }, { data: gs }, { data: sac }, { data: ann }, { data: pending }, { data: depPending }] = await Promise.all([
@@ -94,6 +95,7 @@ export default function Dashboard() {
     setDateText('')
     setBody('')
     setPoster(null)
+    setComposerOpen(false)
     loadAll()
   }
 
@@ -165,22 +167,38 @@ export default function Dashboard() {
           <SacramentsCard sacraments={sacraments} />
 
           <Card>
-            <Text style={styles.cardTitle}>Parish Announcements</Text>
-            <Text style={styles.cardSub}>Every announcement across the parish — whole-church and league-posted alike. This form always posts whole-church; use League Tools to post as a specific league.</Text>
-            <View style={styles.form}>
-              <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="Title, e.g. Harvest Celebration" placeholderTextColor="#a99" />
-              <TextInput style={styles.input} value={dateText} onChangeText={setDateText} placeholder="Date / when, e.g. 18 October 2026" placeholderTextColor="#a99" />
-              <TextInput
-                style={[styles.input, { height: 70, textAlignVertical: 'top' }]}
-                value={body}
-                onChangeText={setBody}
-                placeholder="Short description…"
-                placeholderTextColor="#a99"
-                multiline
-              />
-              <CertificatePicker label="Poster (optional)" value={poster} onChange={setPoster} />
-              <Button title="Add Announcement" onPress={addAnnouncement} loading={saving} />
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardTitle}>Parish Announcements</Text>
+                <Text style={[styles.cardSub, { marginBottom: composerOpen ? 10 : 0 }]}>
+                  Every announcement across the parish — whole-church and league-posted alike.
+                </Text>
+              </View>
+              {!composerOpen ? <Button title="+ New" onPress={() => setComposerOpen(true)} /> : null}
             </View>
+            {composerOpen ? (
+              <View style={styles.form}>
+                <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="Title, e.g. Harvest Celebration" placeholderTextColor="#a99" />
+                <TextInput style={styles.input} value={dateText} onChangeText={setDateText} placeholder="Date / when, e.g. 18 October 2026" placeholderTextColor="#a99" />
+                <TextInput
+                  style={[styles.input, { height: 70, textAlignVertical: 'top' }]}
+                  value={body}
+                  onChangeText={setBody}
+                  placeholder="Short description…"
+                  placeholderTextColor="#a99"
+                  multiline
+                />
+                <CertificatePicker label="Poster (optional)" value={poster} onChange={setPoster} />
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <View style={{ flex: 1 }}>
+                    <Button title="Add Announcement" onPress={addAnnouncement} loading={saving} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Button title="Cancel" variant="secondary" onPress={() => setComposerOpen(false)} />
+                  </View>
+                </View>
+              </View>
+            ) : null}
             {announcements.map((a) => {
               const league = a.league_id ? leagues.find((l) => l.id === a.league_id) : null
               return (

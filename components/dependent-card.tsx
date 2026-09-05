@@ -3,11 +3,12 @@ import { Pressable, Text, View } from 'react-native'
 import { Alert } from '../lib/alert'
 import { Button, Chip, DateField, Field, SelectField, formatDate } from './ui'
 import { CertificatePicker } from './certificate-picker'
+import { CertificateModal } from './certificate-modal'
 import { styles } from './dependent-card.styles'
 import { supabase } from '../lib/supabase'
 import { colors, genderColors, genders } from '../theme'
 import { useCongregationData } from '../lib/congregation-context'
-import type { Dependent } from '../lib/types'
+import type { CeremonyKind, Dependent } from '../lib/types'
 
 const NONE_LEAGUE = { label: 'No League / Organisation', color: '#9e9e9e' }
 
@@ -17,6 +18,7 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
   const [busy, setBusy] = useState(false)
   const [editingDob, setEditingDob] = useState(false)
   const [editingGender, setEditingGender] = useState(false)
+  const [certKind, setCertKind] = useState<CeremonyKind | null>(null)
 
   // '' is the sentinel for "no league" — mirrors the null-means-None pattern
   // in the schema, since a plain string state can't hold null cleanly here.
@@ -131,6 +133,11 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
         <View style={styles.expandedBody}>
           <View style={styles.actionRow}>
             <Text style={styles.actionLabel}>League</Text>
+            {dependent.league_id ? (
+              <Text style={styles.editLink} onPress={() => setCertKind('league')}>
+                View Certificate
+              </Text>
+            ) : null}
             {dependent.pending_league_id ? (
               <View style={{ gap: 8 }}>
                 <Text style={styles.hint}>
@@ -166,7 +173,12 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
           <View style={styles.actionRow}>
             <Text style={styles.actionLabel}>Baptism</Text>
             {dependent.baptised ? (
-              <Text style={styles.hint}>Baptised. Praise God! ✝</Text>
+              <View style={{ gap: 4 }}>
+                <Text style={styles.hint}>Baptised. Praise God! ✝</Text>
+                <Text style={styles.editLink} onPress={() => setCertKind('baptism')}>
+                  View Certificate
+                </Text>
+              </View>
             ) : dependent.pending_baptism ? (
               <View style={{ gap: 8 }}>
                 <Text style={styles.hint}>Baptism request is awaiting approval.</Text>
@@ -197,7 +209,12 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
           <View style={[styles.actionRow, { borderBottomWidth: 0 }]}>
             <Text style={styles.actionLabel}>Confirmation</Text>
             {dependent.confirmed ? (
-              <Text style={styles.hint}>Confirmed. Praise God! ✝</Text>
+              <View style={{ gap: 4 }}>
+                <Text style={styles.hint}>Confirmed. Praise God! ✝</Text>
+                <Text style={styles.editLink} onPress={() => setCertKind('confirmation')}>
+                  View Certificate
+                </Text>
+              </View>
             ) : dependent.pending_confirmation ? (
               <View style={{ gap: 8 }}>
                 <Text style={styles.hint}>Confirmation request is awaiting approval.</Text>
@@ -285,6 +302,20 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
           />
         </View>
       )}
+
+      {certKind ? (
+        <CertificateModal
+          visible
+          onClose={() => setCertKind(null)}
+          kind={certKind}
+          subjectId={dependent.id}
+          isDependent
+          name={dependent.full_name}
+          application={certKind === 'baptism' ? dependent.baptism_application : certKind === 'confirmation' ? dependent.confirmation_application : dependent.league_application}
+          reviewedAt={dependent.reviewed_at}
+          league={certKind === 'league' ? leagues.find((l) => l.id === dependent.league_id) ?? null : null}
+        />
+      ) : null}
     </View>
   )
 }

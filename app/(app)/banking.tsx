@@ -1,9 +1,13 @@
+import { useEffect, useState } from 'react'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 import { router } from 'expo-router'
 import { Card } from '../../components/ui'
+import { supabase } from '../../lib/supabase'
 import { useLiturgicalSeason } from '../../lib/liturgical-theme'
 import { useCongregationData } from '../../lib/congregation-context'
 import { styles } from '../../styles/banking.styles'
+
+type MyFamily = { id: string; name: string; code: string }
 
 export { ErrorBoundary } from '../../components/error-boundary'
 
@@ -21,6 +25,14 @@ const REFERENCE_CODES: { code: string; label: string; account: 'General' | 'Buil
 export default function Banking() {
   const season = useLiturgicalSeason()
   const { wards } = useCongregationData()
+  const [family, setFamily] = useState<MyFamily | null>(null)
+
+  useEffect(() => {
+    supabase
+      .rpc('my_family')
+      .then(({ data }) => setFamily(((data as MyFamily[]) ?? [])[0] ?? null))
+  }, [])
+
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.content}>
       <View style={[styles.hero, { backgroundColor: season.color }]}>
@@ -83,7 +95,7 @@ export default function Banking() {
         </View>
       </Card>
 
-      <Card style={{ marginBottom: 24 }}>
+      <Card>
         <Text style={styles.cardTitle}>Reference Format</Text>
         <Text style={styles.cardSub}>Surname + Ward Code + Payment Code</Text>
         <View style={styles.example}>
@@ -93,6 +105,18 @@ export default function Banking() {
         <View style={[styles.example, styles.exampleBuilding]}>
           <Text style={styles.exampleLabel}>Building Project, South Ward (500) → Building Account</Text>
           <Text style={styles.exampleCode}>Neswiswi500BLD</Text>
+        </View>
+      </Card>
+
+      <Card style={{ marginBottom: 24 }}>
+        <Text style={styles.cardTitle}>Family Reference Format</Text>
+        <Text style={styles.cardSub}>
+          Paying on behalf of the whole household instead of just yourself? Use your Family Code + Payment Code instead of a surname — it's on your
+          Portal's Family card, and stays the same no matter whose name is on the payment.
+        </Text>
+        <View style={styles.example}>
+          <Text style={styles.exampleLabel}>Pledge & Tithe, for the whole family{family ? ` (${family.name})` : ''}</Text>
+          <Text style={styles.exampleCode}>{family ? `${family.code}PLG` : 'AB12CDPLG'}</Text>
         </View>
       </Card>
     </ScrollView>
