@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Image, Modal, ScrollView, Text, View } from 'react-native'
 import { Button, Chip, formatDate } from './ui'
 import { CertificateModal } from './certificateModal'
+import { BaptismCertificateDetailsModal } from './baptismCertificateDetailsModal'
 import { styles } from './memberProfileModal.styles'
 import { colors } from '../theme'
 import { classifyAge, AGE_GROUP_LABELS } from '../lib/ageGroups'
@@ -26,6 +27,7 @@ export function MemberProfileModal({
   leagueAdminFor,
   onClose,
   onEdit,
+  onChanged,
 }: {
   member: Profile
   ward?: WardRow
@@ -36,8 +38,10 @@ export function MemberProfileModal({
   leagueAdminFor: LeagueRow[]
   onClose: () => void
   onEdit: () => void
+  onChanged: () => void
 }) {
   const [certKind, setCertKind] = useState<CeremonyKind | null>(null)
+  const [editingBaptismCert, setEditingBaptismCert] = useState(false)
   const ageGroup = classifyAge(member.date_of_birth)
   const baptismDetail = applicationDetailText('baptism', member.baptism_application)
   const confirmationDetail = applicationDetailText('confirmation', member.confirmation_application)
@@ -94,6 +98,11 @@ export function MemberProfileModal({
               View Certificate
             </Text>
           ) : null}
+          {member.baptised ? (
+            <Text style={styles.certLink} onPress={() => setEditingBaptismCert(true)}>
+              Edit Certificate Details
+            </Text>
+          ) : null}
           <Text style={styles.boxText}>
             Confirmation — {member.confirmed ? confirmationDetail ?? 'Granted' : member.pending_confirmation ? 'Pending review' : 'Not yet'}
           </Text>
@@ -131,6 +140,22 @@ export function MemberProfileModal({
             application={certKind === 'baptism' ? member.baptism_application : certKind === 'confirmation' ? member.confirmation_application : member.league_application}
             reviewedAt={member.reviewed_at}
             league={certKind === 'league' ? league ?? null : null}
+            dateOfBirth={member.date_of_birth}
+          />
+        ) : null}
+
+        {editingBaptismCert ? (
+          <BaptismCertificateDetailsModal
+            targetId={member.id}
+            isDependent={false}
+            name={member.full_name}
+            application={member.baptism_application}
+            onClose={() => setEditingBaptismCert(false)}
+            onSaved={() => {
+              setEditingBaptismCert(false)
+              onChanged()
+              onClose()
+            }}
           />
         ) : null}
 

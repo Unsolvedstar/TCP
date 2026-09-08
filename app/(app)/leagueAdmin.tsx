@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
 import { ActivityIndicator, Image, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
@@ -6,6 +6,7 @@ import { Alert } from '../../lib/alert'
 import { Button, Card, DateField, Field } from '../../components/ui'
 import { ChipRow } from '../../components/chipRow'
 import { CertificatePicker } from '../../components/certificatePicker'
+import { VerseField } from '../../components/verseField'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/authContext'
 import { useCongregationData } from '../../lib/congregationContext'
@@ -27,7 +28,7 @@ type PendingItem = {
 
 export default function LeagueAdmin() {
   const { profile } = useAuth()
-  const { leagues } = useCongregationData()
+  const { leagues, refresh: refreshCongregationData } = useCongregationData()
   const { myLeagueIds } = useLeagueAdmin()
   const [selectedLeagueId, setSelectedLeagueId] = useState(myLeagueIds[0] ?? '')
   const [pendingMembers, setPendingMembers] = useState<Profile[]>([])
@@ -67,6 +68,46 @@ export default function LeagueAdmin() {
   // assigned as a league admin somewhere.
   const myLeagues = useMemo(() => (isAdmin ? leagues : leagues.filter((l) => myLeagueIds.includes(l.id))), [leagues, myLeagueIds, isAdmin])
   const activeLeagueId = selectedLeagueId || myLeagues[0]?.id || ''
+  const activeLeague = myLeagues.find((l) => l.id === activeLeagueId)
+
+  // Certificate details (chairperson/pastor names + verse) for the currently
+  // selected league — see supabase/migrations/0022_certificate_details.sql.
+  // Chairperson prefills from the current admin's own name only when the
+  // league doesn't already have one on file; it stays a plain editable
+  // field afterwards, not something re-derived on every render.
+  const [chairpersonName, setChairpersonName] = useState('')
+  const [pastorName, setPastorName] = useState('')
+  const [certVerseReference, setCertVerseReference] = useState('')
+  const [certVerseText, setCertVerseText] = useState('')
+  const [savingCertDetails, setSavingCertDetails] = useState(false)
+
+  useEffect(() => {
+    setChairpersonName(activeLeague?.chairperson_name || profile?.full_name || '')
+    setPastorName(activeLeague?.pastor_name ?? '')
+    setCertVerseReference(activeLeague?.verse_reference ?? '')
+    setCertVerseText(activeLeague?.verse_text ?? '')
+    // Only re-run when the selected league (or the data backing it) changes —
+    // not on every keystroke into the fields above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeLeagueId, activeLeague?.chairperson_name, activeLeague?.pastor_name, activeLeague?.verse_reference, activeLeague?.verse_text])
+
+  async function saveCertDetails() {
+    if (!activeLeagueId) return
+    setSavingCertDetails(true)
+    const { error } = await supabase.rpc('admin_set_league_certificate_details', {
+      target_league_id: activeLeagueId,
+      p_chairperson_name: chairpersonName.trim() || null,
+      p_pastor_name: pastorName.trim() || null,
+      p_verse_reference: certVerseReference.trim() || null,
+      p_verse_text: certVerseText.trim() || null,
+    })
+    setSavingCertDetails(false)
+    if (error) {
+      Alert.alert('Could not save', error.message)
+      return
+    }
+    await refreshCongregationData()
+  }
 
   const loadAll = useCallback(async () => {
     if (!activeLeagueId || !profile) {
@@ -293,6 +334,19 @@ export default function LeagueAdmin() {
           })}
         </Card>
       )}
+
+      <Card>
+        <Text style={styles.cardTitle}>Certificate Details</Text>
+        <Text style={styles.screenSub}>
+          Chairperson and Parish Pastor names, plus a Bible verse, printed on {activeLeague?.label ?? 'this league'}'s installation certificates.
+        </Text>
+        <View style={{ gap: 10, marginTop: 8 }}>
+          <Field label="Chairperson Name" value={chairpersonName} onChangeText={setChairpersonName} placeholder="e.g. Lufuno Tshikovhi" />
+          <Field label="Parish Pastor Name" value={pastorName} onChangeText={setPastorName} placeholder="e.g. Rev. J. Smith" />
+          <VerseField reference={certVerseReference} text={certVerseText} onChangeReference={setCertVerseReference} onChangeText={setCertVerseText} />
+          <Button title="Save Certificate Details" onPress={saveCertDetails} loading={savingCertDetails} />
+        </View>
+      </Card>
 
       <Card>
         <Text style={styles.cardTitle}>Post an Announcement</Text>

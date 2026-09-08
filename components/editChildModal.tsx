@@ -3,6 +3,7 @@ import { Modal, ScrollView, Switch, Text, View } from 'react-native'
 import { Alert } from '../lib/alert'
 import { Button, DateField, Field, SelectField, formatDate } from './ui'
 import { Wizard, type WizardStepDef } from './wizard'
+import { BaptismCertificateDetailsModal } from './baptismCertificateDetailsModal'
 import { styles } from './editModal.styles'
 import { supabase } from '../lib/supabase'
 import { colors, genders } from '../theme'
@@ -32,6 +33,7 @@ export function EditChildModal({
   const [confirmed, setConfirmed] = useState(child.confirmed)
   const [familyId, setFamilyId] = useState(child.household_id ?? '')
   const [saving, setSaving] = useState(false)
+  const [editingBaptismCert, setEditingBaptismCert] = useState(false)
 
   async function save() {
     setSaving(true)
@@ -142,12 +144,35 @@ export function EditChildModal({
         <Text style={styles.guardianNote}>
           Family: {child.household_id ? households.find((h) => h.id === child.household_id)?.name ?? 'Unknown' : 'None'}
         </Text>
+        {child.baptised ? (
+          <View style={styles.recordBox}>
+            <Text style={styles.recordTitle}>Baptism certificate</Text>
+            <Text style={styles.recordText}>Register no., diocese, parents, birth place, and the certificate's Bible verse.</Text>
+            <View style={{ marginTop: 6 }}>
+              <Button title="Edit Certificate Details" variant="secondary" onPress={() => setEditingBaptismCert(true)} />
+            </View>
+          </View>
+        ) : null}
         <Wizard steps={steps} onComplete={save} completeLabel="Save Changes" submitting={saving} />
         <View style={{ gap: 10, marginTop: 20 }}>
           <Button title="Cancel" variant="secondary" onPress={onClose} />
           <Button title="Remove From Registry" variant="danger" onPress={onRemoved} />
         </View>
       </ScrollView>
+
+      {editingBaptismCert ? (
+        <BaptismCertificateDetailsModal
+          targetId={child.id}
+          isDependent
+          name={child.full_name}
+          application={child.baptism_application}
+          onClose={() => setEditingBaptismCert(false)}
+          onSaved={() => {
+            setEditingBaptismCert(false)
+            onSaved()
+          }}
+        />
+      ) : null}
     </Modal>
   )
 }

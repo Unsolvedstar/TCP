@@ -8,7 +8,20 @@ export type AppRole = 'member' | 'admin'
 // see lib/congregationContext.tsx. WardRow/LeagueRow are what the app reads;
 // Profile/Dependent only ever store the id.
 export type WardRow = { id: string; name: string; color: string; bank_code: number }
-export type LeagueRow = { id: string; key: string; label: string; info: string | null; color: string; has_badge: boolean }
+export type LeagueRow = {
+  id: string
+  key: string
+  label: string
+  info: string | null
+  color: string
+  has_badge: boolean
+  // Installation-certificate signature/verse fields — see
+  // supabase/migrations/0022_certificate_details.sql.
+  chairperson_name: string | null
+  pastor_name: string | null
+  verse_reference: string | null
+  verse_text: string | null
+}
 
 // name is null until someone actually claims the code (registers or joins
 // with it) — an admin-generated code starts as an unclaimed, unnamed slot.
@@ -21,6 +34,15 @@ export type BaptismApplication = {
   location?: string | null
   officiant_name?: string | null
   submitted_at: string
+  // Baptism-certificate detail fields, set by an admin via
+  // admin_set_baptism_certificate_details (0022_certificate_details.sql) —
+  // absent until an admin fills them in, never collected at registration/request time.
+  register_no?: string | null
+  diocese?: string | null
+  parents?: string | null
+  birth_place?: string | null
+  verse_reference?: string | null
+  verse_text?: string | null
 }
 export type ConfirmationApplication = {
   mentor_name: string | null

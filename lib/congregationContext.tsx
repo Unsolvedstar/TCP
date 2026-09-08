@@ -7,6 +7,11 @@ type CongregationDataState = {
   wards: WardRow[]
   leagues: LeagueRow[]
   loading: boolean
+  // Re-fetches leagues (and wards) without waiting for the profile/congregation
+  // to change — needed after an admin action that writes to the leagues table
+  // directly (e.g. league certificate details), since those don't otherwise
+  // invalidate this cache.
+  refresh: () => Promise<void>
 }
 
 const CongregationDataContext = createContext<CongregationDataState | undefined>(undefined)
@@ -22,6 +27,15 @@ export function CongregationDataProvider({ children }: PropsWithChildren) {
   const [leagues, setLeagues] = useState<LeagueRow[]>([])
   const [loading, setLoading] = useState(true)
 
+  async function load() {
+    const [wardsRes, leaguesRes] = await Promise.all([
+      supabase.from('wards').select('id,name,color,bank_code').order('name'),
+      supabase.from('leagues').select('id,key,label,info,color,has_badge,chairperson_name,pastor_name,verse_reference,verse_text').order('label'),
+    ])
+    setWards((wardsRes.data as WardRow[]) ?? [])
+    setLeagues((leaguesRes.data as LeagueRow[]) ?? [])
+  }
+
   useEffect(() => {
     if (!profile) {
       setWards([])
@@ -31,14 +45,8 @@ export function CongregationDataProvider({ children }: PropsWithChildren) {
     }
     let cancelled = false
     setLoading(true)
-    Promise.all([
-      supabase.from('wards').select('id,name,color,bank_code').order('name'),
-      supabase.from('leagues').select('id,key,label,info,color,has_badge').order('label'),
-    ]).then(([wardsRes, leaguesRes]) => {
-      if (cancelled) return
-      setWards((wardsRes.data as WardRow[]) ?? [])
-      setLeagues((leaguesRes.data as LeagueRow[]) ?? [])
-      setLoading(false)
+    load().then(() => {
+      if (!cancelled) setLoading(false)
     })
     return () => {
       cancelled = true
@@ -46,7 +54,7 @@ export function CongregationDataProvider({ children }: PropsWithChildren) {
   }, [profile?.congregation_id])
 
   return (
-    <CongregationDataContext.Provider value={{ wards, leagues, loading }}>
+    <CongregationDataContext.Provider value={{ wards, leagues, loading, refresh: load }}>
       {children}
     </CongregationDataContext.Provider>
   )

@@ -314,6 +314,7 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
           application={certKind === 'baptism' ? dependent.baptism_application : certKind === 'confirmation' ? dependent.confirmation_application : dependent.league_application}
           reviewedAt={dependent.reviewed_at}
           league={certKind === 'league' ? leagues.find((l) => l.id === dependent.league_id) ?? null : null}
+          dateOfBirth={dependent.date_of_birth}
         />
       ) : null}
     </View>

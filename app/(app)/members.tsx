@@ -635,6 +635,7 @@ export default function Members() {
             setEditingMember(viewingMember)
             setViewingMember(null)
           }}
+          onChanged={loadAll}
         />
       )}
       {editingMember && (

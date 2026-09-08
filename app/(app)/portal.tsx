@@ -146,6 +146,7 @@ export default function Portal() {
           application={certKind === 'baptism' ? profile.baptism_application : certKind === 'confirmation' ? profile.confirmation_application : profile.league_application}
           reviewedAt={profile.reviewed_at}
           league={certKind === 'league' ? leagues.find((l) => l.id === profile.league_id) ?? null : null}
+          dateOfBirth={profile.date_of_birth}
         />
       ) : null}
 
