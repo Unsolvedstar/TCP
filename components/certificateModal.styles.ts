@@ -19,7 +19,17 @@ export const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: 22,
     alignItems: 'center',
+    position: 'relative',
+    overflow: 'hidden',
   },
+  // Four corner ornaments cropped from the parish's real paper certificates —
+  // one asset, rotated per corner, rather than four separate crops (a single
+  // clean crop beats stitching together four unevenly-scanned corners).
+  cornerFlourish: { position: 'absolute', width: 46, height: 46, opacity: 0.85 },
+  cornerTL: { top: 6, left: 6 },
+  cornerTR: { top: 6, right: 6, transform: [{ rotate: '90deg' }] },
+  cornerBR: { bottom: 6, right: 6, transform: [{ rotate: '180deg' }] },
+  cornerBL: { bottom: 6, left: 6, transform: [{ rotate: '270deg' }] },
   paperInner: {
     width: '100%',
     borderWidth: 2,
@@ -34,6 +44,9 @@ export const styles = StyleSheet.create({
   parishName: { fontSize: 14, fontWeight: '700', color: colors.g800, marginTop: 2, marginBottom: 14, textAlign: 'center' },
   rule: { width: 60, height: 2, backgroundColor: colors.gold, marginBottom: 14 },
   title: { fontFamily: serif, fontSize: 22, fontWeight: '700', color: colors.g900, textAlign: 'center', marginBottom: 18 },
+  // Cross-and-dove arch motif, baptism only — cropped from the same paper
+  // template, sized to its native ~2.16:1 aspect ratio.
+  baptismArch: { width: '100%', maxWidth: 320, height: undefined, aspectRatio: 760 / 352, marginBottom: 12 },
   bodyLine: { fontFamily: serif, fontSize: 14.5, color: colors.text, textAlign: 'center', lineHeight: 22 },
   name: { fontFamily: serif, fontSize: 20, fontWeight: '700', color: colors.g800, textAlign: 'center', marginVertical: 6 },
   detail: { fontSize: 12.5, color: colors.muted, textAlign: 'center', marginTop: 10, lineHeight: 18 },
@@ -75,7 +88,9 @@ export const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: colors.white,
   },
-  sealImage: { width: 36, height: 36 },
+  // Fills the full circle via resizeMode="cover" — this is a photo crop of
+  // the parish's physical ink stamp, not a logo with breathing room around it.
+  sealImage: { width: '100%', height: '100%' },
   // Confirmation certificates keep the original plain-glyph seal — no
   // template exists for them yet, so that branch renders exactly as before.
   sealCross: { fontSize: 22, color: colors.g700 },

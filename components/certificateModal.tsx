@@ -49,8 +49,13 @@ function plainRow(label: string, value: string | null | undefined): DetailRow | 
  * Baptism and league certificates are laid out to resemble the parish's
  * actual paper certificates (verse quote, signature lines, structured
  * detail rows) — see supabase/migrations/0022_certificate_details.sql for
- * where that detail comes from. Confirmation has no paper template to work
- * from yet, so it keeps the original plain layout unchanged.
+ * where that detail comes from. The corner flourish, parish seal, and
+ * (baptism-only) cross-and-dove arch artwork are cropped from a real scan of
+ * those paper certificates (assets/brand/certificateCornerFlourish.png,
+ * certificateSeal.png, baptismArch.png) — the seal in particular is a photo
+ * of a physical ink stamp, not clean vector art, so it carries some of that
+ * texture on purpose. Confirmation has no paper template to work from yet,
+ * so it keeps the original plain layout unchanged.
  */
 export function CertificateModal({
   visible,
@@ -144,12 +149,23 @@ export function CertificateModal({
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
         <View ref={paperRef} style={styles.paper} collapsable={false}>
+          {kind !== 'confirmation' ? (
+            <>
+              <Image source={require('../assets/brand/certificateCornerFlourish.png')} style={[styles.cornerFlourish, styles.cornerTL]} resizeMode="contain" />
+              <Image source={require('../assets/brand/certificateCornerFlourish.png')} style={[styles.cornerFlourish, styles.cornerTR]} resizeMode="contain" />
+              <Image source={require('../assets/brand/certificateCornerFlourish.png')} style={[styles.cornerFlourish, styles.cornerBL]} resizeMode="contain" />
+              <Image source={require('../assets/brand/certificateCornerFlourish.png')} style={[styles.cornerFlourish, styles.cornerBR]} resizeMode="contain" />
+            </>
+          ) : null}
           <View style={styles.paperInner}>
             <Image source={require('../assets/brand/churchLogo.png')} style={styles.crest} resizeMode="contain" />
             <Text style={styles.kicker}>ELCSA Tshwane City Parish</Text>
             <Text style={styles.parishName}>Growing Together in Christ</Text>
             <View style={styles.rule} />
             <Text style={styles.title}>{TITLES[kind]}</Text>
+            {kind === 'baptism' ? (
+              <Image source={require('../assets/brand/baptismArch.png')} style={styles.baptismArch} resizeMode="contain" />
+            ) : null}
             <Text style={styles.bodyLine}>This certifies that</Text>
             <Text style={styles.name}>{name}</Text>
             <Text style={styles.bodyLine}>{bodyLine(kind, league?.label)}</Text>
@@ -201,7 +217,7 @@ export function CertificateModal({
               {kind === 'confirmation' ? (
                 <Text style={styles.sealCross}>✝</Text>
               ) : (
-                <Image source={require('../assets/brand/churchLogo.png')} style={styles.sealImage} resizeMode="contain" />
+                <Image source={require('../assets/brand/certificateSeal.png')} style={styles.sealImage} resizeMode="cover" />
               )}
             </View>
             <Text style={styles.footer}>ELCSA Tshwane City Parish · Growing Together in Christ</Text>
