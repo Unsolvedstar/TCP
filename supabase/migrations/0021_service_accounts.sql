@@ -1,5 +1,5 @@
 -- Service/utility accounts (e.g. the generic per-league admin logins from
--- scripts/create-league-admin-accounts.mjs) are real profiles rows so they
+-- scripts/createLeagueAdminAccounts.mjs) are real profiles rows so they
 -- can hold a league_admins assignment like anyone else, but they aren't an
 -- actual congregant — counting them inflates headcount/ward/gender/
 -- sacrament stats. Flagged explicitly at creation via a new metadata key

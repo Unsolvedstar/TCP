@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native'
 import { Link, router } from 'expo-router'
 import { Field, GlassSheen, glassBlur, SelectField } from '../components/ui'
-import { ChurchHeader } from '../components/church-header'
-import { CertificatePicker } from '../components/certificate-picker'
-import { ChipRow } from '../components/chip-row'
+import { ChurchHeader } from '../components/churchHeader'
+import { CertificatePicker } from '../components/certificatePicker'
+import { ChipRow } from '../components/chipRow'
 import { Wizard, type WizardStepDef } from '../components/wizard'
 import { supabase } from '../lib/supabase'
 import { getRegistrationCongregation } from '../lib/congregation'
@@ -12,7 +12,7 @@ import type { WardRow, LeagueRow } from '../lib/types'
 import { radius } from '../theme'
 import { styles } from '../styles/register.styles'
 
-export { ErrorBoundary } from '../components/error-boundary'
+export { ErrorBoundary } from '../components/errorBoundary'
 
 export default function Register() {
   const [congregationId, setCongregationId] = useState('')

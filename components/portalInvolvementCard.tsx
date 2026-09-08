@@ -1,0 +1,199 @@
+import { useState } from 'react'
+import { Text, View } from 'react-native'
+import { Alert } from '../lib/alert'
+import { Button, Card, Field, SelectField } from './ui'
+import { LeagueBadge } from './leagueBadge'
+import { CertificatePicker } from './certificatePicker'
+import { styles } from './portalInvolvementCard.styles'
+import { supabase } from '../lib/supabase'
+import { useCongregationData } from '../lib/congregationContext'
+import type { Profile } from '../lib/types'
+
+const NONE_LEAGUE = { id: '', key: 'None', label: 'No League / Organisation', info: null as string | null }
+
+export function PortalInvolvementCard({ profile, onChanged }: { profile: Profile; onChanged: () => void }) {
+  const { leagues } = useCongregationData()
+  const [busy, setBusy] = useState(false)
+
+  // '' is the sentinel for "no league" (null-means-None mirrors the schema).
+  const [selectedLeague, setSelectedLeague] = useState<string | null>(null)
+  const [leagueReason, setLeagueReason] = useState('')
+  const [leagueBaptismCert, setLeagueBaptismCert] = useState<string | null>(null)
+  const [leagueConfirmationCert, setLeagueConfirmationCert] = useState<string | null>(null)
+
+  const [showBaptismForm, setShowBaptismForm] = useState(false)
+  const [baptismType, setBaptismType] = useState('')
+  const [sponsorName, setSponsorName] = useState('')
+  const [baptismNote, setBaptismNote] = useState('')
+
+  const [showConfirmationForm, setShowConfirmationForm] = useState(false)
+  const [mentorName, setMentorName] = useState('')
+  const [confirmationNote, setConfirmationNote] = useState('')
+  const [confirmationBaptismCert, setConfirmationBaptismCert] = useState<string | null>(null)
+
+  async function runAction(fn: () => PromiseLike<{ error: any }>) {
+    setBusy(true)
+    const { error } = await fn()
+    setBusy(false)
+    if (error) {
+      Alert.alert('Something went wrong', error.message)
+      return false
+    }
+    onChanged()
+    return true
+  }
+
+  async function submitLeagueRequest() {
+    const target = selectedLeague === null ? profile.league_id : selectedLeague || null
+    if (target === profile.league_id) {
+      Alert.alert('Already there', 'You are already in this league.')
+      return
+    }
+    const ok = await runAction(() =>
+      supabase.rpc('request_league', {
+        new_league_id: target,
+        p_reason: leagueReason.trim() || null,
+        p_baptism_certificate: leagueBaptismCert,
+        p_confirmation_certificate: leagueConfirmationCert,
+      })
+    )
+    if (ok) {
+      setSelectedLeague(null)
+      setLeagueReason('')
+      setLeagueBaptismCert(null)
+      setLeagueConfirmationCert(null)
+    }
+  }
+
+  async function submitBaptismRequest() {
+    const ok = await runAction(() =>
+      supabase.rpc('request_baptism', { p_type: baptismType || null, p_sponsor_name: sponsorName.trim() || null, p_note: baptismNote.trim() || null })
+    )
+    if (ok) {
+      setShowBaptismForm(false)
+      setBaptismType('')
+      setSponsorName('')
+      setBaptismNote('')
+    }
+  }
+
+  async function submitConfirmationRequest() {
+    const ok = await runAction(() =>
+      supabase.rpc('request_confirmation', {
+        p_mentor_name: mentorName.trim() || null,
+        p_note: confirmationNote.trim() || null,
+        p_baptism_certificate: confirmationBaptismCert,
+      })
+    )
+    if (ok) {
+      setShowConfirmationForm(false)
+      setMentorName('')
+      setConfirmationNote('')
+      setConfirmationBaptismCert(null)
+    }
+  }
+
+  const currentLeague = leagues.find((l) => l.id === (selectedLeague ?? profile.league_id)) ?? NONE_LEAGUE
+
+  return (
+    <Card>
+      <Text style={styles.cardTitle}>Update Your Involvement</Text>
+      <Text style={styles.cardSub}>Requests are reviewed and confirmed by the parish office.</Text>
+
+      <View style={styles.actionRow}>
+        <Text style={styles.actionLabel}>League</Text>
+        {profile.pending_league_id ? (
+          <View style={styles.actionCol}>
+            <Text style={styles.hintText}>
+              Your request to join{' '}
+              <Text style={{ fontWeight: '700' }}>{leagues.find((l) => l.id === profile.pending_league_id)?.label ?? NONE_LEAGUE.label}</Text> is
+              awaiting approval.
+            </Text>
+            <Button title="Cancel Request" variant="danger" loading={busy} onPress={() => runAction(() => supabase.rpc('cancel_league_request'))} />
+          </View>
+        ) : (
+          <View style={styles.actionCol}>
+            {[NONE_LEAGUE, ...leagues].map((l) => (
+              <Text
+                key={l.id}
+                onPress={() => setSelectedLeague(l.id)}
+                style={[styles.leagueOption, (selectedLeague ?? profile.league_id ?? '') === l.id && styles.leagueOptionActive]}
+              >
+                {l.label}
+              </Text>
+            ))}
+            {currentLeague.info ? (
+              <View style={styles.infoRow}>
+                <LeagueBadge leagueKey={currentLeague.key} size={36} />
+                <Text style={[styles.hintText, { flex: 1 }]}>{currentLeague.info}</Text>
+              </View>
+            ) : null}
+            {selectedLeague !== null && (selectedLeague || null) !== profile.league_id ? (
+              <>
+                <Field label="Why would you like to join? (optional)" value={leagueReason} onChangeText={setLeagueReason} placeholder="A short reason" />
+                <CertificatePicker label="Baptism Certificate (optional)" value={leagueBaptismCert} onChange={setLeagueBaptismCert} />
+                <CertificatePicker label="Confirmation Certificate (optional)" value={leagueConfirmationCert} onChange={setLeagueConfirmationCert} />
+              </>
+            ) : null}
+            <Button title="Request Change" loading={busy} onPress={submitLeagueRequest} />
+          </View>
+        )}
+      </View>
+
+      <View style={styles.actionRow}>
+        <Text style={styles.actionLabel}>Baptism</Text>
+        {profile.baptised ? (
+          <Text style={styles.hintText}>You are baptised. Praise God! ✝</Text>
+        ) : profile.pending_baptism ? (
+          <View style={styles.actionCol}>
+            <Text style={styles.hintText}>Your baptism request is awaiting approval.</Text>
+            <Button title="Cancel Request" variant="danger" loading={busy} onPress={() => runAction(() => supabase.rpc('cancel_baptism_request'))} />
+          </View>
+        ) : showBaptismForm ? (
+          <View style={styles.actionCol}>
+            <SelectField
+              label="Baptism type"
+              value={baptismType}
+              onChange={setBaptismType}
+              options={[
+                { value: 'Infant', label: 'Infant' },
+                { value: 'Adult', label: 'Adult' },
+              ]}
+              placeholder="Select…"
+            />
+            <Field label="Sponsor / Godparent name" value={sponsorName} onChangeText={setSponsorName} placeholder="e.g. Tshedza Tshikovhi" />
+            <Field label="Note (optional)" value={baptismNote} onChangeText={setBaptismNote} placeholder="Anything else the office should know" />
+            <Button title="Submit Request" loading={busy} onPress={submitBaptismRequest} />
+            <Button title="Cancel" variant="secondary" onPress={() => setShowBaptismForm(false)} />
+          </View>
+        ) : (
+          <Button title="Request Baptism" onPress={() => setShowBaptismForm(true)} />
+        )}
+      </View>
+
+      <View style={[styles.actionRow, { borderBottomWidth: 0 }]}>
+        <Text style={styles.actionLabel}>Confirmation</Text>
+        {profile.confirmed ? (
+          <Text style={styles.hintText}>You are confirmed. Praise God! ✝</Text>
+        ) : profile.pending_confirmation ? (
+          <View style={styles.actionCol}>
+            <Text style={styles.hintText}>Your confirmation request is awaiting approval.</Text>
+            <Button title="Cancel Request" variant="danger" loading={busy} onPress={() => runAction(() => supabase.rpc('cancel_confirmation_request'))} />
+          </View>
+        ) : !profile.baptised ? (
+          <Text style={styles.hintText}>Baptism is required first.</Text>
+        ) : showConfirmationForm ? (
+          <View style={styles.actionCol}>
+            <Field label="Confirmation mentor (optional)" value={mentorName} onChangeText={setMentorName} placeholder="If you have one" />
+            <Field label="Note (optional)" value={confirmationNote} onChangeText={setConfirmationNote} placeholder="Anything else the office should know" />
+            <CertificatePicker label="Baptism Certificate (optional, if applicable)" value={confirmationBaptismCert} onChange={setConfirmationBaptismCert} />
+            <Button title="Submit Request" loading={busy} onPress={submitConfirmationRequest} />
+            <Button title="Cancel" variant="secondary" onPress={() => setShowConfirmationForm(false)} />
+          </View>
+        ) : (
+          <Button title="Request Confirmation" onPress={() => setShowConfirmationForm(true)} />
+        )}
+      </View>
+    </Card>
+  )
+}

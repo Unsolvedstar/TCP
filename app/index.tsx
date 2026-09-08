@@ -1,10 +1,10 @@
 import { Redirect } from 'expo-router'
 import { ActivityIndicator, StyleSheet, View } from 'react-native'
-import { LandingPage } from '../components/landing-page'
-import { useAuth } from '../lib/auth-context'
+import { LandingPage } from '../components/landingPage'
+import { useAuth } from '../lib/authContext'
 import { colors } from '../theme'
 
-export { ErrorBoundary } from '../components/error-boundary'
+export { ErrorBoundary } from '../components/errorBoundary'
 
 export default function Index() {
   const { session, profile, loading } = useAuth()

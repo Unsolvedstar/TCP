@@ -3,7 +3,7 @@
 -- answer that. This adds a periodic self-confirmation instead of inferring
 -- it from behavior: "still part of the parish?" with a real yes/no answer,
 -- surfaced by the client roughly once a year per person (client-side logic,
--- see lib/membership-check-in.ts).
+-- see lib/membershipCheckIn.ts).
 
 alter table public.profiles add column if not exists membership_confirmed_at timestamptz;
 alter table public.profiles add column if not exists self_reported_left_at timestamptz;

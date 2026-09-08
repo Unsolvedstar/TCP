@@ -51,9 +51,9 @@ the app's existing bottom-sheet/picker modals), backed by an `<AlertHost />`
 mounted once in `app/_layout.tsx`. Every call site's import moved from
 `react-native` to `../lib/alert` — the call sites themselves are unchanged.
 Affected 10 files: `dashboard.tsx`, `members.tsx`, `app/(app)/_layout.tsx`,
-`certificate-picker.tsx`, `dependent-card.tsx`, `edit-child-modal.tsx`,
-`edit-member-modal.tsx`, `portal-details-card.tsx`,
-`portal-household-card.tsx`, `portal-involvement-card.tsx`.
+`certificatePicker.tsx`, `dependentCard.tsx`, `editChildModal.tsx`,
+`editMemberModal.tsx`, `portalDetailsCard.tsx`,
+`portalHouseholdCard.tsx`, `portalInvolvementCard.tsx`.
 
 Verified via real browser interaction (Playwright) against the local
 Supabase instance, covering all three call shapes used in the app: a
@@ -152,19 +152,19 @@ instead of enums.
       `Profile`/`Dependent` use `ward_id`/`league_id`/`pending_league_id`;
       new `WardRow`/`LeagueRow` types.
 - [x] `theme.ts` — removed `wards`, `wardColors`, `wardCodes`, `leagues`,
-      `leagueKeys`; new `lib/congregation-context.tsx`
+      `leagueKeys`; new `lib/congregationContext.tsx`
       (`CongregationDataProvider`/`useCongregationData()`) fetches
       wards/leagues for the signed-in user's own congregation.
 - [x] New `lib/congregation.ts` — pre-auth registration screen resolves TCP
       via a hardcoded slug constant through the anon RPCs (Phase 2 replaces
       this with a real picker).
 - [x] Updated all call sites — turned out to be **18 files**, not the 8
-      originally scoped: `register.tsx`, `edit-member-modal.tsx`,
-      `edit-child-modal.tsx`, `portal-household-card.tsx`,
-      `dependent-card.tsx`, `portal-involvement-card.tsx`, `members.tsx`,
-      `dashboard.tsx`, `portal.tsx`, `ward-breakdown-card.tsx`,
-      `league-breakdown-card.tsx`, `leagues-directory-card.tsx`,
-      `banking.tsx`, `birthdays-card.tsx`, `league-badge.tsx` (now keyed by
+      originally scoped: `register.tsx`, `editMemberModal.tsx`,
+      `editChildModal.tsx`, `portalHouseholdCard.tsx`,
+      `dependentCard.tsx`, `portalInvolvementCard.tsx`, `members.tsx`,
+      `dashboard.tsx`, `portal.tsx`, `wardBreakdownCard.tsx`,
+      `leagueBreakdownCard.tsx`, `leaguesDirectoryCard.tsx`,
+      `banking.tsx`, `birthdaysCard.tsx`, `leagueBadge.tsx` (now keyed by
       the league row's stable `key` string), plus `lib/types.ts`, `theme.ts`,
       `app/_layout.tsx`.
 - [x] Deliberately left alone (correct for TCP today, Phase 2 scope):
@@ -204,9 +204,9 @@ instead of enums.
 ### 2. Unit tests for pure logic
 
 - [x] Added Jest with the `jest-expo` preset (`npm test`).
-- [x] `lib/church-calendar.ts` — Easter/Advent date math against known
+- [x] `lib/churchCalendar.ts` — Easter/Advent date math against known
       reference years (2024–2027), event ordering, upcoming-events windowing.
-- [x] `lib/liturgical-theme.ts` — season/color for known boundary dates
+- [x] `lib/liturgicalTheme.ts` — season/color for known boundary dates
       (Ash Wednesday, Holy Week, Easter, Pentecost, Advent, Twelfth Night).
 - [x] `lib/dates.ts` — ISO formatting, including the UTC-offset shift bug
       `toLocalISODate` exists to avoid.

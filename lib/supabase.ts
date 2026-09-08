@@ -18,7 +18,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     // Lets the web build pick up the access/refresh tokens Supabase appends to the
     // URL after a password-reset email link. Native handles its own deep link
-    // parsing (see app/reset-password.tsx), where this setting is a no-op.
+    // parsing (see app/resetPassword.tsx), where this setting is a no-op.
     detectSessionInUrl: true,
   },
 })

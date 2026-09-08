@@ -3,12 +3,12 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } fro
 import { Link, router } from 'expo-router'
 import * as Linking from 'expo-linking'
 import { Button, Field, GlassSheen, glassBlur } from '../components/ui'
-import { ChurchHeader } from '../components/church-header'
+import { ChurchHeader } from '../components/churchHeader'
 import { supabase } from '../lib/supabase'
 import { radius } from '../theme'
 import { styles } from '../styles/login.styles'
 
-export { ErrorBoundary } from '../components/error-boundary'
+export { ErrorBoundary } from '../components/errorBoundary'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -46,7 +46,7 @@ export default function Login() {
     }
     setResetSending(true)
     const { error: err } = await supabase.auth.resetPasswordForEmail(resetEmail.trim(), {
-      redirectTo: Linking.createURL('/reset-password'),
+      redirectTo: Linking.createURL('/resetPassword'),
     })
     setResetSending(false)
     if (err) {

@@ -1,5 +1,5 @@
 // g700 is the parish's real crest green, sampled directly from the official
-// ELCSA logo (assets/brand/church-logo.png) — the rest of the green scale is
+// ELCSA logo (assets/brand/churchLogo.png) — the rest of the green scale is
 // built outward from that anchor.
 export const colors = {
   g900: '#0a2603',
@@ -31,7 +31,7 @@ export const colors = {
 
 /**
  * Liturgical accent colours (Western/Lutheran tradition) — used by
- * lib/liturgical-theme.ts to tint hero banners with whatever season of the
+ * lib/liturgicalTheme.ts to tint hero banners with whatever season of the
  * church year it currently is, alongside (not replacing) the parish's green
  * brand identity everywhere else. Each entry carries its own readable text
  * colour since the festal gold is too light for white text.
@@ -53,7 +53,7 @@ export const liturgicalPalette = {
 
 // Wards and leagues used to be hardcoded here (one fixed list for TCP). They're
 // now per-congregation rows in the `wards`/`leagues` tables — see
-// lib/congregation-context.tsx — seeded for TCP with these same names/colors
+// lib/congregationContext.tsx — seeded for TCP with these same names/colors
 // in supabase/migrations/0001_init.sql section 5.
 
 export const genders = ['Male', 'Female'] as const

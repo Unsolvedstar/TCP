@@ -115,15 +115,15 @@ dashboard. No database table for this — it's pure date math, nothing to mainta
 **Real branding, pulled from the parish's own bulletins.** The green in this app
 isn't a colour someone picked — it's sampled directly from the actual ELCSA
 Tshwane City Parish crest, scanned out of the weekly Sunday bulletin PDFs
-(`assets/brand/church-logo.png`), along with the navy, gold, and red used
+(`assets/brand/churchLogo.png`), along with the navy, gold, and red used
 elsewhere in the parish's own materials (`theme.ts` → `colors.brandNavy` /
 `brandGoldVivid` / `brandRed`). Three leagues that have their own official badge
 artwork — Young Adults League, ELCSAMO, and the Prayer Men's League — show that
-badge (`components/league-badge.tsx`) instead of just a colour chip; the rest
+badge (`components/leagueBadge.tsx`) instead of just a colour chip; the rest
 still get a colour chip, since that's an honest reflection of what artwork
 actually exists for them.
 
-**The theme shifts with the church year.** `lib/liturgical-theme.ts` derives the
+**The theme shifts with the church year.** `lib/liturgicalTheme.ts` derives the
 traditional Western liturgical colour for today's date — purple for Lent and
 Advent, red for Pentecost and Reformation Day, gold for the festal seasons
 (Christmas, Eastertide, Maundy Thursday, All Saints), green the rest of the year
@@ -134,14 +134,14 @@ not random. It's an accent layer only — the parish's green crest and identity
 never change underneath it.
 
 **A real landing page.** Signed-out visitors — mainly on the web build — now land
-on `components/landing-page.tsx` instead of being bounced straight to the sign-in
+on `components/landingPage.tsx` instead of being bounced straight to the sign-in
 form: the crest, today's liturgical season, what's next in the church calendar,
 and Sign In / Create Account buttons. Signed-in users skip straight past it to
 their portal or dashboard, same as before.
 
 **The app icon and splash screen are the real crest too.** `assets/icon.png`,
-`assets/android-icon-foreground.png` / `android-icon-monochrome.png`,
-`assets/favicon.png`, and `assets/splash-icon.png` were all regenerated from the
+`assets/androidIconForeground.png` / `androidIconMonochrome.png`,
+`assets/favicon.png`, and `assets/splashIcon.png` were all regenerated from the
 same scanned crest — cream background, full seal ring (the "Growing Together in
 Christ" tagline was dropped from the small versions since it turns to an
 illegible smear at actual home-screen icon sizes; the seal shape alone still
@@ -208,7 +208,7 @@ whoever reviews the request. This applies to the portal's post-registration
 request flow only; the registration wizard itself never asks for a
 certificate (see above).
 
-`components/certificate-picker.tsx` uses `expo-image-picker` to choose or
+`components/certificatePicker.tsx` uses `expo-image-picker` to choose or
 photograph an image, then `expo-image-manipulator` to resize it down (~1000px
 wide, JPEG) before it's stored as a data URI — without that resize step a
 full-resolution phone photo would be several MB, too big to store inline this
@@ -250,7 +250,7 @@ having no record at all of who approved what.
 ```
 app/
   index.tsx                        — landing page (signed out) or redirect to portal/dashboard (signed in)
-  login.tsx, register.tsx, reset-password.tsx — public screens
+  login.tsx, register.tsx, resetPassword.tsx — public screens
   (app)/_layout.tsx               — tab bar; hides admin-only tabs from members
   (app)/portal.tsx                — member home: profile, requests, parish stats
   (app)/dashboard.tsx             — admin home: stats + announcements CRUD
@@ -258,16 +258,16 @@ app/
   (app)/banking.tsx               — shared: account details & payment references
 lib/
   supabase.ts                     — Supabase client
-  auth-context.tsx                — session + profile React context
+  authContext.tsx                 — session + profile React context
   types.ts                        — shared TypeScript types
-  church-calendar.ts              — Easter/Lent/Advent/etc. date math
-  liturgical-theme.ts             — today's liturgical season → accent colour
+  churchCalendar.ts               — Easter/Lent/Advent/etc. date math
+  liturgicalTheme.ts              — today's liturgical season → accent colour
 components/
   ui.tsx                          — shared UI kit (Card, Chip, BarRow, SelectField…)
-  church-header.tsx               — crest + seasonal ring, used on every public screen
-  landing-page.tsx                — the signed-out landing page
-  league-badge.tsx                — real badge artwork for the 3 leagues that have any
-  certificate-picker.tsx          — attach a baptism/confirmation certificate photo
+  churchHeader.tsx                — crest + seasonal ring, used on every public screen
+  landingPage.tsx                 — the signed-out landing page
+  leagueBadge.tsx                 — real badge artwork for the 3 leagues that have any
+  certificatePicker.tsx           — attach a baptism/confirmation certificate photo
 assets/brand/                     — church crest + league badges, scanned from the parish's own bulletins
 theme.ts                          — colours (sampled from the real crest), wards, leagues, liturgical palette
 supabase/migrations/0001_init.sql — full database schema + security policies

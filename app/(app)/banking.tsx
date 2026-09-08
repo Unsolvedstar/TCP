@@ -3,13 +3,13 @@ import { Pressable, ScrollView, Text, View } from 'react-native'
 import { router } from 'expo-router'
 import { Card } from '../../components/ui'
 import { supabase } from '../../lib/supabase'
-import { useLiturgicalSeason } from '../../lib/liturgical-theme'
-import { useCongregationData } from '../../lib/congregation-context'
+import { useLiturgicalSeason } from '../../lib/liturgicalTheme'
+import { useCongregationData } from '../../lib/congregationContext'
 import { styles } from '../../styles/banking.styles'
 
 type MyFamily = { id: string; name: string; code: string }
 
-export { ErrorBoundary } from '../../components/error-boundary'
+export { ErrorBoundary } from '../../components/errorBoundary'
 
 const REFERENCE_CODES: { code: string; label: string; account: 'General' | 'Building' }[] = [
   { code: 'PLG', label: 'Pledge & Tithe', account: 'General' },
@@ -44,7 +44,7 @@ export default function Banking() {
       <Card>
         <Text style={styles.cardTitle}>Other Ways to Give</Text>
         <Text style={styles.cardSub}>SnapScan is also accepted on Sundays. Look for the scanner at the offering table, or scan the code below anytime. It's tracked separately on the parish's weekly offering summary.</Text>
-        <Pressable style={styles.snapScanLink} onPress={() => router.push('/(app)/banking-snapscan')}>
+        <Pressable style={styles.snapScanLink} onPress={() => router.push('/(app)/bankingSnapscan')}>
           <Text style={styles.snapScanLinkLabel}>View SnapScan QR Code</Text>
           <Text style={styles.snapScanLinkArrow}>→</Text>
         </Pressable>

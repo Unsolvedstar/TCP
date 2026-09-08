@@ -7,12 +7,12 @@ separate, already-completed project's own checklist — don't merge into it.)
 
 ## Action items (things a person needs to actually do)
 
-- [ ] Run `scripts/create-league-admin-accounts.mjs` to provision the
+- [ ] Run `scripts/createLeagueAdminAccounts.mjs` to provision the
       generic per-league admin logins — needs a local `.env.service.local`
       with the Supabase *service role* key (see the script's header comment
       for exact steps). Save the printed email/password table somewhere real
       before closing the terminal; it's only shown once.
-- [ ] Before running it: open `scripts/create-league-admin-accounts.mjs` and
+- [ ] Before running it: open `scripts/createLeagueAdminAccounts.mjs` and
       change `EMAIL_DOMAIN` from the placeholder
       (`league-admin.elcsatcp.internal`) to whatever you actually want.
 - [ ] Distribute each league's generated credentials to whoever runs that
@@ -28,7 +28,7 @@ separate, already-completed project's own checklist — don't merge into it.)
       Sponsor/officiant/location/type detail now survives permanently, same
       as registration-time self-attested claims already did. No frontend
       change needed — `applicationDetailText()` already reads it.
-- [x] **Ceremony certificates — step 2, done.** `components/certificate-modal.tsx`
+- [x] **Ceremony certificates — step 2, done.** `components/certificateModal.tsx`
       renders an in-app certificate (parish crest, name, ceremony date,
       sponsor/mentor/officiant detail, league badge for installations) from
       the persisted application detail, preferring the actual confirmed
@@ -41,7 +41,7 @@ separate, already-completed project's own checklist — don't merge into it.)
       dependencies.
 - [x] **Per-member consolidated profile view — done.** Tapping an adult in
       the Members registry now opens `MemberProfileModal`
-      (`components/member-profile-modal.tsx`) — a read-focused view with
+      (`components/memberProfileModal.tsx`) — a read-focused view with
       contact info, family, sacraments, league (+ league-admin access),
       uploaded certificates, and activity, all in one place. "Edit" opens
       the existing `EditMemberModal` for actual changes. Dependents (the
@@ -51,7 +51,7 @@ separate, already-completed project's own checklist — don't merge into it.)
       `is_service_account` column (`supabase/migrations/0021_service_accounts.sql`);
       `stats_by_ward`/`stats_by_league`/`stats_by_gender`/`stats_sacraments`
       all now filter it out, same as they already do for `role = 'admin'`.
-      `scripts/create-league-admin-accounts.mjs` sets the flag automatically
+      `scripts/createLeagueAdminAccounts.mjs` sets the flag automatically
       for every account it creates going forward. Not yet run against the
       live database — see the local-Supabase testing note below.
 

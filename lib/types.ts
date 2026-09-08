@@ -1,11 +1,11 @@
-import type { AgeGroup } from './age-groups'
+import type { AgeGroup } from './ageGroups'
 
 export type Gender = 'Male' | 'Female'
 
 export type AppRole = 'member' | 'admin'
 
 // Wards and leagues are per-congregation data now, not a fixed global list —
-// see lib/congregation-context.tsx. WardRow/LeagueRow are what the app reads;
+// see lib/congregationContext.tsx. WardRow/LeagueRow are what the app reads;
 // Profile/Dependent only ever store the id.
 export type WardRow = { id: string; name: string; color: string; bank_code: number }
 export type LeagueRow = { id: string; key: string; label: string; info: string | null; color: string; has_badge: boolean }
@@ -29,7 +29,7 @@ export type ConfirmationApplication = {
   officiant_name?: string | null
   submitted_at: string
   // Only ever present on rows created via the post-registration portal
-  // request flow (components/portal-involvement-card.tsx), which still
+  // request flow (components/portalInvolvementCard.tsx), which still
   // requires certificate uploads — registration itself no longer collects one.
   baptism_certificate?: string | null
 }

@@ -4,11 +4,11 @@ import { ActivityIndicator, FlatList, RefreshControl, Text, TextInput, View } fr
 import { Chip, GlassSheen } from '../../components/ui'
 import { supabase } from '../../lib/supabase'
 import { colors } from '../../theme'
-import { useCongregationData } from '../../lib/congregation-context'
+import { useCongregationData } from '../../lib/congregationContext'
 import { styles } from '../../styles/members.styles'
 import type { DirectoryEntry } from '../../lib/types'
 
-export { ErrorBoundary } from '../../components/error-boundary'
+export { ErrorBoundary } from '../../components/errorBoundary'
 
 export default function Directory() {
   const { wards } = useCongregationData()

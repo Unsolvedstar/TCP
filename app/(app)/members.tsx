@@ -4,24 +4,24 @@ import { ActivityIndicator, FlatList, Image, Pressable, RefreshControl, Text, Te
 import { Ionicons } from '@expo/vector-icons'
 import { Alert } from '../../lib/alert'
 import { Button, Card, Chip, DateField, GlassSheen, SelectField, formatDate } from '../../components/ui'
-import { EditMemberModal } from '../../components/edit-member-modal'
-import { MemberProfileModal } from '../../components/member-profile-modal'
-import { EditChildModal } from '../../components/edit-child-modal'
-import { ActivityList } from '../../components/activity-list'
-import { ChipRow } from '../../components/chip-row'
-import { HouseholdCard } from '../../components/household-card'
-import { CollapsibleSection } from '../../components/collapsible-section'
+import { EditMemberModal } from '../../components/editMemberModal'
+import { MemberProfileModal } from '../../components/memberProfileModal'
+import { EditChildModal } from '../../components/editChildModal'
+import { ActivityList } from '../../components/activityList'
+import { ChipRow } from '../../components/chipRow'
+import { HouseholdCard } from '../../components/householdCard'
+import { CollapsibleSection } from '../../components/collapsibleSection'
 import { supabase } from '../../lib/supabase'
 import { colors, genderColors } from '../../theme'
-import { useCongregationData } from '../../lib/congregation-context'
-import { applicationDetailText, applicationCertificateList } from '../../lib/application-detail'
-import { classifyAge, AGE_GROUP_LABELS } from '../../lib/age-groups'
+import { useCongregationData } from '../../lib/congregationContext'
+import { applicationDetailText, applicationCertificateList } from '../../lib/applicationDetail'
+import { classifyAge, AGE_GROUP_LABELS } from '../../lib/ageGroups'
 import { styles } from '../../styles/members.styles'
 import type { BaptismApplication, ChildRow, ConfirmationApplication, Household, LeagueApplication, Profile } from '../../lib/types'
 
 const AGE_GROUP_COLORS = { child: '#c1447e', adult: colors.g700, elder: colors.brandNavy } as const
 
-export { ErrorBoundary } from '../../components/error-boundary'
+export { ErrorBoundary } from '../../components/errorBoundary'
 
 const NONE_LEAGUE = { id: '', key: 'None', label: 'No League / Organisation', color: '#9e9e9e' }
 // Distinct from '' (the "All leagues" filter sentinel) so the filter can

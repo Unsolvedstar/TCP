@@ -2,12 +2,12 @@ import { Pressable, ScrollView, Text, View } from 'react-native'
 import { Link, router } from 'expo-router'
 import * as Linking from 'expo-linking'
 import { Button, GlassSheen, glassBlur } from '../components/ui'
-import { ChurchHeader } from '../components/church-header'
+import { ChurchHeader } from '../components/churchHeader'
 import { VISITOR_LINK } from '../lib/config'
 import { radius } from '../theme'
 import { styles } from '../styles/welcome.styles'
 
-export { ErrorBoundary } from '../components/error-boundary'
+export { ErrorBoundary } from '../components/errorBoundary'
 
 export default function Welcome() {
   return (

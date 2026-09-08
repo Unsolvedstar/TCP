@@ -2,12 +2,12 @@ import { Redirect, Tabs } from 'expo-router'
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Button } from '../../components/ui'
-import { useAuth } from '../../lib/auth-context'
-import { useLeagueAdmin } from '../../lib/league-admin-context'
+import { useAuth } from '../../lib/authContext'
+import { useLeagueAdmin } from '../../lib/leagueAdminContext'
 import { Alert } from '../../lib/alert'
 import { colors, radius } from '../../theme'
 
-export { ErrorBoundary } from '../../components/error-boundary'
+export { ErrorBoundary } from '../../components/errorBoundary'
 
 function SignOutButton() {
   const { signOut } = useAuth()
@@ -109,9 +109,9 @@ export default function AppLayout() {
           tabBarIcon: ({ color, size }) => <Ionicons name="card-outline" size={size} color={color} />,
         }}
       />
-      <Tabs.Screen name="banking-snapscan" options={{ title: 'SnapScan', href: null }} />
+      <Tabs.Screen name="bankingSnapscan" options={{ title: 'SnapScan', href: null }} />
       <Tabs.Screen
-        name="league-admin"
+        name="leagueAdmin"
         options={{
           title: isAdmin ? 'League Tools' : 'My League',
           href: myLeagueIds.length > 0 || isAdmin ? undefined : null,
