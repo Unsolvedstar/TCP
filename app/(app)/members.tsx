@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { useFocusEffect } from 'expo-router'
+import { router, useFocusEffect } from 'expo-router'
 import { ActivityIndicator, FlatList, Image, Pressable, RefreshControl, Text, TextInput, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Alert } from '../../lib/alert'
@@ -433,6 +433,11 @@ export default function Members() {
                 Activity
               </Text>
             </View>
+
+            <Pressable style={styles.snapScanLink} onPress={() => router.push('/(app)/congregationAdmin')}>
+              <Text style={styles.snapScanLinkLabel}>Congregation Settings — wards, leagues, branding & banking</Text>
+              <Text style={styles.snapScanLinkArrow}>→</Text>
+            </Pressable>
 
             {tab === 'activity' ? (
               <ActivityList people={[...members, ...admins]} />

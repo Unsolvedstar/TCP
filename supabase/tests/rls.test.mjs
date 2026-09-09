@@ -986,6 +986,239 @@ test('a blank profession clears it back out of the directory', async () => {
   assert.equal(a.profession, null)
 })
 
+// --- 11. Phase 2: congregation admin — wards, leagues, branding, banking ---
+// (supabase/migrations/0023_congregation_branding_banking.sql +
+// 0024_congregation_admin_rpcs.sql). Runs last, after congA's wards/leagues
+// already have real members/league admins attached (from earlier sections),
+// so the "blocked while referenced" delete tests have real data to bite on
+// without this section needing to set any of that up itself.
+
+test('list_congregations returns every congregation, even anonymously, with only the safe columns', async () => {
+  const rows = await expectOk(rpcRetryColdSchemaCache(() => anonClient().rpc('list_congregations')), 'anonymous list_congregations')
+  const a = rows.find((r) => r.id === congA.id)
+  const b = rows.find((r) => r.id === congB.id)
+  assert.ok(a, 'expected congA in the anonymous directory')
+  assert.ok(b, 'expected congB in the anonymous directory')
+  assert.deepEqual(new Set(Object.keys(a)), new Set(['id', 'name', 'slug', 'tagline', 'address', 'logo_url', 'primary_color']))
+})
+
+test('member can read their own congregation row but not the other\'s', async () => {
+  const { data: mine } = await memberA.client.from('congregations').select('id').eq('id', congA.id)
+  assert.equal(mine.length, 1)
+  const { data: theirs } = await memberA.client.from('congregations').select('id').eq('id', congB.id)
+  assert.equal(theirs.length, 0)
+})
+
+test('congregation_bank_accounts/congregation_payment_codes are isolated per congregation', async () => {
+  const { data: acctB, error: acctErr } = await admin
+    .from('congregation_bank_accounts')
+    .insert({ congregation_id: congB.id, name: 'Only Account', bank_name: 'Test Bank', account_number: '123', branch_code: '456' })
+    .select('id')
+    .single()
+  assert.ok(!acctErr, acctErr?.message)
+  const { data: seenByA } = await memberA.client.from('congregation_bank_accounts').select('id').eq('id', acctB.id)
+  assert.equal(seenByA.length, 0)
+  const { data: seenByB } = await memberB.client.from('congregation_bank_accounts').select('id').eq('id', acctB.id)
+  assert.equal(seenByB.length, 1)
+
+  const { data: codeB, error: codeErr } = await admin
+    .from('congregation_payment_codes')
+    .insert({ congregation_id: congB.id, account_id: acctB.id, code: 'ONLY', label: 'Only Code' })
+    .select('id')
+    .single()
+  assert.ok(!codeErr, codeErr?.message)
+  const { data: codeSeenByA } = await memberA.client.from('congregation_payment_codes').select('id').eq('id', codeB.id)
+  assert.equal(codeSeenByA.length, 0)
+})
+
+describe('congregation admin: wards, leagues, branding, banking', () => {
+  let testWardId, testLeagueId, testAccountId, testCodeId
+
+  test('a plain member cannot create a ward', async () => {
+    await expectError(
+      rpcRetryColdSchemaCache(() => memberA.client.rpc('admin_create_ward', { p_name: 'Should Fail', p_bank_code: 999, p_color: '#000000' })),
+      'not authorized',
+      'memberA creating a ward'
+    )
+  })
+
+  test('adminA can create a ward for their own congregation (positive control)', async () => {
+    testWardId = await expectOk(
+      rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_create_ward', { p_name: 'Test Ward', p_bank_code: 999, p_color: '#123456' })),
+      'adminA creating a ward'
+    )
+    const { data: row } = await admin.from('wards').select('congregation_id').eq('id', testWardId).single()
+    assert.equal(row.congregation_id, congA.id)
+  })
+
+  test('adminB cannot update or delete adminA\'s newly created ward (cross-tenant)', async () => {
+    await expectError(
+      rpcRetryColdSchemaCache(() => adminB.client.rpc('admin_update_ward', { target_id: testWardId, p_name: 'Hijacked', p_bank_code: 1, p_color: '#000000' })),
+      'not authorized',
+      'adminB updating congA\'s ward'
+    )
+    await expectError(rpcRetryColdSchemaCache(() => adminB.client.rpc('admin_delete_ward', { target_id: testWardId })), 'not authorized', 'adminB deleting congA\'s ward')
+  })
+
+  test('adminA can update their own new ward', async () => {
+    await expectOk(
+      rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_update_ward', { target_id: testWardId, p_name: 'Renamed Ward', p_bank_code: 998, p_color: '#654321' })),
+      'adminA updating own ward'
+    )
+    const { data: row } = await admin.from('wards').select('name').eq('id', testWardId).single()
+    assert.equal(row.name, 'Renamed Ward')
+  })
+
+  test('admin_delete_ward is blocked while members are still assigned to it, but succeeds once empty', async () => {
+    await expectError(
+      rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_delete_ward', { target_id: wardA.id })),
+      'still has members',
+      'adminA deleting wardA while members are assigned'
+    )
+    await expectOk(rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_delete_ward', { target_id: testWardId })), 'adminA deleting their empty test ward')
+    const { data: gone } = await admin.from('wards').select('id').eq('id', testWardId)
+    assert.equal(gone.length, 0)
+  })
+
+  test('a plain member cannot create a league', async () => {
+    await expectError(
+      rpcRetryColdSchemaCache(() => memberA.client.rpc('admin_create_league', { p_key: 'SHOULDFAIL', p_label: 'Should Fail', p_info: null, p_color: '#000000', p_has_badge: false })),
+      'not authorized',
+      'memberA creating a league'
+    )
+  })
+
+  test('adminA can create a league for their own congregation (positive control)', async () => {
+    testLeagueId = await expectOk(
+      rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_create_league', { p_key: 'TESTLEAGUE', p_label: 'Test League', p_info: null, p_color: '#123456', p_has_badge: false })),
+      'adminA creating a league'
+    )
+    const { data: row } = await admin.from('leagues').select('congregation_id').eq('id', testLeagueId).single()
+    assert.equal(row.congregation_id, congA.id)
+  })
+
+  test('adminB cannot update or delete adminA\'s newly created league (cross-tenant)', async () => {
+    await expectError(
+      rpcRetryColdSchemaCache(() => adminB.client.rpc('admin_update_league', { target_id: testLeagueId, p_label: 'Hijacked', p_info: null, p_color: '#000000', p_has_badge: false })),
+      'not authorized',
+      'adminB updating congA\'s league'
+    )
+    await expectError(rpcRetryColdSchemaCache(() => adminB.client.rpc('admin_delete_league', { target_id: testLeagueId })), 'not authorized', 'adminB deleting congA\'s league')
+  })
+
+  test('adminA can update their own new league', async () => {
+    await expectOk(
+      rpcRetryColdSchemaCache(() =>
+        adminA.client.rpc('admin_update_league', { target_id: testLeagueId, p_label: 'Renamed League', p_info: 'Updated', p_color: '#654321', p_has_badge: true })
+      ),
+      'adminA updating own league'
+    )
+    const { data: row } = await admin.from('leagues').select('label').eq('id', testLeagueId).single()
+    assert.equal(row.label, 'Renamed League')
+  })
+
+  test('admin_delete_league is blocked while members/league admins are still attached, but succeeds once empty', async () => {
+    await expectError(
+      rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_delete_league', { target_id: leagueA.id })),
+      'still has',
+      'adminA deleting leagueA while members/league admins are attached'
+    )
+    await expectOk(rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_delete_league', { target_id: testLeagueId })), 'adminA deleting their empty test league')
+  })
+
+  test('a plain member cannot update congregation branding', async () => {
+    await expectError(
+      rpcRetryColdSchemaCache(() =>
+        memberA.client.rpc('admin_update_congregation_branding', { p_name: 'Should Fail', p_tagline: null, p_address: null, p_logo_url: null, p_primary_color: '#000000', p_accent_color: null })
+      ),
+      'not authorized',
+      'memberA updating branding'
+    )
+  })
+
+  test('adminA can update their own congregation\'s branding, and it never leaks into congB', async () => {
+    await expectOk(
+      rpcRetryColdSchemaCache(() =>
+        adminA.client.rpc('admin_update_congregation_branding', {
+          p_name: 'ELCSA Tshwane City Parish',
+          p_tagline: 'Updated Tagline',
+          p_address: null,
+          p_logo_url: null,
+          p_primary_color: '#111111',
+          p_accent_color: '#222222',
+        })
+      ),
+      'adminA updating own branding'
+    )
+    const { data: rowA } = await admin.from('congregations').select('tagline').eq('id', congA.id).single()
+    assert.equal(rowA.tagline, 'Updated Tagline')
+    const { data: rowB } = await admin.from('congregations').select('tagline').eq('id', congB.id).single()
+    assert.notEqual(rowB.tagline, 'Updated Tagline')
+  })
+
+  test('admin_set_snapscan_qr is scoped to the caller\'s own congregation', async () => {
+    await expectOk(rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_set_snapscan_qr', { p_snapscan_qr_url: 'data:image/jpeg;base64,AAAA' })), 'adminA setting snapscan qr')
+    const { data: rowA } = await admin.from('congregations').select('snapscan_qr_url').eq('id', congA.id).single()
+    assert.equal(rowA.snapscan_qr_url, 'data:image/jpeg;base64,AAAA')
+    const { data: rowB } = await admin.from('congregations').select('snapscan_qr_url').eq('id', congB.id).single()
+    assert.equal(rowB.snapscan_qr_url, null)
+  })
+
+  test('a plain member cannot create a bank account', async () => {
+    await expectError(
+      rpcRetryColdSchemaCache(() => memberA.client.rpc('admin_create_bank_account', { p_name: 'Should Fail', p_bank_name: 'X', p_account_number: '1', p_branch_code: '1' })),
+      'not authorized',
+      'memberA creating a bank account'
+    )
+  })
+
+  test('adminA can create a bank account for their own congregation (positive control)', async () => {
+    testAccountId = await expectOk(
+      rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_create_bank_account', { p_name: 'Test Account', p_bank_name: 'Test Bank', p_account_number: '111', p_branch_code: '222' })),
+      'adminA creating a bank account'
+    )
+    const { data: row } = await admin.from('congregation_bank_accounts').select('congregation_id').eq('id', testAccountId).single()
+    assert.equal(row.congregation_id, congA.id)
+  })
+
+  test('adminB cannot update or delete adminA\'s new bank account (cross-tenant)', async () => {
+    await expectError(
+      rpcRetryColdSchemaCache(() => adminB.client.rpc('admin_update_bank_account', { target_id: testAccountId, p_name: 'Hijacked', p_bank_name: 'X', p_account_number: '1', p_branch_code: '1' })),
+      'not authorized',
+      'adminB updating congA\'s bank account'
+    )
+    await expectError(rpcRetryColdSchemaCache(() => adminB.client.rpc('admin_delete_bank_account', { target_id: testAccountId })), 'not authorized', 'adminB deleting congA\'s bank account')
+  })
+
+  test('adminA can create a payment code pointing at their own new account', async () => {
+    testCodeId = await expectOk(
+      rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_create_payment_code', { p_code: 'TESTCODE', p_label: 'Test Code', p_account_id: testAccountId })),
+      'adminA creating a payment code'
+    )
+    const { data: row } = await admin.from('congregation_payment_codes').select('congregation_id').eq('id', testCodeId).single()
+    assert.equal(row.congregation_id, congA.id)
+  })
+
+  test('admin_create_payment_code rejects an account_id belonging to another congregation', async () => {
+    const { data: acctB } = await admin.from('congregation_bank_accounts').select('id').eq('congregation_id', congB.id).limit(1).single()
+    await expectError(
+      rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_create_payment_code', { p_code: 'CROSSCODE', p_label: 'Cross Code', p_account_id: acctB.id })),
+      'invalid account',
+      'adminA creating a payment code pointing at congB\'s account'
+    )
+  })
+
+  test('admin_delete_bank_account is blocked while a payment code still points at it, but succeeds once empty', async () => {
+    await expectError(
+      rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_delete_bank_account', { target_id: testAccountId })),
+      'reference codes',
+      'adminA deleting an account still referenced by a payment code'
+    )
+    await expectOk(rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_delete_payment_code', { target_id: testCodeId })), 'adminA deleting the test payment code')
+    await expectOk(rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_delete_bank_account', { target_id: testAccountId })), 'adminA deleting the now-empty test account')
+  })
+})
+
 after(async () => {
   // Best-effort cleanup so repeated runs against the same local instance
   // don't accumulate test users/congregations. Not load-bearing for the

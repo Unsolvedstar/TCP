@@ -1,34 +1,52 @@
 import { useEffect, useState } from 'react'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native'
-import { Link, router } from 'expo-router'
+import { Link, router, useLocalSearchParams } from 'expo-router'
 import { Field, GlassSheen, glassBlur, SelectField } from '../components/ui'
 import { ChurchHeader } from '../components/churchHeader'
 import { CertificatePicker } from '../components/certificatePicker'
 import { ChipRow } from '../components/chipRow'
 import { Wizard, type WizardStepDef } from '../components/wizard'
 import { supabase } from '../lib/supabase'
-import { getRegistrationCongregation } from '../lib/congregation'
-import type { WardRow, LeagueRow } from '../lib/types'
+import { getRegistrationCongregation, listRegistrationCongregations } from '../lib/congregation'
+import type { WardRow, LeagueRow, CongregationSummary } from '../lib/types'
 import { radius } from '../theme'
 import { styles } from '../styles/register.styles'
 
 export { ErrorBoundary } from '../components/errorBoundary'
 
 export default function Register() {
+  // A directory/deep-link (app/congregations.tsx) can pass ?slug=... to
+  // pre-select a congregation — the picker step still lets the user change it.
+  const params = useLocalSearchParams<{ slug?: string }>()
+  const [congregations, setCongregations] = useState<CongregationSummary[]>([])
+  const [congregationSlug, setCongregationSlug] = useState('')
+  const [congregation, setCongregation] = useState<CongregationSummary | null>(null)
   const [congregationId, setCongregationId] = useState('')
   const [wards, setWards] = useState<WardRow[]>([])
   const [leagues, setLeagues] = useState<LeagueRow[]>([])
   const [loadError, setLoadError] = useState('')
 
   useEffect(() => {
-    getRegistrationCongregation()
+    listRegistrationCongregations()
+      .then((list) => {
+        setCongregations(list)
+        const preselect = typeof params.slug === 'string' ? params.slug : ''
+        if (preselect && list.some((c) => c.slug === preselect)) setCongregationSlug(preselect)
+      })
+      .catch((err) => setLoadError(err.message ?? 'Could not load the list of congregations.'))
+  }, [])
+
+  useEffect(() => {
+    if (!congregationSlug) return
+    getRegistrationCongregation(congregationSlug)
       .then(({ congregation, wards, leagues }) => {
+        setCongregation(congregation)
         setCongregationId(congregation.id)
         setWards(wards)
         setLeagues(leagues)
       })
-      .catch((err) => setLoadError(err.message ?? 'Could not load registration options.'))
-  }, [])
+      .catch((err) => setLoadError(err.message ?? 'Could not load registration options for that congregation.'))
+  }, [congregationSlug])
 
   const [fullName, setFullName] = useState('')
   const [wardId, setWardId] = useState('')
@@ -56,7 +74,7 @@ export default function Register() {
     setError('')
     setNotice('')
     if (!congregationId) {
-      setError('Registration options are still loading. Please try again in a moment.')
+      setError('Please select your congregation first.')
       return
     }
     setLoading(true)
@@ -102,6 +120,21 @@ export default function Register() {
   }
 
   const steps: WizardStepDef[] = [
+    {
+      key: 'congregation',
+      title: 'Your Congregation',
+      subtitle: 'Which ELCSA congregation are you registering with?',
+      validate: () => (congregationSlug ? null : 'Please select your congregation.'),
+      render: () => (
+        <SelectField
+          label="Congregation"
+          value={congregationSlug}
+          onChange={setCongregationSlug}
+          options={congregations.map((c) => ({ value: c.slug, label: c.name }))}
+          placeholder="Select your congregation…"
+        />
+      ),
+    },
     {
       key: 'about',
       title: 'About You',
@@ -216,7 +249,7 @@ export default function Register() {
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <ChurchHeader title="Register" subtitle="ELCSA Tshwane City Parish" showSeason={false} />
+        <ChurchHeader title="Register" subtitle={congregation?.name ?? 'Choose your congregation'} showSeason={false} logoUrl={congregation?.logo_url ?? undefined} />
 
         <View style={[styles.card, glassBlur]}>
           <GlassSheen cornerRadius={radius.xl} />

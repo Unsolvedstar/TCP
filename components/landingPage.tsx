@@ -50,6 +50,12 @@ export function LandingPage() {
           </Card>
         ))}
 
+        <Card>
+          <Text style={styles.featureTitle}>Part of a different congregation?</Text>
+          <Text style={styles.featureBody}>This app serves multiple ELCSA congregations — find yours to register.</Text>
+          <Button title="Find Your Congregation" variant="secondary" onPress={() => router.push('/congregations')} />
+        </Card>
+
         <Text style={styles.footer}>
           959 Pretorius Street, Arcadia, Tshwane{'\n'}elcsatcp.org
         </Text>

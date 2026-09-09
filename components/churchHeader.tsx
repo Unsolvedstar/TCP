@@ -10,12 +10,23 @@ import { styles } from './churchHeader.styles'
  * matter which season colour is active — including Ordinary Time, when the
  * season colour is the same green as the crest itself.
  */
-export function ChurchHeader({ title, subtitle, showSeason = true }: { title: string; subtitle?: string; showSeason?: boolean }) {
+export function ChurchHeader({
+  title,
+  subtitle,
+  showSeason = true,
+  logoUrl,
+}: {
+  title: string
+  subtitle?: string
+  showSeason?: boolean
+  /** A congregation's own uploaded logo (data URI) — falls back to the bundled ELCSA crest when not set or not yet known (e.g. before a congregation is picked at registration). */
+  logoUrl?: string
+}) {
   const season = useLiturgicalSeason()
   return (
     <View style={styles.header}>
       <View style={[styles.halo, { borderColor: season.color }]}>
-        <Image source={require('../assets/brand/churchLogo.png')} style={styles.logo} resizeMode="contain" />
+        <Image source={logoUrl ? { uri: logoUrl } : require('../assets/brand/churchLogo.png')} style={styles.logo} resizeMode="contain" />
       </View>
       {showSeason ? (
         <View style={[styles.seasonPill, { backgroundColor: season.color }]}>

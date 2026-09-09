@@ -110,6 +110,7 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen name="bankingSnapscan" options={{ title: 'SnapScan', href: null }} />
+      <Tabs.Screen name="congregationAdmin" options={{ title: 'Congregation Settings', href: null }} />
       <Tabs.Screen
         name="leagueAdmin"
         options={{

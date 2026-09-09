@@ -8,6 +8,39 @@ export type AppRole = 'member' | 'admin'
 // see lib/congregationContext.tsx. WardRow/LeagueRow are what the app reads;
 // Profile/Dependent only ever store the id.
 export type WardRow = { id: string; name: string; color: string; bank_code: number }
+
+// Full congregation row, including Phase 2 branding/banking fields — see
+// supabase/migrations/0023_congregation_branding_banking.sql. `slug` is only
+// present on the pre-auth directory/lookup shapes (CongregationSummary),
+// never fetched post-login since a signed-in user's own congregation_id is
+// already known.
+export type CongregationRow = {
+  id: string
+  name: string
+  address: string | null
+  domain: string | null
+  tagline: string | null
+  logo_url: string | null
+  primary_color: string
+  accent_color: string | null
+  snapscan_qr_url: string | null
+}
+
+// Returned by the pre-auth list_congregations()/get_congregation_by_slug()
+// RPCs (lib/congregation.ts) — deliberately narrower than CongregationRow,
+// since banking details must never be anon-exposed.
+export type CongregationSummary = {
+  id: string
+  name: string
+  slug: string
+  address: string | null
+  tagline: string | null
+  logo_url: string | null
+  primary_color: string
+}
+
+export type BankAccountRow = { id: string; name: string; bank_name: string; account_number: string; branch_code: string; sort_order: number }
+export type PaymentCodeRow = { id: string; code: string; label: string; account_id: string; sort_order: number }
 export type LeagueRow = {
   id: string
   key: string

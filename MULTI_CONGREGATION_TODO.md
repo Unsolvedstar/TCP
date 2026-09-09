@@ -70,11 +70,11 @@ suite (35/35) all still pass after the change.
 - **Phase 1 (below): backend multi-tenancy.** The security-critical part.
   Every table/RLS policy/RPC function gets scoped to a congregation, TCP
   becomes tenant #1 (seeded data, not a special case), fully tested.
-- **Phase 2 (not started, separate plan later): frontend generalization.**
-  Congregation picker at signup, dynamic branding/logo/banking-details per
-  congregation, landing-page congregation directory, admin UI to manage
-  wards/leagues. Bigger, more open-ended, deliberately deferred until Phase 1
-  is proven solid.
+- **Phase 2 (done, 2026-09-09): frontend generalization.** Congregation
+  picker at signup, dynamic branding/logo/banking-details per congregation,
+  landing-page congregation directory, admin UI to manage wards/leagues. See
+  "Phase 2 — frontend generalization" below for what shipped and what's
+  explicitly out of scope.
 
 ---
 
@@ -275,3 +275,52 @@ errors across every step:
       deployment note" above). Verified congregation/wards/leagues seeded,
       RLS enabled, and the pre-auth RPCs work correctly against the live
       project.
+
+---
+
+## Phase 2 — frontend generalization (done, 2026-09-09)
+
+Schema (`supabase/migrations/0023_congregation_branding_banking.sql`):
+`congregations` gained `logo_url`/`primary_color`/`accent_color`/
+`snapscan_qr_url`; two new child tables, `congregation_bank_accounts` and
+`congregation_payment_codes` (each code FK's to one of its own
+congregation's accounts), replace what used to be a hardcoded
+`REFERENCE_CODES` array and two hardcoded account cards in
+`app/(app)/banking.tsx`. TCP's real current values are backfilled in the
+same migration so production doesn't regress.
+
+RPCs (`supabase/migrations/0024_congregation_admin_rpcs.sql`): `list_congregations()`
+(anon-safe directory listing, backs both the signup picker and the landing
+page), `get_congregation_by_slug` widened with the two branding fields, and
+full create/update/delete RPCs for wards, leagues, congregation branding, and
+bank accounts/payment codes — all following the existing
+`is_admin_of(target_congregation_id)` pattern. Delete is blocked (not
+cascaded) while a ward/league/account is still referenced elsewhere.
+
+Frontend: `app/register.tsx` gained a first wizard step to pick a
+congregation (`lib/congregation.ts` now takes a slug instead of hardcoding
+TCP's); `lib/congregationContext.tsx` now also carries the full congregation
+row, bank accounts, and payment codes; `app/(app)/banking.tsx` and
+`bankingSnapscan.tsx` read all of this instead of hardcoded TCP values; a new
+pre-auth `app/congregations.tsx` directory (linked from
+`components/landingPage.tsx`) lists every congregation; a new
+`app/(app)/congregationAdmin.tsx` screen (hidden tab, reached via a button on
+Members) gives a congregation admin full CRUD over their own wards, leagues,
+branding, and banking details.
+
+Testing: `supabase/tests/rls.test.mjs` gained 19 new cases (positive-control +
+cross-tenant-rejected pairs for every new RPC, plus direct-table isolation
+for the three new/changed tables) — all 108 tests pass. `npx tsc --noEmit`,
+the full Jest suite (58/58), and `npx expo export --platform web` (a full
+static bundle of every route, including both new screens) all pass clean.
+**Not independently verified: a real click-through of the new screens in a
+browser** — no browser-automation tool was available in this pass, unlike
+the Playwright-driven smoke test Phase 1 got. Recommended before shipping:
+walk through registering into a second, freshly admin-created congregation
+end-to-end (matches the original plan's verification step).
+
+**Explicit non-goal:** `app.json` (app name, slug, scheme, icon/splash) stays
+hardcoded to TCP. One Expo/EAS build is one static app identity at the OS
+level; true per-congregation white-labeling needs a separate
+build-profile-per-congregation pipeline — a distinct, larger initiative than
+making the in-app data and screens dynamic.
