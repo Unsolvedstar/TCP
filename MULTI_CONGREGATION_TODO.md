@@ -313,11 +313,22 @@ cross-tenant-rejected pairs for every new RPC, plus direct-table isolation
 for the three new/changed tables) — all 108 tests pass. `npx tsc --noEmit`,
 the full Jest suite (58/58), and `npx expo export --platform web` (a full
 static bundle of every route, including both new screens) all pass clean.
-**Not independently verified: a real click-through of the new screens in a
-browser** — no browser-automation tool was available in this pass, unlike
-the Playwright-driven smoke test Phase 1 got. Recommended before shipping:
-walk through registering into a second, freshly admin-created congregation
-end-to-end (matches the original plan's verification step).
+**Browser click-through — done (2026-09-09), via a one-off Playwright script**
+(not committed — no project run-skill exists for this app yet). Against the
+local Supabase instance: landing page → "Find Your Congregation" →
+directory lists TCP → tapping it pre-fills the register wizard's new
+congregation step → the ward picker on the next step is populated with
+real DB-driven wards (North/East/Central/West/South, not hardcoded) →
+completed registration and landed signed in → promoted the new member to
+admin (service role) → Members screen shows the new "Congregation
+Settings" link → that screen renders Branding, and the backfilled "General"
+bank account and "Pledge & Tithe" payment code → adding a test ward through
+the form works and appears in the list immediately → Banking screen shows
+the dynamic congregation name, account, and payment codes. Zero console
+errors throughout. (Creating a *second* congregation end-to-end has no UI
+yet by design — Congregation Settings only ever manages the signed-in
+admin's own congregation; a brand-new one still starts via the `congregations`
+table directly, same as TCP itself was seeded.)
 
 **Explicit non-goal:** `app.json` (app name, slug, scheme, icon/splash) stays
 hardcoded to TCP. One Expo/EAS build is one static app identity at the OS
