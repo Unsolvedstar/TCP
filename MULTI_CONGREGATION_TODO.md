@@ -254,11 +254,26 @@ errors across every step:
       uses the identical `Alert.alert` call pattern already proven working
       elsewhere, and `admin_remove_member` itself is exercised directly by
       the RLS test suite.
-- [ ] Not separately re-verified (same component/RPC patterns already proven
-      elsewhere in this pass, low residual risk): logout click, forgot-
-      password flow, portal request+cancel league/confirmation (baptism
-      variant proven), request league/baptism/confirmation *for a dependent*
-      specifically (own-account variant proven).
+- [x] **Remaining smoke-test gaps — done (2026-09-10), via a Playwright
+      script against the local instance** (ad hoc, not committed — see the
+      Phase 2 section below for why no project run-skill exists yet).
+      Logout: header icon opens the real "Sign Out" confirm dialog, confirming
+      clears the session and returns to `/login`. Forgot-password: submitting
+      the form shows the notice, a real email arrives via the local Mailpit
+      inbox, opening its link (followed manually, since the local CLI's
+      `site_url` redirect target has no real server behind it) lands on
+      `/resetPassword` with a working session, setting a new password
+      succeeds, and that new password then works on a completely fresh login.
+      Portal request+cancel for league and confirmation (not just baptism):
+      both submit and cancel correctly for the signed-in member's own account.
+      Request+cancel league/baptism/confirmation *for a dependent*: all three
+      submit and cancel correctly (confirmation needed the dependent's
+      `baptised` flag set directly first, same precondition-setup convention
+      `supabase/tests/rls.test.mjs` already uses). Zero console errors tied to
+      any of these actions (three unrelated, pre-existing, benign PostgREST
+      406s were logged elsewhere in the run — `.single()`'s standard response
+      shape when a query matches zero/multiple rows — not connected to any
+      failed check).
 
 ## Verification checklist before touching the live project
 
