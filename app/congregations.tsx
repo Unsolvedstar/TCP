@@ -50,7 +50,7 @@ export default function Congregations() {
         </Pressable>
       ))}
 
-      <Link href="/welcome" asChild>
+      <Link href="/" asChild>
         <Pressable>
           <Text style={styles.backLink}>← Back</Text>
         </Pressable>

@@ -1,9 +1,12 @@
+import { useState } from 'react'
 import { Image, ScrollView, Text, View } from 'react-native'
 import { router } from 'expo-router'
+import * as Linking from 'expo-linking'
 import { Button, Card } from './ui'
 import { getUpcomingChurchEvents } from '../lib/churchCalendar'
 import { useLiturgicalSeason } from '../lib/liturgicalTheme'
 import { formatShortDate } from '../lib/dates'
+import { VISITOR_LINK } from '../lib/config'
 import { styles } from './landingPage.styles'
 
 const FEATURES = [
@@ -15,6 +18,12 @@ const FEATURES = [
 export function LandingPage() {
   const season = useLiturgicalSeason()
   const nextEvent = getUpcomingChurchEvents(new Date(), 1)[0]
+  // Which question the hero is on — the first thing anyone lands on is
+  // "just visiting or a member?", not a Sign In button; Sign In/Create
+  // Account only appear once "I'm a Member" narrows it down. (Replaces the
+  // old separate /welcome screen, which asked the same question but one tap
+  // deeper, behind "Create Account".)
+  const [showMemberOptions, setShowMemberOptions] = useState(false)
 
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
@@ -32,14 +41,38 @@ export function LandingPage() {
             Next in the church year: {nextEvent.name} on {formatShortDate(nextEvent.date)}
           </Text>
         ) : null}
-        <View style={styles.heroButtons}>
-          <View style={{ flex: 1 }}>
-            <Button title="Sign In" onPress={() => router.push('/login')} />
+
+        <Text style={[styles.heroQuestion, { color: season.text }]}>
+          {showMemberOptions ? 'Sign in, or create a new member account?' : 'Are you just visiting, or a member of the parish?'}
+        </Text>
+
+        {showMemberOptions ? (
+          <>
+            <View style={styles.heroButtons}>
+              <View style={{ flex: 1 }}>
+                <Button title="Sign In" onPress={() => router.push('/login')} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Button title="Create Account" variant="secondary" onPress={() => router.push('/register')} />
+              </View>
+            </View>
+            <Text style={[styles.heroNote, { color: season.text }]}>
+              Registering will automatically group you with your family if we recognise you, or start a new family record for you.
+            </Text>
+            <Text style={[styles.heroBackLink, { color: season.text }]} onPress={() => setShowMemberOptions(false)}>
+              ← Not a member
+            </Text>
+          </>
+        ) : (
+          <View style={styles.heroButtons}>
+            <View style={{ flex: 1 }}>
+              <Button title="Just Visiting" variant="secondary" onPress={() => Linking.openURL(VISITOR_LINK)} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button title="I'm a Member" onPress={() => setShowMemberOptions(true)} />
+            </View>
           </View>
-          <View style={{ flex: 1 }}>
-            <Button title="Create Account" variant="secondary" onPress={() => router.push('/welcome')} />
-          </View>
-        </View>
+        )}
       </View>
 
       <View style={styles.body}>
