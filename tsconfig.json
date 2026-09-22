@@ -8,5 +8,10 @@
     // export the same shape, so either resolution order type-checks
     // identically for callers.
     "moduleSuffixes": [".native", ".web", ""]
-  }
+  },
+  // supabase/functions/* are Deno Edge Functions — a separate runtime with
+  // its own global types (Deno.*) and remote esm.sh imports, not part of
+  // this Expo/Node project. The Supabase CLI type-checks them itself on
+  // deploy; excluding them here just keeps this app's tsc clean.
+  "exclude": ["supabase/functions"]
 }

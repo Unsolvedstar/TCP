@@ -24,6 +24,25 @@ export type CongregationRow = {
   primary_color: string
   accent_color: string | null
   snapscan_qr_url: string | null
+  // SnapScan's own merchant code (e.g. "shopalot"), used to build a
+  // pos.snapscan.io payment URL with an amount — see
+  // supabase/migrations/0025_snapscan_paygate.sql. Distinct from
+  // snapscan_qr_url, which is just a static image for the offering-table code.
+  snapscan_merchant_code: string | null
+}
+
+// A single in-app SnapScan checkout attempt — see
+// supabase/migrations/0025_snapscan_paygate.sql and
+// app/(app)/bankingSnapscan.tsx. Starts 'pending' when the member taps "Pay",
+// and only ever moves to 'completed'/'error' via the snapscan-webhook Edge
+// Function once SnapScan confirms it.
+export type SnapscanPayment = {
+  id: string
+  merchant_reference: string
+  amount_cents: number
+  status: 'pending' | 'completed' | 'error'
+  created_at: string
+  completed_at: string | null
 }
 
 // Returned by the pre-auth list_congregations()/get_congregation_by_slug()

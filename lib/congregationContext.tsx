@@ -36,7 +36,7 @@ export function CongregationDataProvider({ children }: PropsWithChildren) {
 
   async function load() {
     const [congregationRes, wardsRes, leaguesRes, bankAccountsRes, paymentCodesRes] = await Promise.all([
-      supabase.from('congregations').select('id,name,address,domain,tagline,logo_url,primary_color,accent_color,snapscan_qr_url').single(),
+      supabase.from('congregations').select('id,name,address,domain,tagline,logo_url,primary_color,accent_color,snapscan_qr_url,snapscan_merchant_code').single(),
       supabase.from('wards').select('id,name,color,bank_code').order('name'),
       supabase.from('leagues').select('id,key,label,info,color,has_badge,chairperson_name,pastor_name,verse_reference,verse_text').order('label'),
       supabase.from('congregation_bank_accounts').select('id,name,bank_name,account_number,branch_code,sort_order').order('sort_order'),

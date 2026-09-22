@@ -17,6 +17,37 @@ separate, already-completed project's own checklist — don't merge into it.)
       (`league-admin.elcsatcp.internal`) to whatever you actually want.
 - [ ] Distribute each league's generated credentials to whoever runs that
       league.
+- [ ] **SnapScan paygate — needs a real SnapScan merchant account (none
+      exists yet).** Register at snapscan.co.za, then from SnapScan support
+      (help@snapscan.co.za) get your merchant code and enter it in
+      Congregation Settings → "SnapScan Checkout (Paygate)" once signed in as
+      a congregation admin; ask them to point your webhook at
+      `https://<project-ref>.functions.supabase.co/snapscan-webhook` once
+      deployed (`npx supabase functions deploy snapscan-webhook`). Until the
+      merchant code is set, the checkout button on the SnapScan screen stays
+      disabled — nothing breaks, it just isn't live yet. There is no QR-code
+      fallback anymore (removed by request) — SnapScan giving is checkout-only.
+- [ ] **Security gap, open by explicit request: the SnapScan webhook doesn't
+      verify SnapScan's signature.** See the warning comment at the top of
+      `supabase/functions/snapscan-webhook/index.ts`. As it stands, anyone
+      who discovers the webhook URL can POST a fake "payment completed" and
+      mark any pending SnapScan payment as paid with no money having moved.
+      Low blast radius today (no live merchant account, so nothing real is
+      at stake yet), but this should be revisited — at minimum before
+      relying on `snapscan_payments.status` for real reconciliation — by
+      adding back HMAC-SHA256 signature verification using a
+      `SNAPSCAN_WEBHOOK_AUTH_KEY` secret from SnapScan support (the removed
+      code is straightforward to restore; see the same comment for exactly
+      what it needs to do).
+- [ ] Apply `supabase/migrations/0025_snapscan_paygate.sql` to the live
+      project (`npx supabase db push --linked`) and confirm the new RLS test
+      cases in `supabase/tests/rls.test.mjs` pass against a fresh local
+      reset — **not yet run**, Docker/Supabase wasn't available in the
+      session this was built in (see the local-Supabase testing note
+      elsewhere in this file for the usual steps: `npx supabase start`, `npx
+      supabase db reset`, `node --test supabase/tests/rls.test.mjs`).
+      `npx tsc --noEmit` and the full Jest suite (69/69, including the new
+      `lib/__tests__/snapscanPaygate.test.ts`) already pass.
 
 ## Open feature work
 

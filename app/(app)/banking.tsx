@@ -39,12 +39,12 @@ export default function Banking() {
         <Text style={[styles.heroSub, { color: season.text }]}>Use the correct account and reference for each payment</Text>
       </View>
 
-      {congregation?.snapscan_qr_url ? (
+      {congregation?.snapscan_merchant_code ? (
         <Card>
           <Text style={styles.cardTitle}>Other Ways to Give</Text>
-          <Text style={styles.cardSub}>SnapScan is also accepted on Sundays. Look for the scanner at the offering table, or scan the code below anytime. It's tracked separately on the parish's weekly offering summary.</Text>
+          <Text style={styles.cardSub}>Pay an amount directly in the app via SnapScan.</Text>
           <Pressable style={styles.snapScanLink} onPress={() => router.push('/(app)/bankingSnapscan')}>
-            <Text style={styles.snapScanLinkLabel}>View SnapScan QR Code</Text>
+            <Text style={styles.snapScanLinkLabel}>Give via SnapScan</Text>
             <Text style={styles.snapScanLinkArrow}>→</Text>
           </Pressable>
         </Card>

@@ -76,18 +76,18 @@ export default function CongregationAdmin() {
     await refresh()
   }
 
-  // SnapScan QR ------------------------------------------------------------
-  const [snapscanUrl, setSnapscanUrl] = useState<string | null>(null)
-  const [savingSnapscan, setSavingSnapscan] = useState(false)
+  // SnapScan paygate (in-app checkout) -------------------------------------
+  const [snapscanMerchantCode, setSnapscanMerchantCode] = useState('')
+  const [savingSnapscanCode, setSavingSnapscanCode] = useState(false)
 
   useEffect(() => {
-    setSnapscanUrl(congregation?.snapscan_qr_url ?? null)
+    setSnapscanMerchantCode(congregation?.snapscan_merchant_code ?? '')
   }, [congregation])
 
-  async function saveSnapscan() {
-    setSavingSnapscan(true)
-    const { error } = await supabase.rpc('admin_set_snapscan_qr', { p_snapscan_qr_url: snapscanUrl })
-    setSavingSnapscan(false)
+  async function saveSnapscanMerchantCode() {
+    setSavingSnapscanCode(true)
+    const { error } = await supabase.rpc('admin_set_snapscan_merchant_code', { p_code: snapscanMerchantCode.trim() || null })
+    setSavingSnapscanCode(false)
     if (error) {
       Alert.alert('Could not save', error.message)
       return
@@ -363,11 +363,14 @@ export default function CongregationAdmin() {
       </Card>
 
       <Card>
-        <Text style={styles.cardTitle}>SnapScan QR Code</Text>
-        <Text style={styles.pendingDetail}>Shown on the Banking screen if set. Leave empty to hide it.</Text>
+        <Text style={styles.cardTitle}>SnapScan Checkout (Paygate)</Text>
+        <Text style={styles.pendingDetail}>
+          Lets members pay a specific amount in-app — SnapScan opens directly to confirm, and the payment is tracked automatically. Needs a SnapScan merchant account;
+          get your merchant code from SnapScan support (help@snapscan.co.za). Leave empty to hide the "Give via SnapScan" checkout entirely.
+        </Text>
         <View style={{ gap: 10, marginTop: 8 }}>
-          <CertificatePicker label="SnapScan QR Image (optional)" value={snapscanUrl} onChange={setSnapscanUrl} />
-          <Button title="Save SnapScan QR" onPress={saveSnapscan} loading={savingSnapscan} />
+          <Field label="SnapScan Merchant Code" value={snapscanMerchantCode} onChangeText={setSnapscanMerchantCode} placeholder="e.g. yourchurch" autoCapitalize="none" />
+          <Button title="Save Merchant Code" onPress={saveSnapscanMerchantCode} loading={savingSnapscanCode} />
         </View>
       </Card>
 

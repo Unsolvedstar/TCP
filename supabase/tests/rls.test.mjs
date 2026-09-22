@@ -1217,6 +1217,77 @@ describe('congregation admin: wards, leagues, branding, banking', () => {
     await expectOk(rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_delete_payment_code', { target_id: testCodeId })), 'adminA deleting the test payment code')
     await expectOk(rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_delete_bank_account', { target_id: testAccountId })), 'adminA deleting the now-empty test account')
   })
+
+  test('admin_set_snapscan_merchant_code is scoped to the caller\'s own congregation', async () => {
+    await expectError(
+      rpcRetryColdSchemaCache(() => memberA.client.rpc('admin_set_snapscan_merchant_code', { p_code: 'should-fail' })),
+      'not authorized',
+      'memberA setting the snapscan merchant code'
+    )
+    await expectOk(rpcRetryColdSchemaCache(() => adminA.client.rpc('admin_set_snapscan_merchant_code', { p_code: 'tcp-test-code' })), 'adminA setting the snapscan merchant code')
+    const { data: rowA } = await admin.from('congregations').select('snapscan_merchant_code').eq('id', congA.id).single()
+    assert.equal(rowA.snapscan_merchant_code, 'tcp-test-code')
+    const { data: rowB } = await admin.from('congregations').select('snapscan_merchant_code').eq('id', congB.id).single()
+    assert.equal(rowB.snapscan_merchant_code, null)
+  })
+})
+
+describe('SnapScan paygate', () => {
+  let paymentId, paymentReference
+
+  test('create_snapscan_payment rejects an invalid amount', async () => {
+    await expectError(rpcRetryColdSchemaCache(() => memberA.client.rpc('create_snapscan_payment', { p_amount_cents: 0 })), 'Invalid amount', 'memberA requesting a zero-amount payment')
+    await expectError(rpcRetryColdSchemaCache(() => memberA.client.rpc('create_snapscan_payment', { p_amount_cents: -500 })), 'Invalid amount', 'memberA requesting a negative-amount payment')
+    await expectError(
+      rpcRetryColdSchemaCache(() => memberA.client.rpc('create_snapscan_payment', { p_amount_cents: 20000000 })),
+      'Invalid amount',
+      'memberA requesting an over-the-cap payment'
+    )
+  })
+
+  test('create_snapscan_payment creates a pending row owned by the caller, in their own congregation', async () => {
+    const [row] = await expectOk(rpcRetryColdSchemaCache(() => memberA.client.rpc('create_snapscan_payment', { p_amount_cents: 15000 })), 'memberA starting a snapscan payment')
+    paymentId = row.id
+    paymentReference = row.merchant_reference
+    assert.ok(paymentReference.startsWith('ELCSA-'))
+    const { data: dbRow } = await admin.from('snapscan_payments').select('*').eq('id', paymentId).single()
+    assert.equal(dbRow.profile_id, memberA.id)
+    assert.equal(dbRow.congregation_id, congA.id)
+    assert.equal(dbRow.amount_cents, 15000)
+    assert.equal(dbRow.status, 'pending')
+  })
+
+  test('a member cannot forge a snapscan_payments row via a raw insert', async () => {
+    await expectError(
+      memberA.client.from('snapscan_payments').insert({ congregation_id: congA.id, profile_id: memberA.id, merchant_reference: 'FORGED-REF', amount_cents: 100 }),
+      null,
+      'memberA raw-inserting a snapscan payment'
+    )
+  })
+
+  test('memberA can read their own pending payment; memberB (same congregation) and adminB (other congregation) cannot', async () => {
+    const { data: seenByOwner } = await memberA.client.from('snapscan_payments').select('id').eq('id', paymentId)
+    assert.equal(seenByOwner.length, 1)
+    const { data: seenByOtherMember } = await memberB.client.from('snapscan_payments').select('id').eq('id', paymentId)
+    assert.equal(seenByOtherMember.length, 0)
+    const { data: seenByOtherAdmin } = await adminB.client.from('snapscan_payments').select('id').eq('id', paymentId)
+    assert.equal(seenByOtherAdmin.length, 0)
+  })
+
+  test('adminA (same congregation) can read memberA\'s payment', async () => {
+    const { data: seenByAdmin } = await adminA.client.from('snapscan_payments').select('id').eq('id', paymentId)
+    assert.equal(seenByAdmin.length, 1)
+  })
+
+  test('a member cannot update a payment\'s status directly (only the webhook, via service_role, can)', async () => {
+    // No UPDATE policy exists on this table at all, so — same caveat already
+    // documented in NOTES.md for other tables — this silently affects 0 rows
+    // rather than throwing; assert the real invariant (status unchanged).
+    const { data: updateResult } = await memberA.client.from('snapscan_payments').update({ status: 'completed' }).eq('id', paymentId).select()
+    assert.equal((updateResult ?? []).length, 0)
+    const { data: row } = await admin.from('snapscan_payments').select('status').eq('id', paymentId).single()
+    assert.equal(row.status, 'pending')
+  })
 })
 
 after(async () => {
