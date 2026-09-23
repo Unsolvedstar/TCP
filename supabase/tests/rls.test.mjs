@@ -654,7 +654,7 @@ test('admin_generate_household_codes rejects an out-of-range count', async () =>
 // dependent per congregation, and root-level before()/test() ordering
 // relative to a second root-level before() isn't guaranteed by this test
 // runner, so nesting is what makes the ordering deterministic here.
-describe('league admins and league points', () => {
+describe('league admins', () => {
   before(async () => {
     // leagueA2 is a *second* league inside congregation A — proves a league
     // admin is scoped to their own league even among leagues in the SAME
@@ -760,43 +760,6 @@ describe('league admins and league points', () => {
     await expectOk(memberA.client.rpc('cancel_league_request'), 'memberA cancelling stray leagueA2 request (2)')
   })
 
-  test('a plain member cannot read the league_points ledger directly', async () => {
-    const { data } = await memberA.client.from('league_points').select('*')
-    assert.equal(data.length, 0)
-  })
-
-  test('a plain member cannot manually award league points', async () => {
-    await expectError(
-      memberA.client.rpc('admin_award_league_points', { target_league_id: leagueA.id, p_points: 100, p_reason: 'trying to cheat' }),
-      'not authorized',
-      'memberA awarding points'
-    )
-  })
-
-  test('a league admin (not a congregation admin) cannot manually award league points', async () => {
-    await expectError(
-      memberA2.client.rpc('admin_award_league_points', { target_league_id: leagueA.id, p_points: 100, p_reason: 'trying to self-award' }),
-      'not authorized',
-      'memberA2 (league admin) awarding points'
-    )
-  })
-
-  test('congregation admin can manually award league points, and it shows up in the leaderboard', async () => {
-    await expectOk(
-      adminA.client.rpc('admin_award_league_points', { target_league_id: leagueA.id, p_points: 7, p_reason: 'Hosted an event' }),
-      'adminA awarding points to leagueA'
-    )
-    const rows = await expectOk(memberA.client.rpc('league_leaderboard'), 'memberA reading leaderboard')
-    const leagueARow = rows.find((r) => r.league_id === leagueA.id)
-    // >= 7 rather than == since earlier tests in this section (posting an
-    // announcement, an approved join) also award points automatically.
-    assert.ok(leagueARow && leagueARow.total_points >= 7)
-  })
-
-  test('league_leaderboard only totals the caller\'s own congregation\'s leagues', async () => {
-    const rows = await expectOk(memberB.client.rpc('league_leaderboard'), 'memberB reading leaderboard')
-    assert.ok(rows.every((r) => r.league_id !== leagueA.id && r.league_id !== leagueA2.id))
-  })
 })
 
 // --- 10. Ceremony scheduling: propose a date, member confirms, calendar entry appears ---
@@ -884,19 +847,16 @@ describe('ceremony scheduling', () => {
     assert.ok(propId2)
   })
 
-  test('a league admin can propose an installation date for their own league, and confirming awards points', async () => {
+  test('a league admin can propose an installation date for their own league, and confirming finalizes it', async () => {
     await expectOk(memberA.client.rpc('request_league', { new_league_id: leagueA.id }), 'memberA requesting leagueA')
     const propId = await expectOk(
       memberA2.client.rpc('propose_ceremony_date', { target_id: memberA.id, p_is_dependent: false, p_kind: 'league', p_ceremony_date: '2027-04-01', p_league_id: leagueA.id }),
       'memberA2 (league admin) proposing installation date'
     )
-    const before_ = (await expectOk(memberA.client.rpc('league_leaderboard'), 'leaderboard before')).find((r) => r.league_id === leagueA.id)?.total_points ?? 0
     await expectOk(memberA.client.rpc('confirm_ceremony_date', { proposal_id: propId }), 'memberA confirming installation')
     const { data: prof } = await admin.from('profiles').select('league_id, pending_league_id').eq('id', memberA.id).single()
     assert.equal(prof.league_id, leagueA.id)
     assert.equal(prof.pending_league_id, null)
-    const after_ = (await expectOk(memberA.client.rpc('league_leaderboard'), 'leaderboard after')).find((r) => r.league_id === leagueA.id)?.total_points ?? 0
-    assert.equal(after_, before_ + 5)
     const { data: ev } = await admin.from('events').select('id, title').eq('congregation_id', congA.id).eq('event_date', '2027-04-01')
     assert.equal(ev.length, 1)
     assert.ok(ev[0].title.includes('Installation'))

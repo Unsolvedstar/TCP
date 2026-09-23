@@ -39,15 +39,23 @@ separate, already-completed project's own checklist — don't merge into it.)
       `SNAPSCAN_WEBHOOK_AUTH_KEY` secret from SnapScan support (the removed
       code is straightforward to restore; see the same comment for exactly
       what it needs to do).
-- [ ] Apply `supabase/migrations/0025_snapscan_paygate.sql` to the live
-      project (`npx supabase db push --linked`) and confirm the new RLS test
-      cases in `supabase/tests/rls.test.mjs` pass against a fresh local
-      reset — **not yet run**, Docker/Supabase wasn't available in the
-      session this was built in (see the local-Supabase testing note
-      elsewhere in this file for the usual steps: `npx supabase start`, `npx
-      supabase db reset`, `node --test supabase/tests/rls.test.mjs`).
-      `npx tsc --noEmit` and the full Jest suite (69/69, including the new
-      `lib/__tests__/snapscanPaygate.test.ts`) already pass.
+- [x] **Migrations 0013–0026 pushed to the live project, done (2026-09-23).**
+      Discovered while chasing a "name search doesn't work" report: `npx
+      supabase migration list --linked` showed only 0001–0012 had ever
+      reached production — everything from 0013 (households) onward,
+      including `search_possible_relatives` (0019) and `congregation_directory`
+      (0015), only existed locally. That's exactly why search silently
+      returned nothing: the RPCs the client called didn't exist server-side.
+      Ran `npx supabase db push --linked --yes`, confirmed via
+      `migration list` (local/remote now both at 0026) and a direct
+      PostgREST call (`search_possible_relatives`/`congregation_directory`
+      now 200, `league_points`/`league_leaderboard` now 404 as expected).
+      Docker still wasn't available in this session, so the RLS suite
+      couldn't be run against a fresh local reset first — this was pushed
+      straight to production with the user's explicit go-ahead. Run
+      `npx supabase start`, `npx supabase db reset`, `node --test
+      supabase/tests/rls.test.mjs` next time Docker's available, as a
+      retroactive check.
 
 ## Open feature work
 
@@ -85,6 +93,21 @@ separate, already-completed project's own checklist — don't merge into it.)
       `scripts/createLeagueAdminAccounts.mjs` sets the flag automatically
       for every account it creates going forward. Not yet run against the
       live database — see the local-Supabase testing note below.
+- [x] **Gamification (league points/leaderboard) removed, done (2026-09-23).**
+      Leagues themselves (membership, league admins, league-scoped content)
+      are untouched — only the point-scoring layer on top is gone: no more
+      auto-awarded points for posting announcements/events or an approved
+      join, no more manual admin "Award Points", no more leaderboard.
+      `supabase/migrations/0026_remove_league_points.sql` drops the
+      `league_points` table, `league_leaderboard()`,
+      `admin_award_league_points()`, and the `award_points_for_league_content`
+      triggers, and re-declares `approve_league`/`approve_dependent_league`/
+      `confirm_ceremony_date` without the point-insert step (everything else
+      they did — finalizing the request, persisting sacrament/league detail,
+      creating the calendar entry — is unchanged). Removed
+      `components/leagueLeaderboardCard.tsx` and its usages in
+      `app/(app)/portal.tsx` and `app/(app)/dashboard.tsx`, and the
+      corresponding tests in `supabase/tests/rls.test.mjs`.
 
 ## Other things from the spec's own "Planned / Not Yet Built" list (section 17)
 

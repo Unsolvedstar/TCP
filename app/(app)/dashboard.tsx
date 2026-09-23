@@ -10,7 +10,6 @@ import { LeaguesDirectoryCard } from '../../components/leaguesDirectoryCard'
 import { GenderBreakdownCard } from '../../components/genderBreakdownCard'
 import { SacramentsCard } from '../../components/sacramentsCard'
 import { ParishCalendarCard } from '../../components/parishCalendarCard'
-import { LeagueLeaderboardCard } from '../../components/leagueLeaderboardCard'
 import { MembershipCheckInBanner } from '../../components/membershipCheckInBanner'
 import { supabase } from '../../lib/supabase'
 import { useLiturgicalSeason } from '../../lib/liturgicalTheme'
@@ -228,7 +227,6 @@ export default function Dashboard() {
         </>
       ) : section === 'leagues' ? (
         <>
-          <LeagueLeaderboardCard isAdmin />
           <LeaguesDirectoryCard leagueStats={leagueStats} />
           <LeagueBreakdownCard leagueStats={leagueStats} />
         </>

@@ -62,7 +62,7 @@ export default function LeagueAdmin() {
 
   const isAdmin = profile?.role === 'admin'
   // A congregation admin can already act on every league via is_admin_of()
-  // server-side (approve/deny, post, award points) — this just gives them
+  // server-side (approve/deny, post) — this just gives them
   // the same tooling league admins use, for oversight, instead of leaving
   // league management invisible to them unless they're also personally
   // assigned as a league admin somewhere.

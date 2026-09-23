@@ -12,7 +12,6 @@ import { LeaguesDirectoryCard } from '../../components/leaguesDirectoryCard'
 import { GenderBreakdownCard } from '../../components/genderBreakdownCard'
 import { SacramentsCard } from '../../components/sacramentsCard'
 import { ParishCalendarCard } from '../../components/parishCalendarCard'
-import { LeagueLeaderboardCard } from '../../components/leagueLeaderboardCard'
 import { MyLeagueCard } from '../../components/myLeagueCard'
 import { MembershipCheckInBanner } from '../../components/membershipCheckInBanner'
 import { CeremonyConfirmationCard } from '../../components/ceremonyConfirmationCard'
@@ -201,7 +200,6 @@ export default function Portal() {
       ) : section === 'leagues' ? (
         <>
           <MyLeagueCard />
-          <LeagueLeaderboardCard />
           <LeaguesDirectoryCard leagueStats={leagueStats} />
           <LeagueBreakdownCard leagueStats={leagueStats} />
         </>
