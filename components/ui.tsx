@@ -2,6 +2,8 @@ import { createElement, useState } from 'react'
 import { ActivityIndicator, FlatList, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native'
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker'
 import { LinearGradient } from 'expo-linear-gradient'
+import { Ionicons } from '@expo/vector-icons'
+import * as Clipboard from 'expo-clipboard'
 import { colors, radius } from '../theme'
 import { toLocalISODate } from '../lib/dates'
 import { styles, webDateInputStyle } from './ui.styles'
@@ -87,6 +89,23 @@ export function BarRow({ label, sub, value, max, color }: { label: string; sub?:
       </View>
       <Text style={styles.barValue}>{value}</Text>
     </View>
+  )
+}
+
+// A small tap-to-copy icon for a value shown elsewhere in the row (a family
+// code, an account number) — flips to a checkmark for 1.5s as feedback since
+// there's no toast component in the app, then reverts on its own.
+export function CopyButton({ value, size = 17 }: { value: string; size?: number }) {
+  const [copied, setCopied] = useState(false)
+  async function copy() {
+    await Clipboard.setStringAsync(value)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+  return (
+    <Pressable onPress={copy} hitSlop={10}>
+      <Ionicons name={copied ? 'checkmark' : 'copy-outline'} size={size} color={copied ? colors.g700 : colors.muted} />
+    </Pressable>
   )
 }
 

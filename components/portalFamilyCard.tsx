@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Text, View } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Alert } from '../lib/alert'
-import { Button, Card, Field } from './ui'
+import { Button, Card, CopyButton, Field } from './ui'
 import { styles } from './portalFamilyCard.styles'
 import { supabase } from '../lib/supabase'
 
@@ -213,7 +213,10 @@ export function PortalFamilyCard() {
           <Text style={styles.familyName}>{family.name}</Text>
           <View style={styles.codeBox}>
             <Text style={styles.codeLabel}>Family code</Text>
-            <Text style={styles.codeValue}>{family.code}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Text style={styles.codeValue}>{family.code}</Text>
+              <CopyButton value={family.code} />
+            </View>
           </View>
           <Text style={styles.familyCodeHint}>Also doubles as your family's banking reference — see the Banking tab.</Text>
 

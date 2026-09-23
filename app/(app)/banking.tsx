@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 import { router } from 'expo-router'
-import { Card } from '../../components/ui'
+import { Card, CopyButton } from '../../components/ui'
 import { supabase } from '../../lib/supabase'
 import { useLiturgicalSeason } from '../../lib/liturgicalTheme'
 import { useCongregationData } from '../../lib/congregationContext'
@@ -58,7 +58,7 @@ export default function Banking() {
           </View>
           <Row k="Account Name" v={congregation?.name ?? ''} />
           <Row k="Bank" v={account.bank_name} />
-          <Row k="Account No." v={account.account_number} />
+          <Row k="Account No." v={account.account_number} copyable />
           <Row k="Branch Code" v={account.branch_code} />
         </Card>
       ))}
@@ -122,7 +122,10 @@ export default function Banking() {
         {exampleCode ? (
           <View style={styles.example}>
             <Text style={styles.exampleLabel}>{exampleCode.label}, for the whole family{family ? ` (${family.name})` : ''}</Text>
-            <Text style={styles.exampleCode}>{family ? `${family.code}${exampleCode.code}` : `AB12CD${exampleCode.code}`}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={styles.exampleCode}>{family ? `${family.code}${exampleCode.code}` : `AB12CD${exampleCode.code}`}</Text>
+              {family ? <CopyButton value={`${family.code}${exampleCode.code}`} /> : null}
+            </View>
           </View>
         ) : null}
       </Card>
@@ -130,11 +133,14 @@ export default function Banking() {
   )
 }
 
-function Row({ k, v }: { k: string; v: string }) {
+function Row({ k, v, copyable = false }: { k: string; v: string; copyable?: boolean }) {
   return (
     <View style={styles.row}>
       <Text style={styles.rowKey}>{k}</Text>
-      <Text style={styles.rowVal}>{v}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <Text style={styles.rowVal}>{v}</Text>
+        {copyable ? <CopyButton value={v} size={14} /> : null}
+      </View>
     </View>
   )
 }
