@@ -1193,7 +1193,33 @@ describe('congregation admin: wards, leagues, branding, banking', () => {
 })
 
 describe('SnapScan paygate', () => {
-  let paymentId, paymentReference
+  let paymentId, paymentReference, paymentCodeA, paymentCodeB
+
+  before(async () => {
+    const { data: acctA } = await admin
+      .from('congregation_bank_accounts')
+      .insert({ congregation_id: congA.id, name: 'SnapScan Test Account', bank_name: 'Test Bank', account_number: '111', branch_code: '222' })
+      .select('id')
+      .single()
+    const { data: codeA } = await admin
+      .from('congregation_payment_codes')
+      .insert({ congregation_id: congA.id, account_id: acctA.id, code: 'SNPTEST', label: 'SnapScan Test Purpose' })
+      .select('id')
+      .single()
+    paymentCodeA = codeA.id
+
+    const { data: acctB } = await admin
+      .from('congregation_bank_accounts')
+      .insert({ congregation_id: congB.id, name: 'SnapScan Test Account B', bank_name: 'Test Bank', account_number: '333', branch_code: '444' })
+      .select('id')
+      .single()
+    const { data: codeB } = await admin
+      .from('congregation_payment_codes')
+      .insert({ congregation_id: congB.id, account_id: acctB.id, code: 'SNPTESTB', label: 'SnapScan Test Purpose B' })
+      .select('id')
+      .single()
+    paymentCodeB = codeB.id
+  })
 
   test('create_snapscan_payment rejects an invalid amount', async () => {
     await expectError(rpcRetryColdSchemaCache(() => memberA.client.rpc('create_snapscan_payment', { p_amount_cents: 0 })), 'Invalid amount', 'memberA requesting a zero-amount payment')
@@ -1215,6 +1241,23 @@ describe('SnapScan paygate', () => {
     assert.equal(dbRow.congregation_id, congA.id)
     assert.equal(dbRow.amount_cents, 15000)
     assert.equal(dbRow.status, 'pending')
+  })
+
+  test('create_snapscan_payment accepts a payment code from the caller\'s own congregation', async () => {
+    const [row] = await expectOk(
+      rpcRetryColdSchemaCache(() => memberA.client.rpc('create_snapscan_payment', { p_amount_cents: 5000, p_payment_code_id: paymentCodeA })),
+      'memberA starting a snapscan payment with a purpose'
+    )
+    const { data: dbRow } = await admin.from('snapscan_payments').select('payment_code_id').eq('id', row.id).single()
+    assert.equal(dbRow.payment_code_id, paymentCodeA)
+  })
+
+  test('create_snapscan_payment rejects a payment code from another congregation', async () => {
+    await expectError(
+      rpcRetryColdSchemaCache(() => memberA.client.rpc('create_snapscan_payment', { p_amount_cents: 5000, p_payment_code_id: paymentCodeB })),
+      'Invalid payment code',
+      'memberA using congB\'s payment code'
+    )
   })
 
   test('a member cannot forge a snapscan_payments row via a raw insert', async () => {

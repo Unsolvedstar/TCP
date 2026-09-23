@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native'
 import { router } from 'expo-router'
 import * as Linking from 'expo-linking'
-import { Button, Card, Field } from '../../components/ui'
+import { Button, Card, Field, SelectField } from '../../components/ui'
 import { useLiturgicalSeason } from '../../lib/liturgicalTheme'
 import { useCongregationData } from '../../lib/congregationContext'
 import { useAuth } from '../../lib/authContext'
@@ -14,7 +14,7 @@ import type { SnapscanPayment } from '../../lib/types'
 
 export { ErrorBoundary } from '../../components/errorBoundary'
 
-const PAYMENT_COLUMNS = 'id,merchant_reference,amount_cents,status,created_at,completed_at'
+const PAYMENT_COLUMNS = 'id,merchant_reference,amount_cents,status,created_at,completed_at,payment_code_id'
 const POLL_INTERVAL_MS = 3000
 // Matches SnapScan's own documented webhook retry window — if it hasn't
 // resolved by then, it's not going to via polling either; the history list
@@ -23,11 +23,12 @@ const POLL_TIMEOUT_MS = 3 * 60 * 1000
 
 export default function BankingSnapScan() {
   const season = useLiturgicalSeason()
-  const { congregation } = useCongregationData()
+  const { congregation, paymentCodes } = useCongregationData()
   const { profile } = useAuth()
 
   const [amountInput, setAmountInput] = useState('')
   const [amountError, setAmountError] = useState('')
+  const [paymentCodeId, setPaymentCodeId] = useState('')
   const [starting, setStarting] = useState(false)
   const [activePayment, setActivePayment] = useState<SnapscanPayment | null>(null)
   const [history, setHistory] = useState<SnapscanPayment[]>([])
@@ -66,6 +67,8 @@ export default function BankingSnapScan() {
     return () => clearInterval(interval)
   }, [activePayment?.id, activePayment?.status, loadHistory])
 
+  const paymentCodeLabel = (id: string | null) => (id ? paymentCodes.find((c) => c.id === id)?.label : undefined)
+
   async function onPay() {
     setAmountError('')
     const cents = randsToCents(amountInput)
@@ -78,7 +81,7 @@ export default function BankingSnapScan() {
       return
     }
     setStarting(true)
-    const { data, error } = await supabase.rpc('create_snapscan_payment', { p_amount_cents: cents })
+    const { data, error } = await supabase.rpc('create_snapscan_payment', { p_amount_cents: cents, p_payment_code_id: paymentCodeId || null })
     setStarting(false)
     const row = (data as { id: string; merchant_reference: string }[] | null)?.[0]
     if (error || !row) {
@@ -96,8 +99,17 @@ export default function BankingSnapScan() {
       successUrl: returnUrl,
       failureUrl: returnUrl,
     })
-    setActivePayment({ id: row.id, merchant_reference: row.merchant_reference, amount_cents: cents, status: 'pending', created_at: new Date().toISOString(), completed_at: null })
+    setActivePayment({
+      id: row.id,
+      merchant_reference: row.merchant_reference,
+      amount_cents: cents,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+      completed_at: null,
+      payment_code_id: paymentCodeId || null,
+    })
     setAmountInput('')
+    setPaymentCodeId('')
     await Linking.openURL(url)
   }
 
@@ -121,6 +133,15 @@ export default function BankingSnapScan() {
             keyboardType="decimal-pad"
             editable={!starting}
           />
+          {paymentCodes.length > 0 ? (
+            <SelectField
+              label="What's this for? (optional)"
+              value={paymentCodeId}
+              onChange={setPaymentCodeId}
+              placeholder="Not specified"
+              options={[{ value: '', label: 'Not specified' }, ...paymentCodes.map((c) => ({ value: c.id, label: c.label }))]}
+            />
+          ) : null}
           {amountError ? <Text style={styles.snapscanError}>{amountError}</Text> : null}
           <Button title="Pay with SnapScan" onPress={onPay} loading={starting} disabled={!congregation?.snapscan_merchant_code} />
           {!congregation?.snapscan_merchant_code ? <Text style={styles.cardSub}>SnapScan checkout isn't set up for this congregation yet.</Text> : null}
@@ -131,10 +152,16 @@ export default function BankingSnapScan() {
             {activePayment.status === 'pending' ? (
               <>
                 <ActivityIndicator color={colors.g700} />
-                <Text style={styles.snapscanStatusPendingText}>Waiting for confirmation in SnapScan — {centsToRandsDisplay(activePayment.amount_cents)}</Text>
+                <Text style={styles.snapscanStatusPendingText}>
+                  Waiting for confirmation in SnapScan — {centsToRandsDisplay(activePayment.amount_cents)}
+                  {paymentCodeLabel(activePayment.payment_code_id) ? ` (${paymentCodeLabel(activePayment.payment_code_id)})` : ''}
+                </Text>
               </>
             ) : activePayment.status === 'completed' ? (
-              <Text style={styles.snapscanStatusCompletedText}>✓ Received — {centsToRandsDisplay(activePayment.amount_cents)}. Thank you!</Text>
+              <Text style={styles.snapscanStatusCompletedText}>
+                ✓ Received — {centsToRandsDisplay(activePayment.amount_cents)}
+                {paymentCodeLabel(activePayment.payment_code_id) ? ` (${paymentCodeLabel(activePayment.payment_code_id)})` : ''}. Thank you!
+              </Text>
             ) : (
               <Text style={styles.snapscanStatusErrorText}>Payment wasn't completed. You can try again above.</Text>
             )}
@@ -147,7 +174,10 @@ export default function BankingSnapScan() {
           <Text style={styles.cardTitle}>Your SnapScan Giving</Text>
           {history.map((p) => (
             <View key={p.id} style={styles.snapscanHistoryRow}>
-              <Text style={styles.snapscanHistoryDate}>{new Date(p.created_at).toLocaleDateString()}</Text>
+              <Text style={styles.snapscanHistoryDate}>
+                {new Date(p.created_at).toLocaleDateString()}
+                {paymentCodeLabel(p.payment_code_id) ? ` · ${paymentCodeLabel(p.payment_code_id)}` : ''}
+              </Text>
               <Text style={styles.snapscanHistoryAmount}>{centsToRandsDisplay(p.amount_cents)}</Text>
               <Text style={[styles.snapscanHistoryStatus, historyStatusStyle(p.status)]}>{p.status}</Text>
             </View>

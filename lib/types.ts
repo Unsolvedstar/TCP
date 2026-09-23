@@ -43,6 +43,10 @@ export type SnapscanPayment = {
   status: 'pending' | 'completed' | 'error'
   created_at: string
   completed_at: string | null
+  // What the payment was for (0027) — a congregation_payment_codes id, e.g.
+  // Tithe or Building Project. Optional: a member can still just give
+  // without picking a category.
+  payment_code_id: string | null
 }
 
 // Returned by the pre-auth list_congregations()/get_congregation_by_slug()
