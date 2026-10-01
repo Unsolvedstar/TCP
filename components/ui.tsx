@@ -225,7 +225,7 @@ export function DateField({
     // @react-native-community/datetimepicker has no web implementation (it renders null there),
     // so on web we drop straight to the browser's native <input type="date">.
     return (
-      <View style={{ gap: 5 }}>
+      <View style={{ gap: 6 }}>
         <Text style={styles.fieldLabel}>{label}</Text>
         {createElement('input', {
           type: 'date',

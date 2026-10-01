@@ -4,14 +4,17 @@ import { colors, radius } from '../theme'
 // Plain DOM style object (px units required) for the web-only <input type="date"> in DateField.
 export const webDateInputStyle = {
   borderWidth: '1.5px',
-  minHeight: '50px',
   borderStyle: 'solid',
   borderColor: '#d5cfc5',
   borderRadius: `${radius.md}px`,
-  paddingTop: '10px',
-  paddingBottom: '10px',
-  paddingLeft: '12px',
-  paddingRight: '12px',
+  // Fixed height, zero vertical padding: browsers size <input type="date">
+  // taller than a text input from the same padding, which made this field
+  // visibly longer than the rest. 50px matches inputWrap's minHeight.
+  height: '50px',
+  paddingTop: '0px',
+  paddingBottom: '0px',
+  paddingLeft: '14px',
+  paddingRight: '14px',
   fontSize: '15px',
   fontFamily: 'inherit',
   color: colors.text,
