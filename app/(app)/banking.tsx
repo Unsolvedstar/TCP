@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Pressable, ScrollView, Text, View } from 'react-native'
+import { ScrollView, Text, View } from 'react-native'
 import { router } from 'expo-router'
-import { Card, CopyButton } from '../../components/ui'
+import { Button, Card, CopyButton } from '../../components/ui'
 import { supabase } from '../../lib/supabase'
 import { useLiturgicalSeason } from '../../lib/liturgicalTheme'
 import { useCongregationData } from '../../lib/congregationContext'
@@ -39,16 +39,15 @@ export default function Banking() {
         <Text style={[styles.heroSub, { color: season.text }]}>Use the correct account and reference for each payment</Text>
       </View>
 
-      {congregation?.snapscan_merchant_code ? (
-        <Card>
-          <Text style={styles.cardTitle}>Other Ways to Give</Text>
-          <Text style={styles.cardSub}>Pay an amount directly in the app via SnapScan.</Text>
-          <Pressable style={styles.snapScanLink} onPress={() => router.push('/(app)/bankingSnapscan')}>
-            <Text style={styles.snapScanLinkLabel}>Give via SnapScan</Text>
-            <Text style={styles.snapScanLinkArrow}>→</Text>
-          </Pressable>
-        </Card>
-      ) : null}
+      <Card>
+        <Text style={styles.cardTitle}>Other Ways to Give</Text>
+        <Text style={styles.cardSub}>
+          {congregation?.snapscan_merchant_code
+            ? 'Pay an amount directly in the app via SnapScan.'
+            : "SnapScan checkout isn't set up for this congregation yet. An admin can add the merchant code in Congregation Settings."}
+        </Text>
+        <Button title="Pay with SnapScan" onPress={() => router.push('/(app)/bankingSnapscan')} />
+      </Card>
 
       {bankAccounts.map((account) => (
         <Card key={account.id}>
