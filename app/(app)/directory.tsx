@@ -73,6 +73,7 @@ export default function Directory() {
               <Chip label={item.profession} color={colors.g700} />
               {ward ? <Chip label={ward.name} color={ward.color} /> : null}
             </View>
+            <Text style={{ fontSize: 13, color: colors.muted, marginTop: 8 }}>{item.phone ?? 'No phone on file'}</Text>
           </View>
         )
       }}

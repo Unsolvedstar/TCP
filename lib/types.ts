@@ -148,7 +148,7 @@ export type Profile = {
 }
 
 // congregation_directory() — only members who've set a profession appear here.
-export type DirectoryEntry = { id: string; full_name: string; profession: string; ward_id: string }
+export type DirectoryEntry = { id: string; full_name: string; profession: string; ward_id: string; phone: string | null }
 
 export type Dependent = {
   id: string
