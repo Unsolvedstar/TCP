@@ -219,6 +219,7 @@ export function DateField({
   placeholder?: string
 }) {
   const [iosOpen, setIosOpen] = useState(false)
+  const [webFocused, setWebFocused] = useState(false)
   const current = value ? new Date(value + 'T00:00:00') : new Date(2010, 0, 1)
 
   if (Platform.OS === 'web') {
@@ -227,16 +228,20 @@ export function DateField({
     return (
       <View style={{ gap: 6 }}>
         <Text style={styles.fieldLabel}>{label}</Text>
-        {createElement('input', {
-          type: 'date',
-          value: value ?? '',
-          max: maximumDate ? toLocalISODate(maximumDate) : undefined,
-          placeholder,
-          onChange: (e: any) => {
-            if (e.target.value) onChange(e.target.value)
-          },
-          style: webDateInputStyle,
-        })}
+        <View style={[styles.inputWrap, webFocused && styles.inputFocused]}>
+          {createElement('input', {
+            type: 'date',
+            value: value ?? '',
+            max: maximumDate ? toLocalISODate(maximumDate) : undefined,
+            placeholder,
+            onChange: (e: any) => {
+              if (e.target.value) onChange(e.target.value)
+            },
+            onFocus: () => setWebFocused(true),
+            onBlur: () => setWebFocused(false),
+            style: webDateInputStyle,
+          })}
+        </View>
       </View>
     )
   }

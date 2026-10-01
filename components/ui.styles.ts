@@ -1,25 +1,24 @@
 import { StyleSheet } from 'react-native'
 import { colors, radius } from '../theme'
 
-// Plain DOM style object (px units required) for the web-only <input type="date"> in DateField.
+// Plain DOM style object (px units required) for the web-only <input type="date">
+// in DateField. The input sits inside the same bordered `inputWrap` box every
+// other field uses, so the border, height, width and focus ring all come from
+// that shared container — the input itself is just a borderless, transparent
+// fill (browsers size a bordered/padded date input differently from a text one).
 export const webDateInputStyle = {
-  borderWidth: '1.5px',
-  borderStyle: 'solid',
-  borderColor: '#d5cfc5',
-  borderRadius: `${radius.md}px`,
-  // Fixed height, zero vertical padding: browsers size <input type="date">
-  // taller than a text input from the same padding, which made this field
-  // visibly longer than the rest. 50px matches inputWrap's minHeight.
-  height: '50px',
-  paddingTop: '0px',
-  paddingBottom: '0px',
-  paddingLeft: '14px',
-  paddingRight: '14px',
+  border: 'none',
+  outline: 'none',
+  background: 'transparent',
+  flex: 1,
+  minWidth: 0,
+  width: '100%',
+  height: '100%',
+  padding: 0,
+  margin: 0,
   fontSize: '15px',
   fontFamily: 'inherit',
   color: colors.text,
-  backgroundColor: colors.white,
-  width: '100%',
   boxSizing: 'border-box' as const,
 }
 
