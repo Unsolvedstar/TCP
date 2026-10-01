@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { Alert } from '../lib/alert'
 import { Button, Chip, DateField, Field, SelectField, formatDate } from './ui'
 import { CertificatePicker } from './certificatePicker'
@@ -174,7 +175,10 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
             <Text style={styles.actionLabel}>Baptism</Text>
             {dependent.baptised ? (
               <View style={{ gap: 4 }}>
-                <Text style={styles.hint}>Baptised. Praise God! ✝</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+<Text style={styles.hint}>Baptised. Praise God!</Text>
+<MaterialCommunityIcons name="cross" size={14} color={colors.muted} />
+</View>
                 <Text style={styles.editLink} onPress={() => setCertKind('baptism')}>
                   View Certificate
                 </Text>
@@ -210,7 +214,10 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
             <Text style={styles.actionLabel}>Confirmation</Text>
             {dependent.confirmed ? (
               <View style={{ gap: 4 }}>
-                <Text style={styles.hint}>Confirmed. Praise God! ✝</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+<Text style={styles.hint}>Confirmed. Praise God!</Text>
+<MaterialCommunityIcons name="cross" size={14} color={colors.muted} />
+</View>
                 <Text style={styles.editLink} onPress={() => setCertKind('confirmation')}>
                   View Certificate
                 </Text>

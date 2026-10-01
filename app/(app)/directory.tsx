@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
-import { ActivityIndicator, FlatList, RefreshControl, Text, TextInput, View } from 'react-native'
+import { ActivityIndicator, FlatList, Linking, Pressable, RefreshControl, Text, TextInput, View } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { Chip, GlassSheen } from '../../components/ui'
 import { supabase } from '../../lib/supabase'
 import { colors } from '../../theme'
@@ -9,6 +10,10 @@ import { styles } from '../../styles/members.styles'
 import type { DirectoryEntry } from '../../lib/types'
 
 export { ErrorBoundary } from '../../components/errorBoundary'
+
+function initials(name: string) {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join('')
+}
 
 export default function Directory() {
   const { wards } = useCongregationData()
@@ -68,12 +73,26 @@ export default function Directory() {
         return (
           <View style={styles.memberCard}>
             <GlassSheen />
-            <Text style={styles.memberName}>{item.full_name}</Text>
-            <View style={styles.memberChips}>
-              <Chip label={item.profession} color={colors.g700} />
-              {ward ? <Chip label={ward.name} color={ward.color} /> : null}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.g50, borderWidth: 1, borderColor: colors.g100, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: colors.g700 }}>{initials(item.full_name)}</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.memberName, { marginBottom: 0 }]}>{item.full_name}</Text>
+                <View style={styles.memberChips}>
+                  <Chip label={item.profession} color={colors.g700} />
+                  {ward ? <Chip label={ward.name} color={ward.color} /> : null}
+                </View>
+              </View>
             </View>
-            <Text style={{ fontSize: 13, color: colors.muted, marginTop: 8 }}>{item.phone ?? 'No phone on file'}</Text>
+            <Pressable
+              disabled={!item.phone}
+              onPress={() => item.phone && Linking.openURL(`tel:${item.phone.replace(/\s/g, '')}`)}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.cream }}
+            >
+              <Ionicons name="call-outline" size={16} color={item.phone ? colors.g700 : colors.muted} />
+              <Text style={{ fontSize: 13.5, fontWeight: item.phone ? '700' : '400', color: item.phone ? colors.g700 : colors.muted }}>{item.phone ?? 'No phone on file'}</Text>
+            </Pressable>
           </View>
         )
       }}

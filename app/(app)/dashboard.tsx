@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { Image, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native'
 import { Alert } from '../../lib/alert'
-import { Button, Card, GlassSheen } from '../../components/ui'
+import { Button, Card, GlassSheen, HeroDecor } from '../../components/ui'
 import { CertificatePicker } from '../../components/certificatePicker'
 import { WardBreakdownCard } from '../../components/wardBreakdownCard'
 import { LeagueBreakdownCard } from '../../components/leagueBreakdownCard'
@@ -111,6 +111,7 @@ export default function Dashboard() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.g700} />}
     >
       <View style={[styles.hero, { backgroundColor: season.color }]}>
+        <HeroDecor />
         <View style={styles.heroSeasonPill}>
           <Text style={[styles.heroSeasonPillText, { color: season.text }]}>{season.name.toUpperCase()}</Text>
         </View>

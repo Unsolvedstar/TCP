@@ -63,12 +63,26 @@ export default function AppLayout() {
     <Tabs
       screenOptions={{
         headerShown: true,
-        headerStyle: { backgroundColor: colors.white },
-        headerTitleStyle: { color: colors.g800, fontWeight: '700' },
+        headerStyle: { backgroundColor: colors.cream, shadowOpacity: 0, elevation: 0, borderBottomWidth: 0 },
+        headerTitleStyle: { color: colors.g800, fontWeight: '800', fontSize: 18 },
         headerRight: () => <SignOutButton />,
         tabBarActiveTintColor: colors.g700,
         tabBarInactiveTintColor: colors.muted,
-        tabBarStyle: { borderTopColor: colors.warmBorder },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
+        tabBarStyle: {
+          backgroundColor: colors.white,
+          borderTopWidth: 0,
+          borderTopLeftRadius: radius.lg,
+          borderTopRightRadius: radius.lg,
+          height: 66,
+          paddingTop: 6,
+          paddingBottom: 8,
+          shadowColor: '#3a3226',
+          shadowOpacity: 0.12,
+          shadowRadius: 14,
+          shadowOffset: { width: 0, height: -4 },
+          elevation: 12,
+        },
       }}
     >
       <Tabs.Screen
@@ -76,7 +90,7 @@ export default function AppLayout() {
         options={{
           title: 'My Portal',
           href: isAdmin ? null : undefined,
-          tabBarIcon: ({ color, size }) => <Ionicons name="person-circle-outline" size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "person-circle" : "person-circle-outline"} size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -84,7 +98,7 @@ export default function AppLayout() {
         options={{
           title: 'Dashboard',
           href: isAdmin ? undefined : null,
-          tabBarIcon: ({ color, size }) => <Ionicons name="grid-outline" size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "grid" : "grid-outline"} size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -92,21 +106,21 @@ export default function AppLayout() {
         options={{
           title: 'Members',
           href: isAdmin ? undefined : null,
-          tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "people" : "people-outline"} size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="directory"
         options={{
           title: 'Directory',
-          tabBarIcon: ({ color, size }) => <Ionicons name="briefcase-outline" size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "briefcase" : "briefcase-outline"} size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="banking"
         options={{
           title: 'Banking',
-          tabBarIcon: ({ color, size }) => <Ionicons name="card-outline" size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "card" : "card-outline"} size={size} color={color} />,
         }}
       />
       <Tabs.Screen name="bankingSnapscan" options={{ title: 'SnapScan', href: null }} />
@@ -116,7 +130,7 @@ export default function AppLayout() {
         options={{
           title: isAdmin ? 'League Tools' : 'My League',
           href: myLeagueIds.length > 0 || isAdmin ? undefined : null,
-          tabBarIcon: ({ color, size }) => <Ionicons name="megaphone-outline" size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "megaphone" : "megaphone-outline"} size={size} color={color} />,
         }}
       />
     </Tabs>

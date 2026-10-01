@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ScrollView, Text, View } from 'react-native'
 import { router } from 'expo-router'
-import { Button, Card, CopyButton } from '../../components/ui'
+import { Button, Card, CopyButton, HeroDecor } from '../../components/ui'
 import { supabase } from '../../lib/supabase'
 import { useLiturgicalSeason } from '../../lib/liturgicalTheme'
 import { useCongregationData } from '../../lib/congregationContext'
@@ -34,9 +34,10 @@ export default function Banking() {
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.content}>
       <View style={[styles.hero, { backgroundColor: season.color }]}>
+        <HeroDecor />
         <Text style={[styles.heroLabel, { color: season.text }]}>Banking Information</Text>
         <Text style={[styles.heroTitle, { color: season.text }]}>{congregation?.name ?? ''}</Text>
-        <Text style={[styles.heroSub, { color: season.text }]}>Use the correct account and reference for each payment</Text>
+        <Text style={[styles.heroSub, { color: season.text }]}>Pick the right account and reference so your gift lands safely</Text>
       </View>
 
       <Card>

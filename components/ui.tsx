@@ -36,6 +36,26 @@ export function GlassSheen({ cornerRadius = radius.lg }: { cornerRadius?: number
   )
 }
 
+// Soft translucent bubbles + a light gradient over a hero banner so it reads
+// as friendly rather than a flat slab of colour. The parent hero needs
+// overflow: 'hidden' (set in each screen's hero style) to clip the circles.
+export function HeroDecor() {
+  return (
+    <>
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0)']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <View pointerEvents="none" style={{ position: 'absolute', top: -40, right: -30, width: 140, height: 140, borderRadius: 70, backgroundColor: colors.sun, opacity: 0.35 }} />
+      <View pointerEvents="none" style={{ position: 'absolute', bottom: -34, right: 60, width: 90, height: 90, borderRadius: 45, backgroundColor: colors.mint, opacity: 0.3 }} />
+      <View pointerEvents="none" style={{ position: 'absolute', top: 30, right: 110, width: 26, height: 26, borderRadius: 13, backgroundColor: colors.white, opacity: 0.25 }} />
+    </>
+  )
+}
+
 export function Card({ children, style }: { children: React.ReactNode; style?: object }) {
   return (
     <View style={[styles.card, glassBlur, style]}>
@@ -58,7 +78,7 @@ export function SectionLabel({ children }: { children: React.ReactNode }) {
   return <Text style={styles.sectionLabel}>{children}</Text>
 }
 
-export function Chip({ label, color, onPress, selected }: { label: string; color: string; onPress?: () => void; selected?: boolean }) {
+export function Chip({ label, color, onPress, selected, icon }: { label: string; color: string; onPress?: () => void; selected?: boolean; icon?: keyof typeof Ionicons.glyphMap }) {
   const body = (
     <View
       style={[
@@ -66,6 +86,7 @@ export function Chip({ label, color, onPress, selected }: { label: string; color
         selected ? { backgroundColor: color, borderColor: color } : { backgroundColor: color + '26', borderColor: color + '55' },
       ]}
     >
+      {icon ? <Ionicons name={icon} size={13} color={selected ? colors.white : color} /> : null}
       <Text style={[styles.chipText, { color: selected ? colors.white : color }]} numberOfLines={1}>
         {label}
       </Text>
@@ -109,11 +130,27 @@ export function CopyButton({ value, size = 17 }: { value: string; size?: number 
   )
 }
 
-export function Field({ label, ...rest }: { label: string } & TextInputProps) {
+export function Field({ label, error, prefix, onFocus, onBlur, style, ...rest }: { label: string; error?: boolean; prefix?: string } & TextInputProps) {
+  const [focused, setFocused] = useState(false)
   return (
-    <View style={{ gap: 5 }}>
+    <View style={{ gap: 6 }}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <TextInput placeholderTextColor="#a99" style={styles.input} {...rest} />
+      <View style={[styles.inputWrap, focused && styles.inputFocused, error && styles.inputError]}>
+        {prefix ? <Text style={styles.inputPrefix}>{prefix}</Text> : null}
+        <TextInput
+          placeholderTextColor="#b3a99b"
+          style={[styles.inputText, style]}
+          onFocus={(e) => {
+            setFocused(true)
+            onFocus?.(e)
+          }}
+          onBlur={(e) => {
+            setFocused(false)
+            onBlur?.(e)
+          }}
+          {...rest}
+        />
+      </View>
     </View>
   )
 }
@@ -134,10 +171,11 @@ export function SelectField({
   const [open, setOpen] = useState(false)
   const current = options.find((o) => o.value === value)
   return (
-    <View style={{ gap: 5 }}>
+    <View style={{ gap: 6 }}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <Pressable style={styles.input} onPress={() => setOpen(true)}>
-        <Text style={{ fontSize: 15, color: current ? colors.text : '#a99' }}>{current ? current.label : placeholder}</Text>
+      <Pressable style={[styles.inputWrap, open && styles.inputFocused, { justifyContent: 'space-between', paddingHorizontal: 14 }]} onPress={() => setOpen(true)}>
+        <Text style={{ flex: 1, fontSize: 15, color: current ? colors.text : '#b3a99b' }} numberOfLines={1}>{current ? current.label : placeholder}</Text>
+        <Ionicons name="chevron-down" size={18} color={colors.muted} />
       </Pressable>
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <Pressable style={styles.modalBackdrop} onPress={() => setOpen(false)}>
@@ -156,6 +194,7 @@ export function SelectField({
                   }}
                 >
                   <Text style={[styles.modalOptionText, item.value === value && styles.modalOptionTextActive]}>{item.label}</Text>
+                  {item.value === value ? <Ionicons name="checkmark" size={18} color={colors.g700} /> : null}
                 </Pressable>
               )}
             />
@@ -218,10 +257,11 @@ export function DateField({
   }
 
   return (
-    <View style={{ gap: 5 }}>
+    <View style={{ gap: 6 }}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <Pressable style={styles.input} onPress={open}>
-        <Text style={{ fontSize: 15, color: value ? colors.text : '#a99' }}>{value ? formatDate(value) : placeholder}</Text>
+      <Pressable style={[styles.inputWrap, { justifyContent: 'space-between', paddingHorizontal: 14 }]} onPress={open}>
+        <Text style={{ flex: 1, fontSize: 15, color: value ? colors.text : '#b3a99b' }}>{value ? formatDate(value) : placeholder}</Text>
+        <Ionicons name="calendar-outline" size={18} color={colors.muted} />
       </Pressable>
       {Platform.OS === 'ios' && (
         <Modal visible={iosOpen} transparent animationType="fade" onRequestClose={() => setIosOpen(false)}>
@@ -270,7 +310,8 @@ export function Button({
       disabled={disabled || loading}
       style={({ pressed }) => [
         styles.btn,
-        { backgroundColor: bg, borderColor: border, opacity: disabled ? 0.5 : pressed ? 0.85 : 1 },
+        variant === 'primary' && !disabled && styles.btnPrimaryShadow,
+        { backgroundColor: bg, borderColor: border, opacity: disabled ? 0.5 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] },
       ]}
     >
       {loading ? <ActivityIndicator color={textColor} /> : <Text style={[styles.btnText, { color: textColor }]}>{title}</Text>}

@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
 import { ActivityIndicator, Image, RefreshControl, ScrollView, Text, View } from 'react-native'
-import { Card, Chip, GlassSheen, SectionLabel } from '../../components/ui'
+import { Card, Chip, GlassSheen, HeroDecor, SectionLabel } from '../../components/ui'
 import { PortalDetailsCard } from '../../components/portalDetailsCard'
 import { PortalInvolvementCard } from '../../components/portalInvolvementCard'
 import { PortalHouseholdCard } from '../../components/portalHouseholdCard'
@@ -92,6 +92,7 @@ export default function Portal() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.g700} />}
     >
       <View style={[styles.hero, { backgroundColor: season.color }]}>
+        <HeroDecor />
         <View style={styles.heroSeasonPill}>
           <Text style={[styles.heroSeasonPillText, { color: season.text }]}>{season.name.toUpperCase()}</Text>
         </View>
@@ -118,7 +119,8 @@ export default function Portal() {
           <GlassSheen />
           <SectionLabel>Baptism</SectionLabel>
           <Chip
-            label={profile.baptised ? 'Confirmed ✓' : profile.pending_baptism ? 'Pending Review' : 'Not Yet'}
+            label={profile.baptised ? 'Confirmed' : profile.pending_baptism ? 'Pending Review' : 'Not Yet'}
+            icon={profile.baptised ? 'checkmark-circle' : undefined}
             color={profile.baptised ? colors.g700 : profile.pending_baptism ? colors.gold : colors.muted}
           />
           {profile.baptised ? <Text style={styles.certLink} onPress={() => setCertKind('baptism')}>View Certificate</Text> : null}
@@ -127,7 +129,8 @@ export default function Portal() {
           <GlassSheen />
           <SectionLabel>Confirmation</SectionLabel>
           <Chip
-            label={profile.confirmed ? 'Confirmed ✓' : profile.pending_confirmation ? 'Pending Review' : 'Not Yet'}
+            label={profile.confirmed ? 'Confirmed' : profile.pending_confirmation ? 'Pending Review' : 'Not Yet'}
+            icon={profile.confirmed ? 'checkmark-circle' : undefined}
             color={profile.confirmed ? colors.g700 : profile.pending_confirmation ? colors.gold : colors.muted}
           />
           {profile.confirmed ? <Text style={styles.certLink} onPress={() => setCertKind('confirmation')}>View Certificate</Text> : null}

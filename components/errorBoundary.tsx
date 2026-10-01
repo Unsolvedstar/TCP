@@ -1,4 +1,6 @@
 import { Text, View } from 'react-native'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { colors } from '../theme'
 import type { ErrorBoundaryProps } from 'expo-router'
 import { Button } from './ui'
 import { styles } from './errorBoundary.styles'
@@ -12,7 +14,7 @@ import { styles } from './errorBoundary.styles'
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   return (
     <View style={styles.flex}>
-      <Text style={styles.cross}>✝</Text>
+      <MaterialCommunityIcons name="cross" size={36} color={colors.gold} />
       <Text style={styles.title}>Something went wrong</Text>
       <Text style={styles.message}>{error.message}</Text>
       <View style={styles.btn}>

@@ -5,7 +5,7 @@ export const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.cream },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cream },
   content: { padding: 16, paddingBottom: 32 },
-  screenTitle: { fontSize: 20, fontWeight: '700', color: colors.g800 },
+  screenTitle: { fontSize: 24, fontWeight: '800', color: colors.g800 },
   screenSub: { fontSize: 13, color: colors.muted, marginTop: 2, marginBottom: 16 },
   cardTitle: { fontSize: 15, fontWeight: '700', color: colors.g800, marginBottom: 10 },
   pendingRow: { borderTopWidth: 1, borderTopColor: colors.cream, paddingVertical: 10, gap: 8 },

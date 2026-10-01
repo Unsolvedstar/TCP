@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native'
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
 import { router } from 'expo-router'
+import { Ionicons } from '@expo/vector-icons'
 import * as Linking from 'expo-linking'
-import { Button, Card, Field, SelectField } from '../../components/ui'
+import { Button, Card, Field, HeroDecor, SelectField } from '../../components/ui'
 import { useLiturgicalSeason } from '../../lib/liturgicalTheme'
 import { useCongregationData } from '../../lib/congregationContext'
 import { useAuth } from '../../lib/authContext'
@@ -15,6 +16,7 @@ import type { SnapscanPayment } from '../../lib/types'
 export { ErrorBoundary } from '../../components/errorBoundary'
 
 const PAYMENT_COLUMNS = 'id,merchant_reference,amount_cents,status,created_at,completed_at,payment_code_id'
+const QUICK_AMOUNTS = [50, 100, 200, 500]
 const POLL_INTERVAL_MS = 3000
 // Matches SnapScan's own documented webhook retry window — if it hasn't
 // resolved by then, it's not going to via polling either; the history list
@@ -116,6 +118,7 @@ export default function BankingSnapScan() {
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.content}>
       <View style={[styles.hero, { backgroundColor: season.color }]}>
+        <HeroDecor />
         <Text style={[styles.heroLabel, { color: season.text }]}>Give via SnapScan</Text>
         <Text style={[styles.heroTitle, { color: season.text }]}>{congregation?.name ?? ''}</Text>
         <Text style={[styles.heroSub, { color: season.text }]}>Enter an amount and confirm in the SnapScan app</Text>
@@ -126,13 +129,22 @@ export default function BankingSnapScan() {
         <Text style={styles.cardSub}>Enter an amount and confirm in the SnapScan app — no scanning needed, and it's recorded on your own giving history below.</Text>
         <View style={{ gap: 10, marginTop: 4 }}>
           <Field
-            label="Amount (Rand)"
+            label="Amount"
+            prefix="R"
             value={amountInput}
             onChangeText={setAmountInput}
-            placeholder="e.g. 150"
+            placeholder="0.00"
             keyboardType="decimal-pad"
             editable={!starting}
+            error={!!amountError}
           />
+          <View style={styles.quickAmounts}>
+            {QUICK_AMOUNTS.map((amt) => (
+              <Pressable key={amt} style={[styles.quickAmount, amountInput === String(amt) && styles.quickAmountActive]} onPress={() => setAmountInput(String(amt))}>
+                <Text style={[styles.quickAmountText, amountInput === String(amt) && styles.quickAmountTextActive]}>R{amt}</Text>
+              </Pressable>
+            ))}
+          </View>
           {paymentCodes.length > 0 ? (
             <SelectField
               label="What's this for? (optional)"
@@ -158,10 +170,13 @@ export default function BankingSnapScan() {
                 </Text>
               </>
             ) : activePayment.status === 'completed' ? (
+              <>
+              <Ionicons name="checkmark-circle" size={22} color={colors.g700} />
               <Text style={styles.snapscanStatusCompletedText}>
-                ✓ Received — {centsToRandsDisplay(activePayment.amount_cents)}
+                Received — {centsToRandsDisplay(activePayment.amount_cents)}
                 {paymentCodeLabel(activePayment.payment_code_id) ? ` (${paymentCodeLabel(activePayment.payment_code_id)})` : ''}. Thank you!
               </Text>
+              </>
             ) : (
               <Text style={styles.snapscanStatusErrorText}>Payment wasn't completed. You can try again above.</Text>
             )}

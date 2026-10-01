@@ -4,12 +4,12 @@ import { colors, radius } from '../theme'
 export const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.cream },
   content: { padding: 16, paddingBottom: 32 },
-  hero: { backgroundColor: colors.g800, borderRadius: radius.lg, padding: 20, marginBottom: 16 },
+  hero: { backgroundColor: colors.g800, borderRadius: radius.xl, padding: 24, marginBottom: 18, overflow: 'hidden' },
   heroLabel: { fontSize: 10.5, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1, color: colors.gold3, marginBottom: 6 },
-  heroTitle: { fontSize: 18, fontWeight: '700', color: colors.white },
-  heroSub: { fontSize: 12, color: 'rgba(255,255,255,.55)', fontStyle: 'italic', marginTop: 4 },
+  heroTitle: { fontSize: 24, fontWeight: '800', color: colors.white },
+  heroSub: { fontSize: 13.5, color: 'rgba(255,255,255,.85)', marginTop: 6 },
   acctHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: colors.g800 },
+  cardTitle: { fontSize: 16, fontWeight: '800', color: colors.g800 },
   cardSub: { fontSize: 12, color: colors.muted, marginBottom: 10, marginTop: 2 },
   tag: { fontSize: 10.5, fontWeight: '700', color: colors.g700, backgroundColor: colors.g100, paddingVertical: 2, paddingHorizontal: 8, borderRadius: 4 },
   row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.cream },
@@ -42,6 +42,11 @@ export const styles = StyleSheet.create({
   },
   snapScanLinkLabel: { fontSize: 13.5, fontWeight: '700', color: colors.g800 },
   snapScanLinkArrow: { fontSize: 13.5, fontWeight: '700', color: colors.g700 },
+  quickAmounts: { flexDirection: 'row', gap: 8 },
+  quickAmount: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: radius.md, borderWidth: 1.5, borderColor: colors.warmBorder, backgroundColor: colors.white },
+  quickAmountActive: { borderColor: colors.g700, backgroundColor: colors.g50 },
+  quickAmountText: { fontSize: 13.5, fontWeight: '700', color: colors.muted },
+  quickAmountTextActive: { color: colors.g700 },
   backLink: { textAlign: 'center', color: colors.g700, fontWeight: '700', fontSize: 13.5, marginTop: 8, marginBottom: 8 },
 
   // SnapScan checkout (paygate) — app/(app)/bankingSnapscan.tsx

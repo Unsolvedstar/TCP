@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Image, Modal, Platform, ScrollView, Text, View } from 'react-native'
 import { captureRef } from 'react-native-view-shot'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { colors } from '../theme'
 import * as Sharing from 'expo-sharing'
 import { Alert } from '../lib/alert'
 import { Button, formatDate } from './ui'
@@ -215,7 +217,7 @@ export function CertificateModal({
 
             <View style={styles.seal}>
               {kind === 'confirmation' ? (
-                <Text style={styles.sealCross}>✝</Text>
+                <MaterialCommunityIcons name="cross" size={26} color={colors.g700} />
               ) : (
                 <Image source={require('../assets/brand/certificateSeal.png')} style={styles.sealImage} resizeMode="cover" />
               )}

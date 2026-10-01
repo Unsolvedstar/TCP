@@ -1,5 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { Text, View } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
+import { colors } from '../theme'
 import { Button } from './ui'
 import { styles } from './wizard.styles'
 
@@ -66,7 +68,11 @@ export function Wizard({
         {steps.map((s, i) => (
           <View key={s.key} style={styles.dotWrap}>
             <View style={[styles.dot, i === index && styles.dotCurrent, i < index && styles.dotDone]}>
-              <Text style={[styles.dotText, i <= index && styles.dotTextActive]}>{i < index ? '✓' : i + 1}</Text>
+              {i < index ? (
+                <Ionicons name="checkmark" size={14} color={colors.g700} />
+              ) : (
+                <Text style={[styles.dotText, i <= index && styles.dotTextActive]}>{i + 1}</Text>
+              )}
             </View>
             {i < steps.length - 1 && <View style={[styles.dotLine, i < index && styles.dotLineDone]} />}
           </View>

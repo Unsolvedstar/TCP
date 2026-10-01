@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { Text, View } from 'react-native'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { colors } from '../theme'
 import { Alert } from '../lib/alert'
 import { Button, Card, Field, SelectField } from './ui'
 import { LeagueBadge } from './leagueBadge'
@@ -143,7 +145,10 @@ export function PortalInvolvementCard({ profile, onChanged }: { profile: Profile
       <View style={styles.actionRow}>
         <Text style={styles.actionLabel}>Baptism</Text>
         {profile.baptised ? (
-          <Text style={styles.hintText}>You are baptised. Praise God! ✝</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+<Text style={styles.hintText}>You are baptised. Praise God!</Text>
+<MaterialCommunityIcons name="cross" size={14} color={colors.muted} />
+</View>
         ) : profile.pending_baptism ? (
           <View style={styles.actionCol}>
             <Text style={styles.hintText}>Your baptism request is awaiting approval.</Text>
@@ -174,7 +179,10 @@ export function PortalInvolvementCard({ profile, onChanged }: { profile: Profile
       <View style={[styles.actionRow, { borderBottomWidth: 0 }]}>
         <Text style={styles.actionLabel}>Confirmation</Text>
         {profile.confirmed ? (
-          <Text style={styles.hintText}>You are confirmed. Praise God! ✝</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+<Text style={styles.hintText}>You are confirmed. Praise God!</Text>
+<MaterialCommunityIcons name="cross" size={14} color={colors.muted} />
+</View>
         ) : profile.pending_confirmation ? (
           <View style={styles.actionCol}>
             <Text style={styles.hintText}>Your confirmation request is awaiting approval.</Text>

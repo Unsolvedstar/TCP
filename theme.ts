@@ -27,6 +27,11 @@ export const colors = {
   brandNavy: '#1b245f',
   brandGoldVivid: '#ffba25',
   brandRed: '#d71b39',
+  // Playful accents for decoration (hero bubbles, highlights) - never for text.
+  sun: '#ffc93c',
+  coral: '#ff8a65',
+  sky: '#7cc4ff',
+  mint: '#8fe3b0',
 }
 
 /**
@@ -63,4 +68,4 @@ export const genderColors: Record<string, string> = {
   Female: colors.gold,
 }
 
-export const radius = { md: 10, lg: 20, xl: 28 }
+export const radius = { md: 14, lg: 24, xl: 32 }
