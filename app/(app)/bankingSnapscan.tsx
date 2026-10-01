@@ -143,7 +143,7 @@ export default function BankingSnapScan() {
             />
           ) : null}
           {amountError ? <Text style={styles.snapscanError}>{amountError}</Text> : null}
-          <Button title="Pay with SnapScan" onPress={onPay} loading={starting} disabled={!congregation?.snapscan_merchant_code} />
+          <Button title="Pay with SnapScan" onPress={onPay} loading={starting} />
           {!congregation?.snapscan_merchant_code ? <Text style={styles.cardSub}>SnapScan checkout isn't set up for this congregation yet.</Text> : null}
         </View>
 
