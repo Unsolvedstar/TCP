@@ -2,6 +2,7 @@ import { Redirect, Tabs } from 'expo-router'
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Button } from '../../components/ui'
+import { BirthdayCelebration } from '../../components/birthdayCelebration'
 import { useAuth } from '../../lib/authContext'
 import { useLeagueAdmin } from '../../lib/leagueAdminContext'
 import { Alert } from '../../lib/alert'
@@ -60,6 +61,8 @@ export default function AppLayout() {
   const isAdmin = profile?.role === 'admin'
 
   return (
+    <>
+    <BirthdayCelebration />
     <Tabs
       screenOptions={{
         headerShown: true,
@@ -142,6 +145,7 @@ export default function AppLayout() {
       />
       <Tabs.Screen name="congregationAdmin" options={{ title: 'Congregation Settings', href: null }} />
     </Tabs>
+    </>
   )
 }
 
