@@ -349,7 +349,7 @@ export default function Members() {
           <View>
             <Text style={styles.screenTitle}>Congregation Registry</Text>
             <Text style={styles.screenSub}>
-              {members.length} member{members.length !== 1 ? 's' : ''}, {children.length} dependent{children.length !== 1 ? 's' : ''}
+              {members.length} member{members.length !== 1 ? 's' : ''} · {children.length} dependent{children.length !== 1 ? 's' : ''} · {households.length} famil{households.length !== 1 ? 'ies' : 'y'}
             </Text>
 
             {pending.length > 0 && (
@@ -420,24 +420,23 @@ export default function Members() {
             )}
 
             <View style={styles.tabRow}>
-              <Text onPress={() => setTab('adults')} style={[styles.tabBtn, tab === 'adults' && styles.tabBtnActive]}>
-                Members ({members.length})
+              <Text onPress={() => setTab('adults')} numberOfLines={1} style={[styles.tabBtn, tab === 'adults' && styles.tabBtnActive]}>
+                Members
               </Text>
-              <Text onPress={() => setTab('children')} style={[styles.tabBtn, tab === 'children' && styles.tabBtnActive]}>
-                Dependents ({children.length})
+              <Text onPress={() => setTab('children')} numberOfLines={1} style={[styles.tabBtn, tab === 'children' && styles.tabBtnActive]}>
+                Dependents
               </Text>
-              <Text onPress={() => setTab('families')} style={[styles.tabBtn, tab === 'families' && styles.tabBtnActive]}>
-                Families ({households.length})
+              <Text onPress={() => setTab('families')} numberOfLines={1} style={[styles.tabBtn, tab === 'families' && styles.tabBtnActive]}>
+                Families
               </Text>
-              <Text onPress={() => setTab('activity')} style={[styles.tabBtn, tab === 'activity' && styles.tabBtnActive]}>
+              <Text onPress={() => setTab('activity')} numberOfLines={1} style={[styles.tabBtn, tab === 'activity' && styles.tabBtnActive]}>
                 Activity
               </Text>
             </View>
 
-            <Pressable style={styles.snapScanLink} onPress={() => router.push('/(app)/congregationAdmin')}>
-              <Text style={styles.snapScanLinkLabel}>Congregation Settings — wards, leagues, branding & banking</Text>
-              <Text style={styles.snapScanLinkArrow}>→</Text>
-            </Pressable>
+            <View style={{ marginBottom: 16 }}>
+              <Button title="Congregation Settings" variant="secondary" onPress={() => router.push('/(app)/congregationAdmin')} />
+            </View>
 
             {tab === 'activity' ? (
               <ActivityList people={[...members, ...admins]} />

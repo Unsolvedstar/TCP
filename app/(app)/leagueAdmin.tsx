@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
-import { ActivityIndicator, Image, RefreshControl, ScrollView, Text, View } from 'react-native'
+import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Alert } from '../../lib/alert'
 import { Button, Card, DateField, Field } from '../../components/ui'
 import { ChipRow } from '../../components/chipRow'
-import { CertificatePicker } from '../../components/certificatePicker'
 import { VerseField } from '../../components/verseField'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/authContext'
@@ -14,7 +13,7 @@ import { useLeagueAdmin } from '../../lib/leagueAdminContext'
 import { applicationDetailText, applicationCertificateList } from '../../lib/applicationDetail'
 import { colors } from '../../theme'
 import { styles } from '../../styles/members.styles'
-import type { Announcement, ChildRow, ChurchEventRow, Profile } from '../../lib/types'
+import type { ChildRow, ChurchEventRow, Profile } from '../../lib/types'
 
 export { ErrorBoundary } from '../../components/errorBoundary'
 
@@ -33,17 +32,9 @@ export default function LeagueAdmin() {
   const [selectedLeagueId, setSelectedLeagueId] = useState(myLeagueIds[0] ?? '')
   const [pendingMembers, setPendingMembers] = useState<Profile[]>([])
   const [pendingChildren, setPendingChildren] = useState<ChildRow[]>([])
-  const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [events, setEvents] = useState<ChurchEventRow[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-
-  const [annTitle, setAnnTitle] = useState('')
-  const [annDateText, setAnnDateText] = useState('')
-  const [annBody, setAnnBody] = useState('')
-  const [annPoster, setAnnPoster] = useState<string | null>(null)
-  const [annAudience, setAnnAudience] = useState<'league' | 'church'>('league')
-  const [savingAnn, setSavingAnn] = useState(false)
 
   const [evTitle, setEvTitle] = useState('')
   const [evDate, setEvDate] = useState<string | null>(null)
@@ -118,15 +109,13 @@ export default function LeagueAdmin() {
     // (the main Dashboard/Portal list is where every whole-church post
     // belongs). A congregation admin overseeing everything sees all of them.
     const churchWideFilter = isAdmin ? 'league_id.is.null' : `and(league_id.is.null,created_by.eq.${profile.id})`
-    const [{ data: mem }, { data: dep }, { data: ann }, { data: ev }] = await Promise.all([
+    const [{ data: mem }, { data: dep }, { data: ev }] = await Promise.all([
       supabase.from('profiles').select('*').eq('pending_league_id', activeLeagueId),
       supabase.from('dependents').select('*, guardian:profiles(full_name)').eq('pending_league_id', activeLeagueId),
-      supabase.from('announcements').select('*').or(`league_id.eq.${activeLeagueId},${churchWideFilter}`).order('created_at', { ascending: false }),
       supabase.from('events').select('*').or(`league_id.eq.${activeLeagueId},${churchWideFilter}`).order('event_date', { ascending: false }),
     ])
     setPendingMembers((mem as Profile[]) ?? [])
     setPendingChildren((dep as unknown as ChildRow[]) ?? [])
-    setAnnouncements((ann as Announcement[]) ?? [])
     setEvents((ev as ChurchEventRow[]) ?? [])
     setLoading(false)
   }, [activeLeagueId, profile, isAdmin])
@@ -180,39 +169,6 @@ export default function LeagueAdmin() {
     const fn = item.isChild ? 'deny_dependent_league' : 'deny_league'
     const { error } = await supabase.rpc(fn, { target_id: item.id })
     if (error) Alert.alert('Could not update', error.message)
-    else loadAll()
-  }
-
-  async function addAnnouncement() {
-    if (!annTitle.trim() || !profile || !activeLeagueId) {
-      Alert.alert('Title required', 'Please enter a title.')
-      return
-    }
-    setSavingAnn(true)
-    const { error } = await supabase.from('announcements').insert({
-      congregation_id: profile.congregation_id,
-      league_id: annAudience === 'church' ? null : activeLeagueId,
-      title: annTitle.trim(),
-      date_text: annDateText.trim(),
-      body: annBody.trim(),
-      poster: annPoster,
-    })
-    setSavingAnn(false)
-    if (error) {
-      Alert.alert('Could not save', error.message)
-      return
-    }
-    setAnnTitle('')
-    setAnnDateText('')
-    setAnnBody('')
-    setAnnPoster(null)
-    setAnnAudience('league')
-    loadAll()
-  }
-
-  async function removeAnnouncement(id: string) {
-    const { error } = await supabase.from('announcements').delete().eq('id', id)
-    if (error) Alert.alert('Could not remove', error.message)
     else loadAll()
   }
 
@@ -271,7 +227,7 @@ export default function LeagueAdmin() {
     >
       <Text style={styles.screenTitle}>{isAdmin ? 'League Tools' : 'My League'}</Text>
       <Text style={styles.screenSub}>
-        {isAdmin ? 'Manage announcements, events, and join requests for any league — oversight view.' : 'Manage announcements, events, and join requests for your league.'}
+        {isAdmin ? 'Manage events and join requests for any league — oversight view.' : 'Manage events and join requests for your league.'}
       </Text>
 
       {myLeagues.length > 1 ? (
@@ -346,35 +302,6 @@ export default function LeagueAdmin() {
           <VerseField reference={certVerseReference} text={certVerseText} onChangeReference={setCertVerseReference} onChangeText={setCertVerseText} />
           <Button title="Save Certificate Details" onPress={saveCertDetails} loading={savingCertDetails} />
         </View>
-      </Card>
-
-      <Card>
-        <Text style={styles.cardTitle}>Post an Announcement</Text>
-        <View style={{ gap: 10 }}>
-          <ChipRow label="Who should see this?" options={audienceOptions} value={annAudience} onChange={(v) => setAnnAudience(v as 'league' | 'church')} allowDeselect={false} />
-          <Field label="Title" value={annTitle} onChangeText={setAnnTitle} placeholder="e.g. Bible study this Friday" />
-          <Field label="Date / when (optional)" value={annDateText} onChangeText={setAnnDateText} placeholder="e.g. 18 October 2026" />
-          <Field label="Details (optional)" value={annBody} onChangeText={setAnnBody} placeholder="Short description…" />
-          <CertificatePicker label="Poster (optional)" value={annPoster} onChange={setAnnPoster} />
-          <Button title="Post Announcement" onPress={addAnnouncement} loading={savingAnn} />
-        </View>
-        {announcements.map((a) => (
-          <View key={a.id} style={styles.pendingRow}>
-            <View style={{ flexDirection: 'row' }}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.pendingDetail}>
-                  {a.date_text} {a.league_id ? '' : '· Whole Church'}
-                </Text>
-                <Text style={styles.pendingName}>{a.title}</Text>
-                {a.poster ? <Image source={{ uri: a.poster }} style={{ width: '100%', height: 140, borderRadius: 10, marginTop: 6, backgroundColor: colors.cream }} resizeMode="cover" /> : null}
-                <Text style={styles.pendingDetail}>{a.body}</Text>
-              </View>
-              <Text style={styles.denyBtn} onPress={() => removeAnnouncement(a.id)}>
-                Remove
-              </Text>
-            </View>
-          </View>
-        ))}
       </Card>
 
       <Card>

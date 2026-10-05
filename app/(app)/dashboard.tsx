@@ -1,9 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useFocusEffect, useRouter } from 'expo-router'
-import { Image, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native'
-import { Alert } from '../../lib/alert'
-import { Button, Card, GlassSheen, HeroDecor } from '../../components/ui'
-import { CertificatePicker } from '../../components/certificatePicker'
+import { RefreshControl, ScrollView, Text, View } from 'react-native'
+import { GlassSheen, HeroDecor } from '../../components/ui'
 import { WardBreakdownCard } from '../../components/wardBreakdownCard'
 import { LeagueBreakdownCard } from '../../components/leagueBreakdownCard'
 import { LeaguesDirectoryCard } from '../../components/leaguesDirectoryCard'
@@ -22,12 +20,10 @@ import type { GenderStat, LeagueStat, SacramentStat, WardStat } from '../../lib/
 
 export { ErrorBoundary } from '../../components/errorBoundary'
 
-type Announcement = { id: string; title: string; date_text: string; body: string; poster: string | null; league_id: string | null }
-
 export default function Dashboard() {
   const router = useRouter()
   const { profile } = useAuth()
-  const { wards, leagues } = useCongregationData()
+  const { wards } = useCongregationData()
   const season = useLiturgicalSeason()
   const [section, setSection] = useState<'dashboard' | 'leagues' | 'calendar'>('dashboard')
   const [refreshing, setRefreshing] = useState(false)
@@ -35,22 +31,14 @@ export default function Dashboard() {
   const [leagueStats, setLeagueStats] = useState<LeagueStat[]>([])
   const [genderStats, setGenderStats] = useState<GenderStat[]>([])
   const [sacraments, setSacraments] = useState<SacramentStat>({ total: 0, baptised: 0, confirmed: 0, adults: 0, children: 0, elders: 0 })
-  const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [pendingCount, setPendingCount] = useState(0)
-  const [title, setTitle] = useState('')
-  const [dateText, setDateText] = useState('')
-  const [body, setBody] = useState('')
-  const [poster, setPoster] = useState<string | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [composerOpen, setComposerOpen] = useState(false)
 
   const loadAll = useCallback(async () => {
-    const [{ data: ws }, { data: ls }, { data: gs }, { data: sac }, { data: ann }, { data: pending }, { data: depPending }] = await Promise.all([
+    const [{ data: ws }, { data: ls }, { data: gs }, { data: sac }, { data: pending }, { data: depPending }] = await Promise.all([
       supabase.rpc('stats_by_ward'),
       supabase.rpc('stats_by_league'),
       supabase.rpc('stats_by_gender'),
       supabase.rpc('stats_sacraments'),
-      supabase.from('announcements').select('id,title,date_text,body,poster,league_id').order('created_at', { ascending: false }),
       supabase.from('profiles').select('pending_league_id,pending_baptism,pending_confirmation').eq('role', 'member'),
       supabase.from('dependents').select('pending_league_id,pending_baptism,pending_confirmation'),
     ])
@@ -58,7 +46,6 @@ export default function Dashboard() {
     setLeagueStats((ls as LeagueStat[]) ?? [])
     setGenderStats((gs as GenderStat[]) ?? [])
     if (sac && (sac as SacramentStat[]).length) setSacraments((sac as SacramentStat[])[0])
-    setAnnouncements((ann as Announcement[]) ?? [])
     const countIn = (rows: any[] | null) => (rows ?? []).reduce((n: number, m: any) => n + (m.pending_league_id ? 1 : 0) + (m.pending_baptism ? 1 : 0) + (m.pending_confirmation ? 1 : 0), 0)
     setPendingCount(countIn(pending) + countIn(depPending))
   }, [])
@@ -73,35 +60,6 @@ export default function Dashboard() {
     setRefreshing(true)
     await loadAll()
     setRefreshing(false)
-  }
-
-  async function addAnnouncement() {
-    if (!title.trim()) {
-      Alert.alert('Title required', 'Please enter a title.')
-      return
-    }
-    if (!profile) return
-    setSaving(true)
-    const { error } = await supabase
-      .from('announcements')
-      .insert({ congregation_id: profile.congregation_id, title: title.trim(), date_text: dateText.trim(), body: body.trim(), poster })
-    setSaving(false)
-    if (error) {
-      Alert.alert('Could not save', error.message)
-      return
-    }
-    setTitle('')
-    setDateText('')
-    setBody('')
-    setPoster(null)
-    setComposerOpen(false)
-    loadAll()
-  }
-
-  async function removeAnnouncement(id: string) {
-    const { error } = await supabase.from('announcements').delete().eq('id', id)
-    if (error) Alert.alert('Could not remove', error.message)
-    else loadAll()
   }
 
   return (
@@ -165,66 +123,6 @@ export default function Dashboard() {
           <WardBreakdownCard wardStats={wardStats} />
           <GenderBreakdownCard genderStats={genderStats} />
           <SacramentsCard sacraments={sacraments} />
-
-          <Card>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.cardTitle}>Parish Announcements</Text>
-                <Text style={[styles.cardSub, { marginBottom: composerOpen ? 10 : 0 }]}>
-                  Every announcement across the parish — whole-church and league-posted alike.
-                </Text>
-              </View>
-              {!composerOpen ? <Button title="+ New" onPress={() => setComposerOpen(true)} /> : null}
-            </View>
-            {composerOpen ? (
-              <View style={styles.form}>
-                <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="Title, e.g. Harvest Celebration" placeholderTextColor="#a99" />
-                <TextInput style={styles.input} value={dateText} onChangeText={setDateText} placeholder="Date / when, e.g. 18 October 2026" placeholderTextColor="#a99" />
-                <TextInput
-                  style={[styles.input, { height: 70, textAlignVertical: 'top' }]}
-                  value={body}
-                  onChangeText={setBody}
-                  placeholder="Short description…"
-                  placeholderTextColor="#a99"
-                  multiline
-                />
-                <CertificatePicker label="Poster (optional)" value={poster} onChange={setPoster} />
-                <View style={{ flexDirection: 'row', gap: 8 }}>
-                  <View style={{ flex: 1 }}>
-                    <Button title="Add Announcement" onPress={addAnnouncement} loading={saving} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Button title="Cancel" variant="secondary" onPress={() => setComposerOpen(false)} />
-                  </View>
-                </View>
-              </View>
-            ) : null}
-            {announcements.map((a) => {
-              const league = a.league_id ? leagues.find((l) => l.id === a.league_id) : null
-              return (
-                <View key={a.id} style={styles.annItem}>
-                  <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-                      <View style={{ flex: 1 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <Text style={styles.annDate}>{a.date_text}</Text>
-                          <Text style={[styles.audienceTag, league ? { color: league.color, backgroundColor: league.color + '1a' } : null]}>
-                            {league ? league.label : 'Whole Church'}
-                          </Text>
-                        </View>
-                        <Text style={styles.annTitle}>{a.title}</Text>
-                      </View>
-                      <Text style={styles.removeLink} onPress={() => removeAnnouncement(a.id)}>
-                        Remove
-                      </Text>
-                    </View>
-                    {a.poster ? <Image source={{ uri: a.poster }} style={styles.annPoster} resizeMode="cover" /> : null}
-                    <Text style={styles.annBody}>{a.body}</Text>
-                  </View>
-                </View>
-              )
-            })}
-          </Card>
         </>
       ) : section === 'leagues' ? (
         <>

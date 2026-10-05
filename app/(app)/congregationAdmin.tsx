@@ -393,8 +393,9 @@ export default function CongregationAdmin() {
         </View>
         {wards.map((w) => (
           <View key={w.id} style={[styles.pendingRow, { flexDirection: 'row', alignItems: 'center' }]}>
-            <Chip label={`${w.name} · ${w.bank_code}`} color={w.color} selected />
-            <View style={{ flex: 1 }} />
+            <View style={{ flex: 1, minWidth: 0, alignItems: 'flex-start' }}>
+              <Chip label={`${w.name} · ${w.bank_code}`} color={w.color} selected />
+            </View>
             <Text style={styles.approveBtn} onPress={() => startEditWard(w)}>
               Edit
             </Text>
@@ -430,8 +431,9 @@ export default function CongregationAdmin() {
         </View>
         {leagues.map((l) => (
           <View key={l.id} style={[styles.pendingRow, { flexDirection: 'row', alignItems: 'center' }]}>
-            <Chip label={l.label} color={l.color} selected />
-            <View style={{ flex: 1 }} />
+            <View style={{ flex: 1, minWidth: 0, alignItems: 'flex-start' }}>
+              <Chip label={l.label} color={l.color} selected />
+            </View>
             <Text style={styles.approveBtn} onPress={() => startEditLeague(l)}>
               Edit
             </Text>

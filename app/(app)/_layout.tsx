@@ -110,6 +110,14 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen
+        name="announcements"
+        options={{
+          title: 'Announcements',
+          href: isAdmin || myLeagueIds.length > 0 ? undefined : null,
+          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "megaphone" : "megaphone-outline"} size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="directory"
         options={{
           title: 'Directory',
@@ -124,15 +132,15 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen name="bankingSnapscan" options={{ title: 'SnapScan', href: null }} />
-      <Tabs.Screen name="congregationAdmin" options={{ title: 'Congregation Settings', href: null }} />
       <Tabs.Screen
         name="leagueAdmin"
         options={{
-          title: isAdmin ? 'League Tools' : 'My League',
+          title: isAdmin ? 'Leagues' : 'My League',
           href: myLeagueIds.length > 0 || isAdmin ? undefined : null,
-          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "megaphone" : "megaphone-outline"} size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "ribbon" : "ribbon-outline"} size={size} color={color} />,
         }}
       />
+      <Tabs.Screen name="congregationAdmin" options={{ title: 'Congregation Settings', href: null }} />
     </Tabs>
   )
 }
