@@ -18,6 +18,7 @@ import { CeremonyConfirmationCard } from '../../components/ceremonyConfirmationC
 import { CertificateModal } from '../../components/certificateModal'
 import { useAuth } from '../../lib/authContext'
 import { useCongregationData } from '../../lib/congregationContext'
+import { SpeakButton } from '../../components/speakButton'
 import { supabase } from '../../lib/supabase'
 import { useLiturgicalSeason } from '../../lib/liturgicalTheme'
 import { shouldShowMembershipCheckIn } from '../../lib/membershipCheckIn'
@@ -182,6 +183,7 @@ export default function Portal() {
                   <Text style={styles.annTitle}>{a.title}</Text>
                   {a.poster ? <Image source={{ uri: a.poster }} style={styles.annPoster} resizeMode="cover" /> : null}
                   <Text style={styles.annBody}>{a.body}</Text>
+                  <SpeakButton text={[a.title, a.date_text, a.body].filter(Boolean).join('. ')} />
                 </View>
               ))}
               {announcements.length > 3 ? (

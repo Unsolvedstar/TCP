@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Image, Modal, ScrollView, Text, View } from 'react-native'
 import { Button, Chip, formatDate } from './ui'
+import { WhatsAppButton } from './whatsAppButton'
 import { CertificateModal } from './certificateModal'
 import { BaptismCertificateDetailsModal } from './baptismCertificateDetailsModal'
 import { styles } from './memberProfileModal.styles'
@@ -67,6 +68,11 @@ export function MemberProfileModal({
         <View style={styles.box}>
           <Text style={styles.boxTitle}>Contact</Text>
           <Text style={styles.boxText}>{member.phone ?? 'No phone on file'}</Text>
+          {member.phone ? (
+            <View style={{ alignSelf: 'flex-start', marginBottom: 6 }}>
+              <WhatsAppButton phone={member.phone} label="Message on WhatsApp" />
+            </View>
+          ) : null}
           <Text style={styles.boxText}>{member.email ?? 'No email on file'}</Text>
           <Text style={styles.boxText}>{member.profession ?? 'No profession on file'}</Text>
           {member.date_of_birth ? <Text style={styles.boxText}>Born {formatDate(member.date_of_birth)}</Text> : null}

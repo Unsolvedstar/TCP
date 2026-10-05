@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
+import { WhatsAppButton } from '../../components/whatsAppButton'
 import { ActivityIndicator, FlatList, Linking, Pressable, RefreshControl, Text, TextInput, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Chip, GlassSheen } from '../../components/ui'
@@ -85,14 +86,17 @@ export default function Directory() {
                 </View>
               </View>
             </View>
-            <Pressable
-              disabled={!item.phone}
-              onPress={() => item.phone && Linking.openURL(`tel:${item.phone.replace(/\s/g, '')}`)}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.cream }}
-            >
-              <Ionicons name="call-outline" size={16} color={item.phone ? colors.g700 : colors.muted} />
-              <Text style={{ fontSize: 13.5, fontWeight: item.phone ? '700' : '400', color: item.phone ? colors.g700 : colors.muted }}>{item.phone ?? 'No phone on file'}</Text>
-            </Pressable>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.cream }}>
+              <Pressable
+                disabled={!item.phone}
+                onPress={() => item.phone && Linking.openURL(`tel:${item.phone.replace(/\s/g, '')}`)}
+                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}
+              >
+                <Ionicons name="call-outline" size={16} color={item.phone ? colors.g700 : colors.muted} />
+                <Text style={{ fontSize: 13.5, fontWeight: item.phone ? '700' : '400', color: item.phone ? colors.g700 : colors.muted }}>{item.phone ?? 'No phone on file'}</Text>
+              </Pressable>
+              <WhatsAppButton phone={item.phone} label="Message" />
+            </View>
           </View>
         )
       }}

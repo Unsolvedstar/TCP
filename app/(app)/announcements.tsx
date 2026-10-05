@@ -4,6 +4,7 @@ import { ActivityIndicator, Image, RefreshControl, ScrollView, Text, View } from
 import { Alert } from '../../lib/alert'
 import { Button, Card, Field } from '../../components/ui'
 import { ChipRow } from '../../components/chipRow'
+import { SpeakButton } from '../../components/speakButton'
 import { CertificatePicker } from '../../components/certificatePicker'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/authContext'
@@ -143,6 +144,7 @@ export default function Announcements() {
                   <Text style={styles.pendingName}>{a.title}</Text>
                   {a.poster ? <Image source={{ uri: a.poster }} style={{ width: '100%', height: 140, borderRadius: 10, marginTop: 6, backgroundColor: colors.cream }} resizeMode="cover" /> : null}
                   {a.body ? <Text style={styles.pendingDetail}>{a.body}</Text> : null}
+                  <SpeakButton text={[a.title, a.date_text, a.body].filter(Boolean).join('. ')} />
                 </View>
                 {isAdmin || a.league_id ? (
                   <Text style={styles.denyBtn} onPress={() => removeAnnouncement(a.id)}>
