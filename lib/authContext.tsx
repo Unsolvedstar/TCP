@@ -22,10 +22,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
 
-  async function loadProfile(userId: string) {
+  async function loadProfile(userId: string, email?: string | null) {
     const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
-    const { data: userData } = await supabase.auth.getUser()
-    const isHardcodedAdmin = userData.user?.email?.toLowerCase() === HARDCODED_ADMIN_EMAIL
+    const isHardcodedAdmin = email?.toLowerCase() === HARDCODED_ADMIN_EMAIL
     const loaded = (data as Profile) ?? null
     setProfile(loaded && isHardcodedAdmin ? { ...loaded, role: 'admin' } : loaded)
   }
@@ -48,7 +47,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       .then(async ({ data }) => {
         setSession(data.session)
         if (data.session) {
-          await loadProfile(data.session.user.id)
+          await loadProfile(data.session.user.id, data.session.user.email)
           touchLastActive()
         }
       })
@@ -59,7 +58,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       setSession(newSession)
       try {
         if (newSession) {
-          await loadProfile(newSession.user.id)
+          await loadProfile(newSession.user.id, newSession.user.email)
           touchLastActive()
         } else {
           setProfile(null)
@@ -75,7 +74,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, [])
 
   async function refreshProfile() {
-    if (session) await loadProfile(session.user.id)
+    if (session) await loadProfile(session.user.id, session.user.email)
   }
 
   async function signOut() {

@@ -144,9 +144,11 @@ export default function Announcements() {
                   {a.poster ? <Image source={{ uri: a.poster }} style={{ width: '100%', height: 140, borderRadius: 10, marginTop: 6, backgroundColor: colors.cream }} resizeMode="cover" /> : null}
                   {a.body ? <Text style={styles.pendingDetail}>{a.body}</Text> : null}
                 </View>
-                <Text style={styles.denyBtn} onPress={() => removeAnnouncement(a.id)}>
-                  Remove
-                </Text>
+                {isAdmin || a.league_id ? (
+                  <Text style={styles.denyBtn} onPress={() => removeAnnouncement(a.id)}>
+                    Remove
+                  </Text>
+                ) : null}
               </View>
             </View>
           )
