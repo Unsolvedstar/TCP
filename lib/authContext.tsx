@@ -11,6 +11,10 @@ type AuthState = {
   signOut: () => Promise<void>
 }
 
+// This account always gets the admin side, regardless of its profiles.role value.
+// (Server-side RLS is covered by migration 0030_hardcoded_admin.sql.)
+const HARDCODED_ADMIN_EMAIL = 'tshikovhitshedza9@gmail.com'
+
 const AuthContext = createContext<AuthState | undefined>(undefined)
 
 export function AuthProvider({ children }: PropsWithChildren) {
@@ -20,7 +24,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   async function loadProfile(userId: string) {
     const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
-    setProfile((data as Profile) ?? null)
+    const { data: userData } = await supabase.auth.getUser()
+    const isHardcodedAdmin = userData.user?.email?.toLowerCase() === HARDCODED_ADMIN_EMAIL
+    const loaded = (data as Profile) ?? null
+    setProfile(loaded && isHardcodedAdmin ? { ...loaded, role: 'admin' } : loaded)
   }
 
   // Fire-and-forget: records "last active" both for a real sign-in and for
