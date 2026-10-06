@@ -30,7 +30,7 @@ export function MyLeagueCard() {
         if (cancelled) return
         setAnnouncements((ann as Announcement[]) ?? [])
         setEvents((ev as ChurchEventRow[]) ?? [])
-      })
+      }).catch((err) => console.error('Failed to load league card', err))
       return () => {
         cancelled = true
       }

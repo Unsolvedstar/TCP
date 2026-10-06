@@ -20,6 +20,7 @@ export default function Banking() {
     supabase
       .rpc('my_family')
       .then(({ data }) => setFamily(((data as MyFamily[]) ?? [])[0] ?? null))
+      .then(undefined, (err) => console.error('Failed to load family', err))
   }, [])
 
   const exampleWard = wards[0]

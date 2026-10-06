@@ -110,15 +110,21 @@ export function PortalFamilyCard() {
   const [selectedSibling, setSelectedSibling] = useState<RelativeMatch | null>(null)
 
   const load = useCallback(async () => {
-    const [{ data }, {
-      data: { user },
-    }] = await Promise.all([supabase.rpc('my_family'), supabase.auth.getUser()])
-    setFamily(((data as MyFamily[]) ?? [])[0] ?? null)
-    setLoading(false)
-    if (user) {
-      setUserId(user.id)
-      const dismissed = await AsyncStorage.getItem(nudgeStorageKey(user.id))
-      setNudgeDismissed(dismissed === '1')
+    try {
+      const [{ data }, {
+        data: { user },
+      }] = await Promise.all([supabase.rpc('my_family'), supabase.auth.getUser()])
+      setFamily(((data as MyFamily[]) ?? [])[0] ?? null)
+      setLoading(false)
+      if (user) {
+        setUserId(user.id)
+        const dismissed = await AsyncStorage.getItem(nudgeStorageKey(user.id))
+        setNudgeDismissed(dismissed === '1')
+      }
+    } catch (err) {
+      console.error('Failed to load family', err)
+    } finally {
+      setLoading(false)
     }
   }, [])
 
@@ -134,10 +140,13 @@ export function PortalFamilyCard() {
     let cancelled = false
     setSearchingSiblings(true)
     const t = setTimeout(async () => {
-      const { data } = await supabase.rpc('search_possible_relatives', { p_query: siblingQuery.trim() })
-      if (!cancelled) {
-        setSiblingResults((data as RelativeMatch[]) ?? [])
-        setSearchingSiblings(false)
+      try {
+        const { data } = await supabase.rpc('search_possible_relatives', { p_query: siblingQuery.trim() })
+        if (!cancelled) setSiblingResults((data as RelativeMatch[]) ?? [])
+      } catch (err) {
+        console.error('Sibling search failed', err)
+      } finally {
+        if (!cancelled) setSearchingSiblings(false)
       }
     }, 400)
     return () => {

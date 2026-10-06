@@ -43,13 +43,18 @@ export default function Announcements() {
   ]
 
   const loadAll = useCallback(async () => {
-    const { data } = await supabase.from('announcements').select('*').order('created_at', { ascending: false })
-    const all = (data as Announcement[]) ?? []
-    // League admins manage only their leagues' posts and their own church-wide ones.
-    setAnnouncements(
-      isAdmin ? all : all.filter((a) => (a.league_id ? myLeagueIds.includes(a.league_id) : a.created_by === profile?.id))
-    )
-    setLoading(false)
+    try {
+      const { data } = await supabase.from('announcements').select('*').order('created_at', { ascending: false })
+      const all = (data as Announcement[]) ?? []
+      // League admins manage only their leagues' posts and their own church-wide ones.
+      setAnnouncements(
+        isAdmin ? all : all.filter((a) => (a.league_id ? myLeagueIds.includes(a.league_id) : a.created_by === profile?.id))
+      )
+    } catch (err) {
+      console.error('Failed to load announcements', err)
+    } finally {
+      setLoading(false)
+    }
   }, [isAdmin, myLeagueIds, profile?.id])
 
   useFocusEffect(
@@ -60,8 +65,11 @@ export default function Announcements() {
 
   async function onRefresh() {
     setRefreshing(true)
-    await loadAll()
-    setRefreshing(false)
+    try {
+      await loadAll()
+    } finally {
+      setRefreshing(false)
+    }
   }
 
   async function addAnnouncement() {

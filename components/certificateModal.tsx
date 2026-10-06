@@ -100,6 +100,7 @@ export function CertificateModal({
       .then(({ data }) => {
         if (!cancelled) setCeremonyDate((data?.[0] as { ceremony_date: string } | undefined)?.ceremony_date ?? null)
       })
+      .then(undefined, (err) => console.error('Failed to load ceremony date', err))
     return () => {
       cancelled = true
     }

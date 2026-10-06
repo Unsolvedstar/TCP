@@ -33,7 +33,10 @@ export function LeagueAdminProvider({ children }: PropsWithChildren) {
       .then(({ data }) => {
         if (cancelled) return
         setMyLeagueIds(((data as { league_id: string }[]) ?? []).map((r) => r.league_id))
-        setLoading(false)
+      })
+      .then(undefined, (err) => console.error('Failed to load league admin roles', err))
+      .then(() => {
+        if (!cancelled) setLoading(false)
       })
     return () => {
       cancelled = true

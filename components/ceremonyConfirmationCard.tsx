@@ -28,12 +28,16 @@ export function CeremonyConfirmationCard() {
   const [busyId, setBusyId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
-    const { data } = await supabase
-      .from('ceremony_proposals')
-      .select('id, kind, ceremony_date, subject_dependent_id, leagues(label), dependents:subject_dependent_id(full_name)')
-      .eq('status', 'proposed')
-      .order('ceremony_date')
-    setProposals((data as unknown as ProposalRow[]) ?? [])
+    try {
+      const { data } = await supabase
+        .from('ceremony_proposals')
+        .select('id, kind, ceremony_date, subject_dependent_id, leagues(label), dependents:subject_dependent_id(full_name)')
+        .eq('status', 'proposed')
+        .order('ceremony_date')
+      setProposals((data as unknown as ProposalRow[]) ?? [])
+    } catch (err) {
+      console.error('Failed to load ceremony proposals', err)
+    }
   }, [])
 
   useFocusEffect(

@@ -25,9 +25,14 @@ export default function Directory() {
   const [search, setSearch] = useState('')
 
   const load = useCallback(async () => {
-    const { data } = await supabase.rpc('congregation_directory')
-    setEntries((data as DirectoryEntry[]) ?? [])
-    setLoading(false)
+    try {
+      const { data } = await supabase.rpc('congregation_directory')
+      setEntries((data as DirectoryEntry[]) ?? [])
+    } catch (err) {
+      console.error('Failed to load directory', err)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useFocusEffect(
@@ -38,8 +43,11 @@ export default function Directory() {
 
   async function onRefresh() {
     setRefreshing(true)
-    await load()
-    setRefreshing(false)
+    try {
+      await load()
+    } finally {
+      setRefreshing(false)
+    }
   }
 
   const filtered = useMemo(() => {

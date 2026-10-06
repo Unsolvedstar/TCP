@@ -58,8 +58,11 @@ export default function Dashboard() {
 
   async function onRefresh() {
     setRefreshing(true)
-    await loadAll()
-    setRefreshing(false)
+    try {
+      await loadAll()
+    } finally {
+      setRefreshing(false)
+    }
   }
 
   return (

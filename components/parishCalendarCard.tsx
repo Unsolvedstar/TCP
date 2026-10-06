@@ -106,7 +106,7 @@ export function ParishCalendarCard() {
       setMarkers(all)
     }
 
-    load()
+    load().catch((err) => console.error('Failed to load calendar markers', err))
     return () => {
       cancelled = true
     }
