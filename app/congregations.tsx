@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from 'react-native'
-import { Link, router } from 'expo-router'
+import { router } from 'expo-router'
+import { Button } from '../components/ui'
 import { ChurchHeader } from '../components/churchHeader'
 import { listRegistrationCongregations } from '../lib/congregation'
 import type { CongregationSummary } from '../lib/types'
@@ -50,11 +51,7 @@ export default function Congregations() {
         </Pressable>
       ))}
 
-      <Link href="/" asChild>
-        <Pressable>
-          <Text style={styles.backLink}>← Back</Text>
-        </Pressable>
-      </Link>
+      <Button title="Back" variant="back" onPress={() => router.replace('/')} />
     </ScrollView>
   )
 }

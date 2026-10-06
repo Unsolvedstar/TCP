@@ -2,26 +2,27 @@ import { useCallback, useMemo, useState } from 'react'
 import { router, useFocusEffect } from 'expo-router'
 import { ActivityIndicator, FlatList, Image, Pressable, RefreshControl, Text, TextInput, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { Alert } from '../../lib/alert'
-import { Button, Card, Chip, DateField, GlassSheen, SelectField, formatDate } from '../../components/ui'
-import { EditMemberModal } from '../../components/editMemberModal'
-import { MemberProfileModal } from '../../components/memberProfileModal'
-import { EditChildModal } from '../../components/editChildModal'
-import { ActivityList } from '../../components/activityList'
-import { ChipRow } from '../../components/chipRow'
-import { HouseholdCard } from '../../components/householdCard'
-import { CollapsibleSection } from '../../components/collapsibleSection'
-import { supabase } from '../../lib/supabase'
-import { colors, genderColors } from '../../theme'
-import { useCongregationData } from '../../lib/congregationContext'
-import { applicationDetailText, applicationCertificateList } from '../../lib/applicationDetail'
-import { classifyAge, AGE_GROUP_LABELS } from '../../lib/ageGroups'
-import { styles } from '../../styles/members.styles'
-import type { BaptismApplication, ChildRow, ConfirmationApplication, Household, LeagueApplication, Profile } from '../../lib/types'
+import { Alert } from '../../../lib/alert'
+import { Button, Card, Chip, DateField, GlassSheen, SelectField, formatDate } from '../../../components/ui'
+import { EditMemberModal } from '../../../components/editMemberModal'
+import { MemberProfileModal } from '../../../components/memberProfileModal'
+import { EditChildModal } from '../../../components/editChildModal'
+import { ActivityList } from '../../../components/activityList'
+import { ChipRow } from '../../../components/chipRow'
+import { HouseholdCard } from '../../../components/householdCard'
+import { CollapsibleSection } from '../../../components/collapsibleSection'
+import { supabase } from '../../../lib/supabase'
+import { rpcAction } from '../../../lib/rpcAction'
+import { colors, genderColors } from '../../../theme'
+import { useCongregationData } from '../../../lib/congregationContext'
+import { applicationDetailText, applicationCertificateList } from '../../../lib/applicationDetail'
+import { classifyAge, AGE_GROUP_LABELS } from '../../../lib/ageGroups'
+import { styles } from '../../../styles/members.styles'
+import type { BaptismApplication, ChildRow, ConfirmationApplication, Household, LeagueApplication, Profile } from '../../../lib/types'
 
 const AGE_GROUP_COLORS = { child: '#c1447e', adult: colors.g700, elder: colors.brandNavy } as const
 
-export { ErrorBoundary } from '../../components/errorBoundary'
+export { ErrorBoundary } from '../../../components/errorBoundary'
 
 const NONE_LEAGUE = { id: '', key: 'None', label: 'No League / Organisation', color: '#9e9e9e' }
 // Distinct from '' (the "All leagues" filter sentinel) so the filter can
@@ -77,6 +78,18 @@ export default function Members() {
   const [generatingCodes, setGeneratingCodes] = useState(false)
 
   const loadAll = useCallback(async () => {
+    try {
+      await fetchAll()
+    } catch (err) {
+      // A network failure must not leave the screen on its loading spinner
+      // forever, or surface as an unhandled rejection from useFocusEffect.
+      console.error('Failed to load members', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  async function fetchAll() {
     const [{ data: mem, error: memErr }, { data: dep, error: depErr }, { data: adm, error: admErr }, { data: la }, { data: hh }, { data: amf }] = await Promise.all([
       supabase.from('profiles').select('*').eq('role', 'member').order('full_name'),
       supabase.from('dependents').select('*, guardian:profiles(full_name)').order('full_name'),
@@ -91,8 +104,7 @@ export default function Members() {
     setLeagueAdmins((la as unknown as LeagueAdminRow[]) ?? [])
     setHouseholds((hh as Household[]) ?? [])
     setAutoMergeFlags((amf as AutoMergeFlag[]) ?? [])
-    setLoading(false)
-  }, [])
+  }
 
   useFocusEffect(
     useCallback(() => {
@@ -149,11 +161,7 @@ export default function Members() {
   async function revokeLeagueAdmin(profileId: string, leagueId: string, leagueLabel: string, name: string) {
     Alert.alert('Remove league admin', `Remove ${name} as admin of ${leagueLabel}?`, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Remove', style: 'destructive', onPress: async () => {
-        const { error } = await supabase.rpc('admin_set_league_admin', { target_profile_id: profileId, target_league_id: leagueId, make_admin: false })
-        if (error) Alert.alert('Could not remove', error.message)
-        else loadAll()
-      } },
+      { text: 'Remove', style: 'destructive', onPress: () => rpcAction(() => supabase.rpc('admin_set_league_admin', { target_profile_id: profileId, target_league_id: leagueId, make_admin: false }), 'Could not remove', loadAll) },
     ])
   }
 
@@ -205,21 +213,20 @@ export default function Members() {
 
   async function generateCodes() {
     setGeneratingCodes(true)
-    const { data, error } = await supabase.rpc('admin_generate_household_codes', { p_count: 20 })
+    let codes: string[] = []
+    const ok = await rpcAction(async () => {
+      const res = await supabase.rpc('admin_generate_household_codes', { p_count: 20 })
+      codes = ((res.data as { id: string; code: string }[]) ?? []).map((r) => r.code)
+      return res
+    }, 'Could not generate codes')
     setGeneratingCodes(false)
-    if (error) {
-      Alert.alert('Could not generate codes', error.message)
-      return
-    }
-    const codes = ((data as { id: string; code: string }[]) ?? []).map((r) => r.code)
+    if (!ok) return
     Alert.alert('20 new family codes', `Hand these out — the first person to register or join with each one starts that family:\n\n${codes.join('   ')}`)
     loadAll()
   }
 
   async function confirmAutoMerge(flag: AutoMergeFlag) {
-    const { error } = await supabase.rpc('admin_confirm_auto_merge', { target_id: flag.id })
-    if (error) Alert.alert('Could not confirm', error.message)
-    else loadAll()
+    await rpcAction(() => supabase.rpc('admin_confirm_auto_merge', { target_id: flag.id }), 'Could not confirm', loadAll)
   }
 
   function splitAutoMerge(flag: AutoMergeFlag) {
@@ -231,11 +238,7 @@ export default function Members() {
         {
           text: 'Split',
           style: 'destructive',
-          onPress: async () => {
-            const { error } = await supabase.rpc('admin_split_auto_merge', { target_id: flag.id })
-            if (error) Alert.alert('Could not split', error.message)
-            else loadAll()
-          },
+          onPress: () => rpcAction(() => supabase.rpc('admin_split_auto_merge', { target_id: flag.id }), 'Could not split', loadAll),
         },
       ]
     )
@@ -256,18 +259,19 @@ export default function Members() {
       return
     }
     setSendingDate(true)
-    const { error } = await supabase.rpc('propose_ceremony_date', {
-      target_id: item.id,
-      p_is_dependent: item.isChild,
-      p_kind: item.type,
-      p_ceremony_date: ceremonyDate,
-      p_league_id: item.leagueId ?? null,
-    })
+    const ok = await rpcAction(
+      () =>
+        supabase.rpc('propose_ceremony_date', {
+          target_id: item.id,
+          p_is_dependent: item.isChild,
+          p_kind: item.type,
+          p_ceremony_date: ceremonyDate,
+          p_league_id: item.leagueId ?? null,
+        }),
+      'Could not send date'
+    )
     setSendingDate(false)
-    if (error) {
-      Alert.alert('Could not send date', error.message)
-      return
-    }
+    if (!ok) return
     setSchedulingKey(null)
     setCeremonyDate(null)
     loadAll()
@@ -276,9 +280,7 @@ export default function Members() {
   async function deny(item: PendingItem) {
     const prefix = item.isChild ? 'deny_dependent_' : 'deny_'
     const fn = `${prefix}${item.type}`
-    const { error } = await supabase.rpc(fn, { target_id: item.id })
-    if (error) Alert.alert('Could not update', error.message)
-    else loadAll()
+    await rpcAction(() => supabase.rpc(fn, { target_id: item.id }), 'Could not update', loadAll)
   }
 
   function confirmRemoveMember(m: Profile) {
@@ -289,43 +291,27 @@ export default function Members() {
         : `Remove ${m.full_name} from the registry? This cannot be undone.`
     Alert.alert('Remove member', message, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Remove', style: 'destructive', onPress: async () => {
-        const { error } = await supabase.rpc('admin_remove_member', { target_id: m.id })
-        if (error) Alert.alert('Could not remove', error.message)
-        else loadAll()
-      } },
+      { text: 'Remove', style: 'destructive', onPress: () => rpcAction(() => supabase.rpc('admin_remove_member', { target_id: m.id }), 'Could not remove', loadAll) },
     ])
   }
 
   function confirmPromoteMember(m: Profile) {
     Alert.alert('Promote to Admin', `Give ${m.full_name} full admin access? They'll be able to see, edit, approve, and remove every member.`, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Promote', onPress: async () => {
-        const { error } = await supabase.rpc('admin_set_role', { target_id: m.id, new_role: 'admin' })
-        if (error) Alert.alert('Could not promote', error.message)
-        else loadAll()
-      } },
+      { text: 'Promote', onPress: () => rpcAction(() => supabase.rpc('admin_set_role', { target_id: m.id, new_role: 'admin' }), 'Could not promote', loadAll) },
     ])
   }
 
   function confirmDemoteAdmin(a: Profile) {
     Alert.alert('Remove Admin Access', `Remove admin access from ${a.full_name}? They'll go back to being a regular member.`, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Remove Access', style: 'destructive', onPress: async () => {
-        const { error } = await supabase.rpc('admin_set_role', { target_id: a.id, new_role: 'member' })
-        if (error) Alert.alert('Could not update', error.message)
-        else loadAll()
-      } },
+      { text: 'Remove Access', style: 'destructive', onPress: () => rpcAction(() => supabase.rpc('admin_set_role', { target_id: a.id, new_role: 'member' }), 'Could not update', loadAll) },
     ])
   }
   function confirmRemoveChild(c: ChildRow) {
     Alert.alert('Remove child', `Remove ${c.full_name} from the household registry? This cannot be undone.`, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Remove', style: 'destructive', onPress: async () => {
-        const { error } = await supabase.rpc('admin_remove_dependent', { target_id: c.id })
-        if (error) Alert.alert('Could not remove', error.message)
-        else loadAll()
-      } },
+      { text: 'Remove', style: 'destructive', onPress: () => rpcAction(() => supabase.rpc('admin_remove_dependent', { target_id: c.id }), 'Could not remove', loadAll) },
     ])
   }
 
@@ -436,7 +422,7 @@ export default function Members() {
             </View>
 
             <View style={{ marginBottom: 16 }}>
-              <Button title="Congregation Settings" variant="secondary" onPress={() => router.push('/(app)/congregationAdmin')} />
+              <Button title="Congregation Settings" variant="secondary" onPress={() => router.push('/congregationAdmin')} />
             </View>
 
             {tab === 'activity' ? (

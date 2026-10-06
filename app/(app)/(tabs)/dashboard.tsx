@@ -1,24 +1,24 @@
 import { useCallback, useState } from 'react'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { RefreshControl, ScrollView, Text, View } from 'react-native'
-import { GlassSheen, HeroDecor } from '../../components/ui'
-import { WardBreakdownCard } from '../../components/wardBreakdownCard'
-import { LeagueBreakdownCard } from '../../components/leagueBreakdownCard'
-import { LeaguesDirectoryCard } from '../../components/leaguesDirectoryCard'
-import { GenderBreakdownCard } from '../../components/genderBreakdownCard'
-import { SacramentsCard } from '../../components/sacramentsCard'
-import { ParishCalendarCard } from '../../components/parishCalendarCard'
-import { MembershipCheckInBanner } from '../../components/membershipCheckInBanner'
-import { supabase } from '../../lib/supabase'
-import { useLiturgicalSeason } from '../../lib/liturgicalTheme'
-import { useAuth } from '../../lib/authContext'
-import { useCongregationData } from '../../lib/congregationContext'
-import { shouldShowMembershipCheckIn } from '../../lib/membershipCheckIn'
-import { colors, radius } from '../../theme'
-import { styles } from '../../styles/dashboard.styles'
-import type { GenderStat, LeagueStat, SacramentStat, WardStat } from '../../lib/types'
+import { GlassSheen, HeroDecor } from '../../../components/ui'
+import { WardBreakdownCard } from '../../../components/wardBreakdownCard'
+import { LeagueBreakdownCard } from '../../../components/leagueBreakdownCard'
+import { LeaguesDirectoryCard } from '../../../components/leaguesDirectoryCard'
+import { GenderBreakdownCard } from '../../../components/genderBreakdownCard'
+import { SacramentsCard } from '../../../components/sacramentsCard'
+import { ParishCalendarCard } from '../../../components/parishCalendarCard'
+import { MembershipCheckInBanner } from '../../../components/membershipCheckInBanner'
+import { supabase } from '../../../lib/supabase'
+import { useLiturgicalSeason } from '../../../lib/liturgicalTheme'
+import { useAuth } from '../../../lib/authContext'
+import { useCongregationData } from '../../../lib/congregationContext'
+import { shouldShowMembershipCheckIn } from '../../../lib/membershipCheckIn'
+import { colors, radius } from '../../../theme'
+import { styles } from '../../../styles/dashboard.styles'
+import type { GenderStat, LeagueStat, SacramentStat, WardStat } from '../../../lib/types'
 
-export { ErrorBoundary } from '../../components/errorBoundary'
+export { ErrorBoundary } from '../../../components/errorBoundary'
 
 export default function Dashboard() {
   const router = useRouter()
@@ -87,7 +87,7 @@ export default function Dashboard() {
       {pendingCount > 0 ? (
         <View style={styles.pendingBanner}>
           <Text style={styles.pendingText}>{pendingCount} pending request{pendingCount !== 1 ? 's' : ''}</Text>
-          <Text style={styles.pendingLink} onPress={() => router.push('/(app)/members')}>
+          <Text style={styles.pendingLink} onPress={() => router.push('/members')}>
             Review →
           </Text>
         </View>

@@ -29,23 +29,31 @@ export function CertificatePicker({ label, value, onChange }: { label: string; v
   }
 
   async function pickFromLibrary() {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync()
-    if (!perm.granted) {
-      Alert.alert('Permission needed', 'Please allow photo access to attach a certificate.')
-      return
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync()
+      if (!perm.granted) {
+        Alert.alert('Permission needed', 'Please allow photo access to attach a certificate.')
+        return
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 })
+      if (!result.canceled && result.assets[0]) await processAndSet(result.assets[0].uri)
+    } catch (e: any) {
+      Alert.alert('Could not open photos', e?.message ?? 'Please try again.')
     }
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 })
-    if (!result.canceled && result.assets[0]) await processAndSet(result.assets[0].uri)
   }
 
   async function takePhoto() {
-    const perm = await ImagePicker.requestCameraPermissionsAsync()
-    if (!perm.granted) {
-      Alert.alert('Permission needed', 'Please allow camera access to photograph a certificate.')
-      return
+    try {
+      const perm = await ImagePicker.requestCameraPermissionsAsync()
+      if (!perm.granted) {
+        Alert.alert('Permission needed', 'Please allow camera access to photograph a certificate.')
+        return
+      }
+      const result = await ImagePicker.launchCameraAsync({ quality: 0.8 })
+      if (!result.canceled && result.assets[0]) await processAndSet(result.assets[0].uri)
+    } catch (e: any) {
+      Alert.alert('Could not open camera', e?.message ?? 'Please try again.')
     }
-    const result = await ImagePicker.launchCameraAsync({ quality: 0.8 })
-    if (!result.canceled && result.assets[0]) await processAndSet(result.assets[0].uri)
   }
 
   return (

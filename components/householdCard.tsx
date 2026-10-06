@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { Alert } from '../lib/alert'
 import { styles } from './householdCard.styles'
 import { supabase } from '../lib/supabase'
+import { rpcAction } from '../lib/rpcAction'
 import { colors } from '../theme'
 import type { ChildRow, Household, Profile } from '../lib/types'
 
@@ -27,12 +28,9 @@ export function HouseholdCard({
     const name = nameInput.trim()
     if (!name) return
     setBusy(true)
-    const { error } = await supabase.rpc('admin_rename_household', { target_id: household.id, p_name: name })
+    const ok = await rpcAction(() => supabase.rpc('admin_rename_household', { target_id: household.id, p_name: name }), 'Could not rename')
     setBusy(false)
-    if (error) {
-      Alert.alert('Could not rename', error.message)
-      return
-    }
+    if (!ok) return
     setRenaming(false)
     onChanged()
   }
@@ -43,11 +41,7 @@ export function HouseholdCard({
       `Give "${household.name ?? 'this unclaimed code'}" a new join code? The old code (${household.code}) will stop working — anyone already in this family is unaffected.`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Regenerate', onPress: async () => {
-          const { error } = await supabase.rpc('admin_regenerate_household_code', { target_id: household.id })
-          if (error) Alert.alert('Could not regenerate', error.message)
-          else onChanged()
-        } },
+        { text: 'Regenerate', onPress: () => rpcAction(() => supabase.rpc('admin_regenerate_household_code', { target_id: household.id }), 'Could not regenerate', onChanged) },
       ]
     )
   }
@@ -58,24 +52,16 @@ export function HouseholdCard({
       : `Delete "${household.name}"? Members stay in the registry, just no longer grouped together.`
     Alert.alert('Delete family', message, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
-        const { error } = await supabase.rpc('admin_delete_household', { target_id: household.id })
-        if (error) Alert.alert('Could not delete', error.message)
-        else onChanged()
-      } },
+      { text: 'Delete', style: 'destructive', onPress: () => rpcAction(() => supabase.rpc('admin_delete_household', { target_id: household.id }), 'Could not delete', onChanged) },
     ])
   }
 
   async function removeMember(id: string) {
-    const { error } = await supabase.rpc('admin_set_profile_household', { target_id: id, p_household_id: null })
-    if (error) Alert.alert('Could not update', error.message)
-    else onChanged()
+    await rpcAction(() => supabase.rpc('admin_set_profile_household', { target_id: id, p_household_id: null }), 'Could not update', onChanged)
   }
 
   async function removeDependent(id: string) {
-    const { error } = await supabase.rpc('admin_set_dependent_household', { target_id: id, p_household_id: null })
-    if (error) Alert.alert('Could not update', error.message)
-    else onChanged()
+    await rpcAction(() => supabase.rpc('admin_set_dependent_household', { target_id: id, p_household_id: null }), 'Could not update', onChanged)
   }
 
   return (

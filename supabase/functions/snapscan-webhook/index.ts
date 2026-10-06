@@ -6,15 +6,14 @@
 // (https://<project-ref>.functions.supabase.co/snapscan-webhook) as your
 // webhook URL when they set it up.
 //
-// SIGNATURE VERIFICATION is OPT-IN. SnapScan signs each webhook POST
-// (`Authorization: SnapScan signature=<HMAC-SHA256 hex of the raw body>` — see
-// https://developer.snapscan.co.za/docs/webhooks). When the Supabase secret
-// SNAPSCAN_WEBHOOK_AUTH_KEY is set (get the key from SnapScan support, then
-// `npx supabase secrets set SNAPSCAN_WEBHOOK_AUTH_KEY=...`), every request
-// must carry a matching signature or it is rejected with 401. While the secret
-// is unset the function behaves as before and accepts unsigned requests —
-// meaning anyone who learns this URL could fake a "completed" payment, so set
-// the secret before relying on this for real money.
+// SIGNATURE VERIFICATION is REQUIRED (fail-closed). SnapScan signs each webhook
+// POST (`Authorization: SnapScan signature=<HMAC-SHA256 hex of the raw body>` —
+// see https://developer.snapscan.co.za/docs/webhooks). Get the key from SnapScan
+// support, then `npx supabase secrets set SNAPSCAN_WEBHOOK_AUTH_KEY=...`. Every
+// request must carry a matching signature or it is rejected with 401. If the
+// secret is unset the function rejects everything with 503 rather than accept
+// forgeable "payment completed" calls. For local testing only, set
+// SNAPSCAN_WEBHOOK_ALLOW_UNSIGNED=true to bypass this.
 //
 // A payment that is already 'completed' is never changed by a later webhook.
 //
@@ -46,9 +45,14 @@ Deno.serve(async (req) => {
   const rawBody = await req.text()
 
   const authKey = Deno.env.get('SNAPSCAN_WEBHOOK_AUTH_KEY')
-  if (authKey && !(await signatureIsValid(rawBody, req.headers.get('authorization'), authKey))) {
-    console.error('SnapScan webhook: missing or invalid signature')
-    return new Response('Invalid signature', { status: 401 })
+  if (authKey) {
+    if (!(await signatureIsValid(rawBody, req.headers.get('authorization'), authKey))) {
+      console.error('SnapScan webhook: missing or invalid signature')
+      return new Response('Invalid signature', { status: 401 })
+    }
+  } else if (Deno.env.get('SNAPSCAN_WEBHOOK_ALLOW_UNSIGNED') !== 'true') {
+    console.error('SnapScan webhook: SNAPSCAN_WEBHOOK_AUTH_KEY is not set; refusing unsigned requests')
+    return new Response('Webhook not configured', { status: 503 })
   }
 
   let payload: Record<string, unknown>

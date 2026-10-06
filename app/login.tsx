@@ -69,16 +69,15 @@ export default function Login() {
             {resetNotice ? <Text style={styles.notice}>{resetNotice}</Text> : null}
             <Field label="Email" value={resetEmail} onChangeText={setResetEmail} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" />
             <Button title="Send Reset Link" onPress={onSendReset} loading={resetSending} />
-            <Text
-              style={styles.forgotLink}
+            <Button
+              title="Back to Sign In"
+              variant="back"
               onPress={() => {
                 setForgotOpen(false)
                 setError('')
                 setResetNotice('')
               }}
-            >
-              ← Back to Sign In
-            </Text>
+            />
           </View>
         ) : (
           <View style={[styles.card, glassBlur]}>

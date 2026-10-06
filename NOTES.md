@@ -27,18 +27,11 @@ separate, already-completed project's own checklist — don't merge into it.)
       merchant code is set, the checkout button on the SnapScan screen stays
       disabled — nothing breaks, it just isn't live yet. There is no QR-code
       fallback anymore (removed by request) — SnapScan giving is checkout-only.
-- [ ] **Security gap, open by explicit request: the SnapScan webhook doesn't
-      verify SnapScan's signature.** See the warning comment at the top of
-      `supabase/functions/snapscan-webhook/index.ts`. As it stands, anyone
-      who discovers the webhook URL can POST a fake "payment completed" and
-      mark any pending SnapScan payment as paid with no money having moved.
-      Low blast radius today (no live merchant account, so nothing real is
-      at stake yet), but this should be revisited — at minimum before
-      relying on `snapscan_payments.status` for real reconciliation — by
-      adding back HMAC-SHA256 signature verification using a
-      `SNAPSCAN_WEBHOOK_AUTH_KEY` secret from SnapScan support (the removed
-      code is straightforward to restore; see the same comment for exactly
-      what it needs to do).
+- [x] **SnapScan webhook now fails closed.** It verifies SnapScan's HMAC-SHA256
+      signature and returns 503 until `SNAPSCAN_WEBHOOK_AUTH_KEY` is set
+      (`npx supabase secrets set SNAPSCAN_WEBHOOK_AUTH_KEY=...`, key from
+      SnapScan support). Redeploy: `npx supabase functions deploy
+      snapscan-webhook`. Local testing only: `SNAPSCAN_WEBHOOK_ALLOW_UNSIGNED=true`.
 - [x] **Migrations 0013–0026 pushed to the live project, done (2026-09-23).**
       Discovered while chasing a "name search doesn't work" report: `npx
       supabase migration list --linked` showed only 0001–0012 had ever

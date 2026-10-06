@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native'
-import { Link, router, useLocalSearchParams } from 'expo-router'
-import { Field, GlassSheen, glassBlur, SelectField } from '../components/ui'
+import { router, useLocalSearchParams } from 'expo-router'
+import { Button, Field, GlassSheen, glassBlur, SelectField } from '../components/ui'
 import { ChurchHeader } from '../components/churchHeader'
 import { CertificatePicker } from '../components/certificatePicker'
 import { ChipRow } from '../components/chipRow'
@@ -259,11 +259,9 @@ export default function Register() {
           <Wizard steps={steps} onComplete={onSubmit} completeLabel="Create Account" submitting={loading} />
         </View>
 
-        <Link href="/login" asChild>
-          <Pressable>
-            <Text style={styles.backLink}>← Back to Sign In</Text>
-          </Pressable>
-        </Link>
+        <View style={{ marginTop: 20 }}>
+          <Button title="Back to Sign In" variant="back" onPress={() => router.replace('/login')} />
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   )

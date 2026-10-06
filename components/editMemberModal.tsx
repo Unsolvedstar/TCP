@@ -5,6 +5,7 @@ import { Button, Chip, DateField, Field, SelectField, formatDate } from './ui'
 import { Wizard, type WizardStepDef } from './wizard'
 import { styles } from './editModal.styles'
 import { supabase } from '../lib/supabase'
+import { rpcAction } from '../lib/rpcAction'
 import { colors, genders } from '../theme'
 import { useCongregationData } from '../lib/congregationContext'
 import { applicationDetailText } from '../lib/applicationDetail'
@@ -51,11 +52,8 @@ export function EditMemberModal({
 
   async function toggleLeagueAdmin(leagueId: string) {
     const makeAdmin = !leagueAdminIds.includes(leagueId)
-    const { error } = await supabase.rpc('admin_set_league_admin', { target_profile_id: member.id, target_league_id: leagueId, make_admin: makeAdmin })
-    if (error) {
-      Alert.alert('Could not update', error.message)
-      return
-    }
+    const ok = await rpcAction(() => supabase.rpc('admin_set_league_admin', { target_profile_id: member.id, target_league_id: leagueId, make_admin: makeAdmin }), 'Could not update')
+    if (!ok) return
     setLeagueAdminIds((ids) => (makeAdmin ? [...ids, leagueId] : ids.filter((id) => id !== leagueId)))
   }
 
@@ -64,34 +62,33 @@ export function EditMemberModal({
 
     const targetFamilyId: string | null = familyId || null
 
-    const { error } = await supabase.rpc('admin_update_member', {
-      target_id: member.id,
-      p_full_name: fullName.trim(),
-      p_phone: phone.trim() || null,
-      p_ward_id: wardId,
-      p_league_id: leagueId || null,
-      p_baptised: baptised,
-      p_confirmed: confirmed,
-      p_date_of_birth: dob,
-      p_gender: gender || null,
-    })
-    if (error) {
-      setSaving(false)
-      Alert.alert('Could not save', error.message)
-      return
-    }
+    try {
+      const ok = await rpcAction(
+        () =>
+          supabase.rpc('admin_update_member', {
+            target_id: member.id,
+            p_full_name: fullName.trim(),
+            p_phone: phone.trim() || null,
+            p_ward_id: wardId,
+            p_league_id: leagueId || null,
+            p_baptised: baptised,
+            p_confirmed: confirmed,
+            p_date_of_birth: dob,
+            p_gender: gender || null,
+          }),
+        'Could not save'
+      )
+      if (!ok) return
 
-    if (targetFamilyId !== (member.household_id ?? null)) {
-      const { error: familyErr } = await supabase.rpc('admin_set_profile_household', { target_id: member.id, p_household_id: targetFamilyId })
-      if (familyErr) {
-        setSaving(false)
-        Alert.alert('Could not save family', familyErr.message)
-        return
+      if (targetFamilyId !== (member.household_id ?? null)) {
+        const familyOk = await rpcAction(() => supabase.rpc('admin_set_profile_household', { target_id: member.id, p_household_id: targetFamilyId }), 'Could not save family')
+        if (!familyOk) return
       }
-    }
 
-    setSaving(false)
-    onSaved()
+      onSaved()
+    } finally {
+      setSaving(false)
+    }
   }
 
   const steps: WizardStepDef[] = [

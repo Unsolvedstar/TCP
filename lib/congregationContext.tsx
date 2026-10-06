@@ -61,9 +61,13 @@ export function CongregationDataProvider({ children }: PropsWithChildren) {
     }
     let cancelled = false
     setLoading(true)
-    load().then(() => {
-      if (!cancelled) setLoading(false)
-    })
+    // load() must never reject out of this effect or leave `loading` stuck:
+    // a network failure would otherwise be an unhandled rejection.
+    load()
+      .catch((err) => console.error('Failed to load congregation data', err))
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
     return () => {
       cancelled = true
     }

@@ -2,20 +2,21 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
 import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { Alert } from '../../lib/alert'
-import { Button, Card, DateField, Field } from '../../components/ui'
-import { ChipRow } from '../../components/chipRow'
-import { VerseField } from '../../components/verseField'
-import { supabase } from '../../lib/supabase'
-import { useAuth } from '../../lib/authContext'
-import { useCongregationData } from '../../lib/congregationContext'
-import { useLeagueAdmin } from '../../lib/leagueAdminContext'
-import { applicationDetailText, applicationCertificateList } from '../../lib/applicationDetail'
-import { colors } from '../../theme'
-import { styles } from '../../styles/members.styles'
-import type { ChildRow, ChurchEventRow, Profile } from '../../lib/types'
+import { Alert } from '../../../lib/alert'
+import { Button, Card, DateField, Field } from '../../../components/ui'
+import { ChipRow } from '../../../components/chipRow'
+import { VerseField } from '../../../components/verseField'
+import { supabase } from '../../../lib/supabase'
+import { rpcAction } from '../../../lib/rpcAction'
+import { useAuth } from '../../../lib/authContext'
+import { useCongregationData } from '../../../lib/congregationContext'
+import { useLeagueAdmin } from '../../../lib/leagueAdminContext'
+import { applicationDetailText, applicationCertificateList } from '../../../lib/applicationDetail'
+import { colors } from '../../../theme'
+import { styles } from '../../../styles/members.styles'
+import type { ChildRow, ChurchEventRow, Profile } from '../../../lib/types'
 
-export { ErrorBoundary } from '../../components/errorBoundary'
+export { ErrorBoundary } from '../../../components/errorBoundary'
 
 type PendingItem = {
   id: string
@@ -85,18 +86,15 @@ export default function LeagueAdmin() {
   async function saveCertDetails() {
     if (!activeLeagueId) return
     setSavingCertDetails(true)
-    const { error } = await supabase.rpc('admin_set_league_certificate_details', {
+    const ok = await rpcAction(() => supabase.rpc('admin_set_league_certificate_details', {
       target_league_id: activeLeagueId,
       p_chairperson_name: chairpersonName.trim() || null,
       p_pastor_name: pastorName.trim() || null,
       p_verse_reference: certVerseReference.trim() || null,
       p_verse_text: certVerseText.trim() || null,
-    })
+    }), 'Could not save')
     setSavingCertDetails(false)
-    if (error) {
-      Alert.alert('Could not save', error.message)
-      return
-    }
+    if (!ok) return
     await refreshCongregationData()
   }
 
@@ -109,6 +107,16 @@ export default function LeagueAdmin() {
     // (the main Dashboard/Portal list is where every whole-church post
     // belongs). A congregation admin overseeing everything sees all of them.
     const churchWideFilter = isAdmin ? 'league_id.is.null' : `and(league_id.is.null,created_by.eq.${profile.id})`
+    try {
+      await fetchPending(churchWideFilter)
+    } catch (err) {
+      console.error('Failed to load league data', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [activeLeagueId, profile, isAdmin])
+
+  async function fetchPending(churchWideFilter: string) {
     const [{ data: mem }, { data: dep }, { data: ev }] = await Promise.all([
       supabase.from('profiles').select('*').eq('pending_league_id', activeLeagueId),
       supabase.from('dependents').select('*, guardian:profiles(full_name)').eq('pending_league_id', activeLeagueId),
@@ -117,8 +125,7 @@ export default function LeagueAdmin() {
     setPendingMembers((mem as Profile[]) ?? [])
     setPendingChildren((dep as unknown as ChildRow[]) ?? [])
     setEvents((ev as ChurchEventRow[]) ?? [])
-    setLoading(false)
-  }, [activeLeagueId, profile, isAdmin])
+  }
 
   useFocusEffect(
     useCallback(() => {
@@ -148,18 +155,19 @@ export default function LeagueAdmin() {
       return
     }
     setSendingDate(true)
-    const { error } = await supabase.rpc('propose_ceremony_date', {
-      target_id: item.id,
-      p_is_dependent: item.isChild,
-      p_kind: 'league',
-      p_ceremony_date: ceremonyDate,
-      p_league_id: activeLeagueId,
-    })
+    const ok = await rpcAction(
+      () =>
+        supabase.rpc('propose_ceremony_date', {
+          target_id: item.id,
+          p_is_dependent: item.isChild,
+          p_kind: 'league',
+          p_ceremony_date: ceremonyDate,
+          p_league_id: activeLeagueId,
+        }),
+      'Could not send date'
+    )
     setSendingDate(false)
-    if (error) {
-      Alert.alert('Could not send date', error.message)
-      return
-    }
+    if (!ok) return
     setSchedulingId(null)
     setCeremonyDate(null)
     loadAll()
@@ -167,9 +175,7 @@ export default function LeagueAdmin() {
 
   async function deny(item: PendingItem) {
     const fn = item.isChild ? 'deny_dependent_league' : 'deny_league'
-    const { error } = await supabase.rpc(fn, { target_id: item.id })
-    if (error) Alert.alert('Could not update', error.message)
-    else loadAll()
+    await rpcAction(() => supabase.rpc(fn, { target_id: item.id }), 'Could not update', loadAll)
   }
 
   async function addEvent() {
@@ -178,18 +184,19 @@ export default function LeagueAdmin() {
       return
     }
     setSavingEv(true)
-    const { error } = await supabase.from('events').insert({
-      congregation_id: profile.congregation_id,
-      league_id: evAudience === 'church' ? null : activeLeagueId,
-      title: evTitle.trim(),
-      event_date: evDate,
-      description: evDescription.trim() || null,
-    })
+    const ok = await rpcAction(
+      () =>
+        supabase.from('events').insert({
+          congregation_id: profile.congregation_id,
+          league_id: evAudience === 'church' ? null : activeLeagueId,
+          title: evTitle.trim(),
+          event_date: evDate,
+          description: evDescription.trim() || null,
+        }),
+      'Could not save'
+    )
     setSavingEv(false)
-    if (error) {
-      Alert.alert('Could not save', error.message)
-      return
-    }
+    if (!ok) return
     setEvTitle('')
     setEvDate(null)
     setEvDescription('')
@@ -198,9 +205,7 @@ export default function LeagueAdmin() {
   }
 
   async function removeEvent(id: string) {
-    const { error } = await supabase.from('events').delete().eq('id', id)
-    if (error) Alert.alert('Could not remove', error.message)
-    else loadAll()
+    await rpcAction(() => supabase.from('events').delete().eq('id', id), 'Could not remove', loadAll)
   }
 
   if (loading) {

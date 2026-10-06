@@ -5,6 +5,7 @@ import { Button, Card, Chip, Field, SelectField } from '../../components/ui'
 import { ChipRow } from '../../components/chipRow'
 import { CertificatePicker } from '../../components/certificatePicker'
 import { supabase } from '../../lib/supabase'
+import { rpcAction } from '../../lib/rpcAction'
 import { useCongregationData } from '../../lib/congregationContext'
 import { colors } from '../../theme'
 import { styles } from '../../styles/members.styles'
@@ -60,19 +61,16 @@ export default function CongregationAdmin() {
       return
     }
     setSavingBranding(true)
-    const { error } = await supabase.rpc('admin_update_congregation_branding', {
+    const ok = await rpcAction(() => supabase.rpc('admin_update_congregation_branding', {
       p_name: name.trim(),
       p_tagline: tagline.trim() || null,
       p_address: address.trim() || null,
       p_logo_url: logoUrl,
       p_primary_color: primaryColor.trim() || '#1c4906',
       p_accent_color: accentColor.trim() || null,
-    })
+    }), 'Could not save')
     setSavingBranding(false)
-    if (error) {
-      Alert.alert('Could not save', error.message)
-      return
-    }
+    if (!ok) return
     await refresh()
   }
 
@@ -86,12 +84,9 @@ export default function CongregationAdmin() {
 
   async function saveSnapscanMerchantCode() {
     setSavingSnapscanCode(true)
-    const { error } = await supabase.rpc('admin_set_snapscan_merchant_code', { p_code: snapscanMerchantCode.trim() || null })
+    const ok = await rpcAction(() => supabase.rpc('admin_set_snapscan_merchant_code', { p_code: snapscanMerchantCode.trim() || null }), 'Could not save')
     setSavingSnapscanCode(false)
-    if (error) {
-      Alert.alert('Could not save', error.message)
-      return
-    }
+    if (!ok) return
     await refresh()
   }
 
@@ -123,14 +118,15 @@ export default function CongregationAdmin() {
       return
     }
     setSavingWard(true)
-    const { error } = editingWardId
-      ? await supabase.rpc('admin_update_ward', { target_id: editingWardId, p_name: wardName.trim(), p_bank_code: bankCode, p_color: wardColor.trim() || '#888888' })
-      : await supabase.rpc('admin_create_ward', { p_name: wardName.trim(), p_bank_code: bankCode, p_color: wardColor.trim() || '#888888' })
+    const ok = await rpcAction(
+    () =>
+      editingWardId
+      ? supabase.rpc('admin_update_ward', { target_id: editingWardId, p_name: wardName.trim(), p_bank_code: bankCode, p_color: wardColor.trim() || '#888888' })
+      : supabase.rpc('admin_create_ward', { p_name: wardName.trim(), p_bank_code: bankCode, p_color: wardColor.trim() || '#888888' }),
+    'Could not save'
+  )
     setSavingWard(false)
-    if (error) {
-      Alert.alert('Could not save', error.message)
-      return
-    }
+    if (!ok) return
     resetWardForm()
     await refresh()
   }
@@ -141,11 +137,7 @@ export default function CongregationAdmin() {
       {
         text: 'Remove',
         style: 'destructive',
-        onPress: async () => {
-          const { error } = await supabase.rpc('admin_delete_ward', { target_id: w.id })
-          if (error) Alert.alert('Could not remove', error.message)
-          else await refresh()
-        },
+        onPress: () => rpcAction(() => supabase.rpc('admin_delete_ward', { target_id: w.id }), 'Could not remove', refresh),
       },
     ])
   }
@@ -183,26 +175,27 @@ export default function CongregationAdmin() {
       return
     }
     setSavingLeague(true)
-    const { error } = editingLeagueId
-      ? await supabase.rpc('admin_update_league', {
+    const ok = await rpcAction(
+    () =>
+      editingLeagueId
+      ? supabase.rpc('admin_update_league', {
           target_id: editingLeagueId,
           p_label: leagueLabel.trim(),
           p_info: leagueInfo.trim() || null,
           p_color: leagueColor.trim() || '#888888',
           p_has_badge: leagueHasBadge === 'yes',
         })
-      : await supabase.rpc('admin_create_league', {
+      : supabase.rpc('admin_create_league', {
           p_key: leagueKey.trim(),
           p_label: leagueLabel.trim(),
           p_info: leagueInfo.trim() || null,
           p_color: leagueColor.trim() || '#888888',
           p_has_badge: leagueHasBadge === 'yes',
-        })
+        }),
+    'Could not save'
+  )
     setSavingLeague(false)
-    if (error) {
-      Alert.alert('Could not save', error.message)
-      return
-    }
+    if (!ok) return
     resetLeagueForm()
     await refresh()
   }
@@ -213,11 +206,7 @@ export default function CongregationAdmin() {
       {
         text: 'Remove',
         style: 'destructive',
-        onPress: async () => {
-          const { error } = await supabase.rpc('admin_delete_league', { target_id: l.id })
-          if (error) Alert.alert('Could not remove', error.message)
-          else await refresh()
-        },
+        onPress: () => rpcAction(() => supabase.rpc('admin_delete_league', { target_id: l.id }), 'Could not remove', refresh),
       },
     ])
   }
@@ -252,25 +241,26 @@ export default function CongregationAdmin() {
       return
     }
     setSavingAccount(true)
-    const { error } = editingAccountId
-      ? await supabase.rpc('admin_update_bank_account', {
+    const ok = await rpcAction(
+    () =>
+      editingAccountId
+      ? supabase.rpc('admin_update_bank_account', {
           target_id: editingAccountId,
           p_name: accountName.trim(),
           p_bank_name: bankName.trim(),
           p_account_number: accountNumber.trim(),
           p_branch_code: branchCode.trim(),
         })
-      : await supabase.rpc('admin_create_bank_account', {
+      : supabase.rpc('admin_create_bank_account', {
           p_name: accountName.trim(),
           p_bank_name: bankName.trim(),
           p_account_number: accountNumber.trim(),
           p_branch_code: branchCode.trim(),
-        })
+        }),
+    'Could not save'
+  )
     setSavingAccount(false)
-    if (error) {
-      Alert.alert('Could not save', error.message)
-      return
-    }
+    if (!ok) return
     resetAccountForm()
     await refresh()
   }
@@ -281,11 +271,7 @@ export default function CongregationAdmin() {
       {
         text: 'Remove',
         style: 'destructive',
-        onPress: async () => {
-          const { error } = await supabase.rpc('admin_delete_bank_account', { target_id: a.id })
-          if (error) Alert.alert('Could not remove', error.message)
-          else await refresh()
-        },
+        onPress: () => rpcAction(() => supabase.rpc('admin_delete_bank_account', { target_id: a.id }), 'Could not remove', refresh),
       },
     ])
   }
@@ -317,14 +303,15 @@ export default function CongregationAdmin() {
       return
     }
     setSavingCode(true)
-    const { error } = editingCodeId
-      ? await supabase.rpc('admin_update_payment_code', { target_id: editingCodeId, p_code: codeValue.trim(), p_label: codeLabel.trim(), p_account_id: codeAccountId })
-      : await supabase.rpc('admin_create_payment_code', { p_code: codeValue.trim(), p_label: codeLabel.trim(), p_account_id: codeAccountId })
+    const ok = await rpcAction(
+    () =>
+      editingCodeId
+      ? supabase.rpc('admin_update_payment_code', { target_id: editingCodeId, p_code: codeValue.trim(), p_label: codeLabel.trim(), p_account_id: codeAccountId })
+      : supabase.rpc('admin_create_payment_code', { p_code: codeValue.trim(), p_label: codeLabel.trim(), p_account_id: codeAccountId }),
+    'Could not save'
+  )
     setSavingCode(false)
-    if (error) {
-      Alert.alert('Could not save', error.message)
-      return
-    }
+    if (!ok) return
     resetCodeForm()
     await refresh()
   }
@@ -335,11 +322,7 @@ export default function CongregationAdmin() {
       {
         text: 'Remove',
         style: 'destructive',
-        onPress: async () => {
-          const { error } = await supabase.rpc('admin_delete_payment_code', { target_id: c.id })
-          if (error) Alert.alert('Could not remove', error.message)
-          else await refresh()
-        },
+        onPress: () => rpcAction(() => supabase.rpc('admin_delete_payment_code', { target_id: c.id }), 'Could not remove', refresh),
       },
     ])
   }

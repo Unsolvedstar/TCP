@@ -6,6 +6,7 @@ import { Wizard, type WizardStepDef } from './wizard'
 import { BaptismCertificateDetailsModal } from './baptismCertificateDetailsModal'
 import { styles } from './editModal.styles'
 import { supabase } from '../lib/supabase'
+import { rpcAction } from '../lib/rpcAction'
 import { colors, genders } from '../theme'
 import { useCongregationData } from '../lib/congregationContext'
 import type { ChildRow, Household } from '../lib/types'
@@ -40,33 +41,32 @@ export function EditChildModal({
 
     const targetFamilyId: string | null = familyId || null
 
-    const { error } = await supabase.rpc('admin_update_dependent', {
-      target_id: child.id,
-      p_full_name: fullName.trim(),
-      p_date_of_birth: dob,
-      p_ward_id: wardId,
-      p_league_id: leagueId || null,
-      p_baptised: baptised,
-      p_confirmed: confirmed,
-      p_gender: gender || null,
-    })
-    if (error) {
-      setSaving(false)
-      Alert.alert('Could not save', error.message)
-      return
-    }
+    try {
+      const ok = await rpcAction(
+        () =>
+          supabase.rpc('admin_update_dependent', {
+            target_id: child.id,
+            p_full_name: fullName.trim(),
+            p_date_of_birth: dob,
+            p_ward_id: wardId,
+            p_league_id: leagueId || null,
+            p_baptised: baptised,
+            p_confirmed: confirmed,
+            p_gender: gender || null,
+          }),
+        'Could not save'
+      )
+      if (!ok) return
 
-    if (targetFamilyId !== (child.household_id ?? null)) {
-      const { error: familyErr } = await supabase.rpc('admin_set_dependent_household', { target_id: child.id, p_household_id: targetFamilyId })
-      if (familyErr) {
-        setSaving(false)
-        Alert.alert('Could not save family', familyErr.message)
-        return
+      if (targetFamilyId !== (child.household_id ?? null)) {
+        const familyOk = await rpcAction(() => supabase.rpc('admin_set_dependent_household', { target_id: child.id, p_household_id: targetFamilyId }), 'Could not save family')
+        if (!familyOk) return
       }
-    }
 
-    setSaving(false)
-    onSaved()
+      onSaved()
+    } finally {
+      setSaving(false)
+    }
   }
 
   const steps: WizardStepDef[] = [

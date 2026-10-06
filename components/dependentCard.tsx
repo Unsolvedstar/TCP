@@ -40,8 +40,14 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
 
   async function run(fn: () => PromiseLike<{ error: any }>) {
     setBusy(true)
-    const { error } = await fn()
-    setBusy(false)
+    let error: { message: string } | null = null
+    try {
+      error = (await fn()).error
+    } catch (e) {
+      error = { message: e instanceof Error ? e.message : 'Network error. Please try again.' }
+    } finally {
+      setBusy(false)
+    }
     if (error) {
       Alert.alert('Something went wrong', error.message)
       return false

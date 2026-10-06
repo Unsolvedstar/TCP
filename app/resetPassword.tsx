@@ -102,7 +102,7 @@ export default function ResetPassword() {
           ) : linkError ? (
             <>
               <Text style={styles.error}>{linkError}</Text>
-              <Button title="Back to Sign In" variant="secondary" onPress={() => router.replace('/login')} />
+              <Button title="Back to Sign In" variant="back" onPress={() => router.replace('/login')} />
             </>
           ) : (
             <>

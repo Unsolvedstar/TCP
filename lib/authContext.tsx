@@ -78,7 +78,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }
 
   async function signOut() {
-    await supabase.auth.signOut()
+    try {
+      await supabase.auth.signOut()
+    } catch (err) {
+      console.error('Sign out failed', err)
+    }
   }
 
   return (

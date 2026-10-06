@@ -5,6 +5,7 @@ import { Button, Field } from './ui'
 import { VerseField } from './verseField'
 import { styles } from './editModal.styles'
 import { supabase } from '../lib/supabase'
+import { rpcAction } from '../lib/rpcAction'
 import { colors } from '../theme'
 import type { BaptismApplication } from '../lib/types'
 
@@ -46,21 +47,22 @@ export function BaptismCertificateDetailsModal({
 
   async function save() {
     setSaving(true)
-    const { error } = await supabase.rpc('admin_set_baptism_certificate_details', {
-      target_id: targetId,
-      p_is_dependent: isDependent,
-      p_register_no: registerNo.trim(),
-      p_diocese: diocese.trim(),
-      p_parents: parents.trim(),
-      p_birth_place: birthPlace.trim(),
-      p_verse_reference: verseReference.trim(),
-      p_verse_text: verseText.trim(),
-    })
+    const ok = await rpcAction(
+      () =>
+        supabase.rpc('admin_set_baptism_certificate_details', {
+          target_id: targetId,
+          p_is_dependent: isDependent,
+          p_register_no: registerNo.trim(),
+          p_diocese: diocese.trim(),
+          p_parents: parents.trim(),
+          p_birth_place: birthPlace.trim(),
+          p_verse_reference: verseReference.trim(),
+          p_verse_text: verseText.trim(),
+        }),
+      'Could not save'
+    )
     setSaving(false)
-    if (error) {
-      Alert.alert('Could not save', error.message)
-      return
-    }
+    if (!ok) return
     onSaved()
   }
 

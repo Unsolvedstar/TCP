@@ -3,6 +3,7 @@ import { Text, View } from 'react-native'
 import { Alert } from '../lib/alert'
 import { Button, GlassSheen, glassBlur } from './ui'
 import { supabase } from '../lib/supabase'
+import { rpcAction } from '../lib/rpcAction'
 import { useAuth } from '../lib/authContext'
 import { colors, radius } from '../theme'
 
@@ -14,12 +15,9 @@ export function MembershipCheckInBanner() {
 
   async function respond(stillHere: boolean) {
     setBusy(stillHere ? 'yes' : 'no')
-    const { error } = await supabase.rpc(stillHere ? 'confirm_still_member' : 'self_report_left')
+    const ok = await rpcAction(() => supabase.rpc(stillHere ? 'confirm_still_member' : 'self_report_left'), 'Could not save')
     setBusy(null)
-    if (error) {
-      Alert.alert('Could not save', error.message)
-      return
-    }
+    if (!ok) return
     if (stillHere) {
       await refreshProfile()
     } else {

@@ -1,4 +1,4 @@
-import { createElement, useState } from 'react'
+import { createElement, useRef, useState } from 'react'
 import { ActivityIndicator, FlatList, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native'
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons'
 import * as Clipboard from 'expo-clipboard'
 import { colors, radius } from '../theme'
 import { toLocalISODate } from '../lib/dates'
+import { Alert } from '../lib/alert'
 import { styles, webDateInputStyle } from './ui.styles'
 
 export function formatDate(iso: string) {
@@ -299,19 +300,47 @@ export function Button({
   variant = 'primary',
   loading = false,
   disabled = false,
+  inverse,
 }: {
   title: string
-  onPress: () => void
-  variant?: 'primary' | 'secondary' | 'danger'
+  onPress: () => void | Promise<unknown>
+  variant?: 'primary' | 'secondary' | 'danger' | 'back'
   loading?: boolean
   disabled?: boolean
+  // For buttons sitting on a coloured banner: fills the button with `background`
+  // and writes the label in `text`, so it can never blend into the banner colour
+  // (pass the banner's own text colour as `background` and its fill as `text`).
+  inverse?: { background: string; text: string }
 }) {
-  const bg = variant === 'primary' ? colors.g700 : variant === 'danger' ? colors.white : colors.white
-  const border = variant === 'danger' ? colors.dangerBorder : variant === 'secondary' ? colors.warmBorder : colors.g700
-  const textColor = variant === 'primary' ? colors.white : variant === 'danger' ? colors.danger : colors.g700
+  // Guards every button in the app: ignores re-taps while an async handler is
+  // still running (double-submits), and turns a rejected handler into an alert
+  // instead of an unhandled promise rejection.
+  const inFlight = useRef(false)
+  async function handlePress() {
+    if (inFlight.current) return
+    inFlight.current = true
+    try {
+      await onPress()
+    } catch (e) {
+      console.error(`Button "${title}" handler failed`, e)
+      Alert.alert('Something went wrong', e instanceof Error ? e.message : 'Please try again.')
+    } finally {
+      inFlight.current = false
+    }
+  }
+  // 'back' is a tinted green fill with a solid green border, so it stands out on
+  // both the cream page and white cards (plain white 'secondary' blends into them).
+  let bg = variant === 'primary' ? colors.g700 : variant === 'back' ? colors.g100 : colors.white
+  let border = variant === 'danger' ? colors.dangerBorder : variant === 'secondary' ? colors.warmBorder : colors.g700
+  let textColor = variant === 'primary' ? colors.white : variant === 'danger' ? colors.danger : colors.g700
+  if (inverse) {
+    bg = inverse.background
+    border = inverse.background
+    textColor = inverse.text
+  }
   return (
     <Pressable
-      onPress={onPress}
+      onPress={handlePress}
       disabled={disabled || loading}
       style={({ pressed }) => [
         styles.btn,

@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { Image, ScrollView, Text, View } from 'react-native'
 import { router } from 'expo-router'
-import * as Linking from 'expo-linking'
 import { Button, Card } from './ui'
 import { getUpcomingChurchEvents } from '../lib/churchCalendar'
 import { useLiturgicalSeason } from '../lib/liturgicalTheme'
 import { formatShortDate } from '../lib/dates'
 import { VISITOR_LINK } from '../lib/config'
+import { openUrlSafely } from '../lib/safeLink'
 import { styles } from './landingPage.styles'
 
 const FEATURES = [
@@ -59,14 +59,12 @@ export function LandingPage() {
             <Text style={[styles.heroNote, { color: season.text }]}>
               Registering will automatically group you with your family if we recognise you, or start a new family record for you.
             </Text>
-            <Text style={[styles.heroBackLink, { color: season.text }]} onPress={() => setShowMemberOptions(false)}>
-              ← Not a member
-            </Text>
+            <Button title="Back" variant="back" inverse={{ background: season.text, text: season.color }} onPress={() => setShowMemberOptions(false)} />
           </>
         ) : (
           <View style={styles.heroButtons}>
             <View style={{ flex: 1 }}>
-              <Button title="Just Visiting" variant="secondary" onPress={() => Linking.openURL(VISITOR_LINK)} />
+              <Button title="Just Visiting" variant="secondary" onPress={() => openUrlSafely(VISITOR_LINK)} />
             </View>
             <View style={{ flex: 1 }}>
               <Button title="I'm a Member" onPress={() => setShowMemberOptions(true)} />

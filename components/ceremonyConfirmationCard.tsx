@@ -4,6 +4,7 @@ import { Text, View } from 'react-native'
 import { Alert } from '../lib/alert'
 import { Button, Card, formatDate } from './ui'
 import { supabase } from '../lib/supabase'
+import { rpcAction } from '../lib/rpcAction'
 import { colors } from '../theme'
 import type { CeremonyKind } from '../lib/types'
 
@@ -43,13 +44,9 @@ export function CeremonyConfirmationCard() {
 
   async function respond(id: string, confirm: boolean) {
     setBusyId(id)
-    const { error } = await supabase.rpc(confirm ? 'confirm_ceremony_date' : 'decline_ceremony_date', { proposal_id: id })
+    const ok = await rpcAction(() => supabase.rpc(confirm ? 'confirm_ceremony_date' : 'decline_ceremony_date', { proposal_id: id }), 'Could not save')
     setBusyId(null)
-    if (error) {
-      Alert.alert('Could not save', error.message)
-      return
-    }
-    load()
+    if (ok) load()
   }
 
   if (proposals.length === 0) return null

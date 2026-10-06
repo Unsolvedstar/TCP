@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
+import { ActivityIndicator, Platform, Pressable, ScrollView, Text, View } from 'react-native'
 import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import * as Linking from 'expo-linking'
@@ -8,6 +8,7 @@ import { useLiturgicalSeason } from '../../lib/liturgicalTheme'
 import { useCongregationData } from '../../lib/congregationContext'
 import { useAuth } from '../../lib/authContext'
 import { supabase } from '../../lib/supabase'
+import { openUrlSafely } from '../../lib/safeLink'
 import { buildSnapscanPaymentUrl, centsToRandsDisplay, randsToCents } from '../../lib/snapscanPaygate'
 import { colors } from '../../theme'
 import { styles } from '../../styles/banking.styles'
@@ -38,7 +39,13 @@ export default function BankingSnapScan() {
   const loadHistory = useCallback(async () => {
     if (!profile) return
     const { data } = await supabase.from('snapscan_payments').select(PAYMENT_COLUMNS).eq('profile_id', profile.id).order('created_at', { ascending: false }).limit(10)
-    setHistory((data as SnapscanPayment[]) ?? [])
+    const rows = (data as SnapscanPayment[]) ?? []
+    setHistory(rows)
+    // Returning from SnapScan can remount this screen (web full-page redirect,
+    // or the OS killing the backgrounded app) and lose activePayment — pick the
+    // in-flight payment back up so polling resumes.
+    const recent = rows.find((p) => p.status === 'pending' && Date.now() - new Date(p.created_at).getTime() < POLL_TIMEOUT_MS)
+    if (recent) setActivePayment((cur) => cur ?? recent)
   }, [profile])
 
   useEffect(() => {
@@ -54,19 +61,32 @@ export default function BankingSnapScan() {
   useEffect(() => {
     if (!activePayment || activePayment.status !== 'pending') return
     const startedAt = Date.now()
+    let cancelled = false
+    let polling = false
     const interval = setInterval(async () => {
       if (Date.now() - startedAt > POLL_TIMEOUT_MS) {
         clearInterval(interval)
         return
       }
-      const { data } = await supabase.from('snapscan_payments').select(PAYMENT_COLUMNS).eq('id', activePayment.id).single()
-      if (data && data.status !== 'pending') {
-        setActivePayment(data as SnapscanPayment)
-        loadHistory()
-        clearInterval(interval)
+      if (polling) return // don't stack requests on a slow network
+      polling = true
+      try {
+        const { data } = await supabase.from('snapscan_payments').select(PAYMENT_COLUMNS).eq('id', activePayment.id).maybeSingle()
+        if (!cancelled && data && data.status !== 'pending') {
+          setActivePayment(data as SnapscanPayment)
+          loadHistory()
+          clearInterval(interval)
+        }
+      } catch (err) {
+        console.error('SnapScan status poll failed', err)
+      } finally {
+        polling = false
       }
     }, POLL_INTERVAL_MS)
-    return () => clearInterval(interval)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
   }, [activePayment?.id, activePayment?.status, loadHistory])
 
   const paymentCodeLabel = (id: string | null) => (id ? paymentCodes.find((c) => c.id === id)?.label : undefined)
@@ -93,7 +113,11 @@ export default function BankingSnapScan() {
     // Note: (app) is a route group (app/(app)/_layout.tsx) — group folders
     // never appear in the resolved URL, only in router.push()-style
     // in-app navigation paths, so the deep link path here is bare.
-    const returnUrl = Linking.createURL('/bankingSnapscan')
+    // On native, skip the return URLs: the deep link back re-navigates expo-router
+    // (remounting/stacking this hidden tab and resetting state) and is an exp://
+    // URL in dev builds. Polling already picks up the result from the DB. Only
+    // the web needs a redirect, since it leaves the tab entirely.
+    const returnUrl = Platform.OS === 'web' ? Linking.createURL('/bankingSnapscan') : undefined
     const url = buildSnapscanPaymentUrl({
       merchantCode: congregation.snapscan_merchant_code,
       merchantReference: row.merchant_reference,
@@ -112,7 +136,8 @@ export default function BankingSnapScan() {
     })
     setAmountInput('')
     setPaymentCodeId('')
-    await Linking.openURL(url)
+    const opened = await openUrlSafely(url, "Couldn't open SnapScan. Please try again.")
+    if (!opened) setActivePayment(null)
   }
 
   return (
@@ -200,9 +225,7 @@ export default function BankingSnapScan() {
         </Card>
       ) : null}
 
-      <Text style={styles.backLink} onPress={() => router.push('/(app)/banking')}>
-        ← Back to Banking
-      </Text>
+      <Button title="Back to Banking" variant="back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/banking'))} />
     </ScrollView>
   )
 }

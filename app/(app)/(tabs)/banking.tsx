@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react'
 import { ScrollView, Text, View } from 'react-native'
 import { router } from 'expo-router'
-import { Button, Card, CopyButton, HeroDecor } from '../../components/ui'
-import { supabase } from '../../lib/supabase'
-import { useLiturgicalSeason } from '../../lib/liturgicalTheme'
-import { useCongregationData } from '../../lib/congregationContext'
-import { styles } from '../../styles/banking.styles'
+import { Button, Card, CopyButton, HeroDecor } from '../../../components/ui'
+import { supabase } from '../../../lib/supabase'
+import { useLiturgicalSeason } from '../../../lib/liturgicalTheme'
+import { useCongregationData } from '../../../lib/congregationContext'
+import { styles } from '../../../styles/banking.styles'
 
 type MyFamily = { id: string; name: string; code: string }
 
-export { ErrorBoundary } from '../../components/errorBoundary'
+export { ErrorBoundary } from '../../../components/errorBoundary'
 
 export default function Banking() {
   const season = useLiturgicalSeason()
@@ -47,7 +47,7 @@ export default function Banking() {
             ? 'Pay an amount directly in the app via SnapScan.'
             : "SnapScan checkout isn't set up for this congregation yet. An admin can add the merchant code in Congregation Settings."}
         </Text>
-        <Button title="Pay with SnapScan" onPress={() => router.push('/(app)/bankingSnapscan')} />
+        <Button title="Pay with SnapScan" onPress={() => router.push('/bankingSnapscan')} />
       </Card>
 
       {bankAccounts.map((account) => (

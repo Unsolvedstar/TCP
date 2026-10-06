@@ -92,7 +92,7 @@ export function Wizard({
       <View style={styles.nav}>
         {!isFirst && (
           <View style={{ flex: 1 }}>
-            <Button title="Back" variant="secondary" onPress={goBack} disabled={submitting} />
+            <Button title="Back" variant="back" onPress={goBack} disabled={submitting} />
           </View>
         )}
         <View style={{ flex: 1 }}>

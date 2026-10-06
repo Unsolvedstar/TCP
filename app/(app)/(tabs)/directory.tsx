@@ -1,16 +1,17 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
-import { WhatsAppButton } from '../../components/whatsAppButton'
-import { ActivityIndicator, FlatList, Linking, Pressable, RefreshControl, Text, TextInput, View } from 'react-native'
+import { WhatsAppButton } from '../../../components/whatsAppButton'
+import { openUrlSafely } from '../../../lib/safeLink'
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, TextInput, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { Chip, GlassSheen } from '../../components/ui'
-import { supabase } from '../../lib/supabase'
-import { colors } from '../../theme'
-import { useCongregationData } from '../../lib/congregationContext'
-import { styles } from '../../styles/members.styles'
-import type { DirectoryEntry } from '../../lib/types'
+import { Chip, GlassSheen } from '../../../components/ui'
+import { supabase } from '../../../lib/supabase'
+import { colors } from '../../../theme'
+import { useCongregationData } from '../../../lib/congregationContext'
+import { styles } from '../../../styles/members.styles'
+import type { DirectoryEntry } from '../../../lib/types'
 
-export { ErrorBoundary } from '../../components/errorBoundary'
+export { ErrorBoundary } from '../../../components/errorBoundary'
 
 function initials(name: string) {
   return name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join('')
@@ -89,7 +90,7 @@ export default function Directory() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.cream }}>
               <Pressable
                 disabled={!item.phone}
-                onPress={() => item.phone && Linking.openURL(`tel:${item.phone.replace(/\s/g, '')}`)}
+                onPress={() => item.phone && openUrlSafely(`tel:${item.phone.replace(/\s/g, '')}`, "This device can't place calls.")}
                 style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}
               >
                 <Ionicons name="call-outline" size={16} color={item.phone ? colors.g700 : colors.muted} />
