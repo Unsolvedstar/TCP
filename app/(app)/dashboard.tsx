@@ -39,7 +39,7 @@ export default function Dashboard() {
       supabase.rpc('stats_by_league'),
       supabase.rpc('stats_by_gender'),
       supabase.rpc('stats_sacraments'),
-      supabase.from('profiles').select('pending_league_id,pending_baptism,pending_confirmation').eq('role', 'member'),
+      supabase.from('profiles').select('pending_league_id,pending_baptism,pending_confirmation'),
       supabase.from('dependents').select('pending_league_id,pending_baptism,pending_confirmation'),
     ])
     setWardStats((ws as WardStat[]) ?? [])

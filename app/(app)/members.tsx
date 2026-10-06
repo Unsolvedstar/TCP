@@ -109,7 +109,8 @@ export default function Members() {
   const pending = useMemo<PendingItem[]>(() => {
     const leagueLabel = (id: string | null) => (leagues.find((l) => l.id === id) ?? NONE_LEAGUE).label
     const items: PendingItem[] = []
-    members.forEach((m) => {
+    // Admins can be members of leagues / request sacraments too.
+    ;[...members, ...admins].forEach((m) => {
       if (m.pending_league_id)
         items.push({
           id: m.id, name: m.full_name, ward_id: m.ward_id, type: 'league', label: `Wants to join ${leagueLabel(m.pending_league_id)}`,
@@ -133,7 +134,7 @@ export default function Members() {
         items.push({ id: c.id, name: c.full_name, ward_id: c.ward_id, type: 'confirmation', label: 'Requesting Confirmation', isChild: true, guardianName, application: c.confirmation_application })
     })
     return items
-  }, [members, children, leagues])
+  }, [members, admins, children, leagues])
 
   const leagueAdminsByLeague = useMemo(() => {
     const map = new Map<string, { profileId: string; name: string }[]>()

@@ -6,19 +6,17 @@
 // (https://<project-ref>.functions.supabase.co/snapscan-webhook) as your
 // webhook URL when they set it up.
 //
-// ⚠️ SIGNATURE VERIFICATION IS DELIBERATELY NOT IMPLEMENTED HERE (by
-// explicit request). SnapScan signs each webhook POST
-// (`Authorization: SnapScan signature=<HMAC-SHA256 of the raw body>` — see
-// https://developer.snapscan.co.za/docs/webhooks) so a real merchant
-// integration can verify it actually came from SnapScan. Without that check,
-// anyone who discovers this function's URL can POST a fabricated
-// `{"status":"completed", "merchantReference": "..."}` payload and mark any
-// pending SnapScan payment as paid — including someone else's — without any
-// money having moved. If that risk becomes unacceptable, reintroduce the
-// check: require a Supabase secret (`SNAPSCAN_WEBHOOK_AUTH_KEY`, from
-// SnapScan support), compute an HMAC-SHA256 hex digest of the raw request
-// body with it, and reject the request unless it constant-time-matches the
-// `signature=` value in the Authorization header.
+// SIGNATURE VERIFICATION is OPT-IN. SnapScan signs each webhook POST
+// (`Authorization: SnapScan signature=<HMAC-SHA256 hex of the raw body>` — see
+// https://developer.snapscan.co.za/docs/webhooks). When the Supabase secret
+// SNAPSCAN_WEBHOOK_AUTH_KEY is set (get the key from SnapScan support, then
+// `npx supabase secrets set SNAPSCAN_WEBHOOK_AUTH_KEY=...`), every request
+// must carry a matching signature or it is rejected with 401. While the secret
+// is unset the function behaves as before and accepts unsigned requests —
+// meaning anyone who learns this URL could fake a "completed" payment, so set
+// the secret before relying on this for real money.
+//
+// A payment that is already 'completed' is never changed by a later webhook.
 //
 // Per SnapScan's docs: they POST `application/x-www-form-urlencoded` with a
 // single `payload` field containing a JSON string, only for completed/errored
@@ -26,12 +24,32 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
+function hexToBytes(hex: string): Uint8Array | null {
+  if (!/^[0-9a-fA-F]+$/.test(hex) || hex.length % 2 !== 0) return null
+  return Uint8Array.from(hex.match(/../g)!.map((b) => parseInt(b, 16)))
+}
+
+// HMAC-SHA256 check via WebCrypto's verify(), which compares in constant time.
+async function signatureIsValid(rawBody: string, authHeader: string | null, key: string): Promise<boolean> {
+  const match = /signature=([0-9a-fA-F]+)/.exec(authHeader ?? '')
+  const sig = match ? hexToBytes(match[1]) : null
+  if (!sig) return false
+  const cryptoKey = await crypto.subtle.importKey('raw', new TextEncoder().encode(key), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify'])
+  return crypto.subtle.verify('HMAC', cryptoKey, sig, new TextEncoder().encode(rawBody))
+}
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 })
   }
 
   const rawBody = await req.text()
+
+  const authKey = Deno.env.get('SNAPSCAN_WEBHOOK_AUTH_KEY')
+  if (authKey && !(await signatureIsValid(rawBody, req.headers.get('authorization'), authKey))) {
+    console.error('SnapScan webhook: missing or invalid signature')
+    return new Response('Invalid signature', { status: 401 })
+  }
 
   let payload: Record<string, unknown>
   try {
@@ -65,6 +83,7 @@ Deno.serve(async (req) => {
       completed_at: status === 'completed' ? new Date().toISOString() : null,
     }, { count: 'exact' })
     .eq('merchant_reference', merchantReference)
+    .neq('status', 'completed') // a finished payment is final
 
   if (error) {
     console.error('SnapScan webhook: failed to update payment', error)
@@ -74,7 +93,7 @@ Deno.serve(async (req) => {
     return new Response('OK', { status: 200 })
   }
   if (!count) {
-    console.error('SnapScan webhook: no payment found for merchant_reference', merchantReference)
+    console.error('SnapScan webhook: no pending payment for merchant_reference (unknown, or already completed)', merchantReference)
   }
 
   return new Response('OK', { status: 200 })
