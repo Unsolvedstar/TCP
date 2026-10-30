@@ -47,6 +47,21 @@ npx expo start --web
 
 This opens the app in your regular browser at `http://localhost:8081`, with hot reload, using the exact same screens and Supabase backend as the phone app.
 
+### Installing the website as an app (PWA)
+
+The web build is an installable Progressive Web App: `public/manifest.webmanifest`
+(name, colours, icons), `public/sw.js` (a small service worker) and the head tags
+in `public/index.html`. On Android/Chrome and desktop, the browser offers
+"Install"; on iPhone use Share → Add to Home Screen.
+
+- The service worker only caches the app shell and Expo's content-hashed static
+  files. Supabase and every other cross-origin or non-GET request goes straight
+  to the network, so account data is never served from cache.
+- The app opens offline but shows its normal "couldn't load" states for data.
+- Icons in `public/icons/` are rendered from the vector crest. To force every
+  installed copy to drop its caches after changing `sw.js`, bump `VERSION` in it.
+- It isn't registered on Expo's dev server (port 8081), so hot reload is unaffected.
+
 ## 4. Make yourself the first admin
 
 1. In the running app, register a normal account (this is what real members will do too).
