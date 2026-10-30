@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native'
 import { router } from 'expo-router'
 import * as Linking from 'expo-linking'
-import * as QueryParams from 'expo-auth-session/build/QueryParams'
 import { Button, Field, GlassSheen, glassBlur } from '../components/ui'
 import { ChurchHeader } from '../components/churchHeader'
+import { getQueryParams } from '../lib/queryParams'
 import { supabase } from '../lib/supabase'
 import { colors, radius } from '../theme'
 import { styles } from '../styles/resetPassword.styles'
@@ -28,7 +28,7 @@ export default function ResetPassword() {
 
     async function tryUrl(url: string | null) {
       if (!url) return
-      const { params, errorCode } = QueryParams.getQueryParams(url)
+      const { params, errorCode } = getQueryParams(url)
       if (errorCode) {
         hadSpecificError = true
         if (!cancelled) setLinkError(INVALID_LINK_MESSAGE)
@@ -71,7 +71,7 @@ export default function ResetPassword() {
 
   async function onSubmit() {
     setFormError('')
-    if (!password || password.length < 6) return setFormError('Password must be at least 6 characters.')
+    if (!password || password.length < 8) return setFormError('Password must be at least 8 characters.')
     if (password !== password2) return setFormError('Passwords do not match.')
     setSaving(true)
     const { error } = await supabase.auth.updateUser({ password })

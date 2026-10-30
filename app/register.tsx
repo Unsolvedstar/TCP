@@ -232,7 +232,7 @@ export default function Register() {
       subtitle: "You'll use this email and password to sign in.",
       validate: () => {
         if (!email.trim()) return 'Please enter your email.'
-        if (!password || password.length < 6) return 'Password must be at least 6 characters.'
+        if (!password || password.length < 8) return 'Password must be at least 8 characters.'
         if (password !== password2) return 'Passwords do not match.'
         return null
       },

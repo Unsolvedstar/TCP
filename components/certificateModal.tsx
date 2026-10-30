@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ComponentRef } from 'react'
 import { Image, Modal, Platform, ScrollView, Text, View } from 'react-native'
 import { captureRef } from 'react-native-view-shot'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
@@ -84,7 +84,7 @@ export function CertificateModal({
 }) {
   const [ceremonyDate, setCeremonyDate] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  const paperRef = useRef<View>(null)
+  const paperRef = useRef<ComponentRef<typeof View>>(null)
 
   useEffect(() => {
     if (!visible) return

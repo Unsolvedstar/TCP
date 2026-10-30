@@ -612,7 +612,7 @@ export default function Members() {
             </Pressable>
           )
         }}
-        ListEmptyComponent={tab === 'activity' || tab === 'families' ? null : <Text style={styles.emptyText}>No {tab === 'adults' ? 'members' : 'dependents'} found.</Text>}
+        ListEmptyComponent={tab === 'activity' || tab === 'families' ? undefined :<Text style={styles.emptyText}>No {tab === 'adults' ? 'members' : 'dependents'} found.</Text>}
       />
 
       {viewingMember && (

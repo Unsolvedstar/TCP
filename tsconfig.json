@@ -7,7 +7,15 @@
     // of erroring that a bare `alert` file doesn't exist. Both variants
     // export the same shape, so either resolution order type-checks
     // identically for callers.
-    "moduleSuffixes": [".native", ".web", ""]
+    "moduleSuffixes": [".native", ".web", ""],
+    // react-native-view-shot 6.x exposes its raw .tsx source to tsc through the
+    // "react-native" export condition, and that source has its own type error
+    // (a native view handle passed where its web stub wants an HTMLElement).
+    // Type-check against the library's published .d.ts instead. Type-only:
+    // Metro still bundles the real package.
+    "paths": {
+      "react-native-view-shot": ["./node_modules/react-native-view-shot/lib/index.d.ts"]
+    }
   },
   // supabase/functions/* are Deno Edge Functions — a separate runtime with
   // its own global types (Deno.*) and remote esm.sh imports, not part of

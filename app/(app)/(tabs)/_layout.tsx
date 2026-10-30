@@ -46,7 +46,7 @@ export default function TabsLayout() {
         options={{
           title: 'My Portal',
           href: isAdmin ? null : undefined,
-          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? 'person-circle' : 'person-circle-outline'} size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? 'person-circle' : 'person-circle-outline'} size={size} color={color as string} />,
         }}
       />
       <Tabs.Screen
@@ -54,7 +54,7 @@ export default function TabsLayout() {
         options={{
           title: 'Dashboard',
           href: isAdmin ? undefined : null,
-          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? 'grid' : 'grid-outline'} size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? 'grid' : 'grid-outline'} size={size} color={color as string} />,
         }}
       />
       <Tabs.Screen
@@ -62,7 +62,7 @@ export default function TabsLayout() {
         options={{
           title: 'Members',
           href: isAdmin ? undefined : null,
-          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? 'people' : 'people-outline'} size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? 'people' : 'people-outline'} size={size} color={color as string} />,
         }}
       />
       <Tabs.Screen
@@ -70,21 +70,21 @@ export default function TabsLayout() {
         options={{
           title: 'Announcements',
           href: isAdmin || myLeagueIds.length > 0 ? undefined : null,
-          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? 'megaphone' : 'megaphone-outline'} size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? 'megaphone' : 'megaphone-outline'} size={size} color={color as string} />,
         }}
       />
       <Tabs.Screen
         name="directory"
         options={{
           title: 'Directory',
-          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? 'briefcase' : 'briefcase-outline'} size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? 'briefcase' : 'briefcase-outline'} size={size} color={color as string} />,
         }}
       />
       <Tabs.Screen
         name="banking"
         options={{
           title: 'Banking',
-          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? 'card' : 'card-outline'} size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? 'card' : 'card-outline'} size={size} color={color as string} />,
         }}
       />
       <Tabs.Screen
@@ -92,7 +92,7 @@ export default function TabsLayout() {
         options={{
           title: isAdmin ? 'Leagues' : 'My League',
           href: myLeagueIds.length > 0 || isAdmin ? undefined : null,
-          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? 'ribbon' : 'ribbon-outline'} size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? 'ribbon' : 'ribbon-outline'} size={size} color={color as string} />,
         }}
       />
     </Tabs>
