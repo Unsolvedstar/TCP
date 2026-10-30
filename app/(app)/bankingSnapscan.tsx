@@ -13,6 +13,7 @@ import { buildSnapscanPaymentUrl, centsToRandsDisplay, randsToCents } from '../.
 import { colors } from '../../theme'
 import { styles } from '../../styles/banking.styles'
 import type { SnapscanPayment } from '../../lib/types'
+import { contentMedium } from '../../lib/layout'
 
 export { ErrorBoundary } from '../../components/errorBoundary'
 
@@ -141,7 +142,7 @@ export default function BankingSnapScan() {
   }
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.flex} contentContainerStyle={[styles.content, contentMedium]}>
       <View style={[styles.hero, { backgroundColor: season.color }]}>
         <HeroDecor />
         <Text style={[styles.heroLabel, { color: season.text }]}>Give via SnapScan</Text>

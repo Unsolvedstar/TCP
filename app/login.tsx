@@ -7,6 +7,7 @@ import { ChurchHeader } from '../components/churchHeader'
 import { supabase } from '../lib/supabase'
 import { radius } from '../theme'
 import { styles } from '../styles/login.styles'
+import { contentNarrow } from '../lib/layout'
 
 export { ErrorBoundary } from '../components/errorBoundary'
 
@@ -58,7 +59,7 @@ export default function Login() {
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[styles.scroll, contentNarrow]} keyboardShouldPersistTaps="handled">
         <ChurchHeader title="ELCSA Tshwane City Parish" subtitle="Growing Together in Christ" />
 
         {forgotOpen ? (

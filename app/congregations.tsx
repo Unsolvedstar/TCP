@@ -7,6 +7,7 @@ import { listRegistrationCongregations } from '../lib/congregation'
 import type { CongregationSummary } from '../lib/types'
 import { colors } from '../theme'
 import { styles } from '../styles/congregations.styles'
+import { contentMedium } from '../lib/layout'
 
 export { ErrorBoundary } from '../components/errorBoundary'
 
@@ -25,7 +26,7 @@ export default function Congregations() {
   }, [])
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
+    <ScrollView style={styles.flex} contentContainerStyle={[styles.scroll, contentMedium]}>
       <ChurchHeader title="Find Your Congregation" subtitle="Select yours to continue to registration" />
 
       {error ? <Text style={styles.error}>{error}</Text> : null}

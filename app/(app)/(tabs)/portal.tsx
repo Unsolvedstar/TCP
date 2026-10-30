@@ -25,6 +25,8 @@ import { shouldShowMembershipCheckIn } from '../../../lib/membershipCheckIn'
 import { colors } from '../../../theme'
 import { styles } from '../../../styles/portal.styles'
 import type { CeremonyKind, Dependent, GenderStat, LeagueStat, SacramentStat, WardStat } from '../../../lib/types'
+import { contentWide, useIsWide } from '../../../lib/layout'
+import { Columns } from '../../../components/columns'
 
 export { ErrorBoundary } from '../../../components/errorBoundary'
 
@@ -33,6 +35,7 @@ type Announcement = { id: string; title: string; date_text: string; body: string
 export default function Portal() {
   const { profile, refreshProfile } = useAuth()
   const { wards, leagues } = useCongregationData()
+  const wide = useIsWide()
   const season = useLiturgicalSeason()
   const [section, setSection] = useState<'dashboard' | 'leagues' | 'calendar'>('dashboard')
   const [refreshing, setRefreshing] = useState(false)
@@ -92,7 +95,7 @@ export default function Portal() {
   return (
     <ScrollView
       style={styles.flex}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, contentWide]}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.g700} />}
     >
       <View style={[styles.hero, { backgroundColor: season.color }]}>
@@ -107,19 +110,19 @@ export default function Portal() {
       {shouldShowMembershipCheckIn(profile) ? <MembershipCheckInBanner /> : null}
 
       <View style={styles.statGrid}>
-        <View style={styles.statCard}>
+        <View style={[styles.statCard, wide && styles.statCardWide]}>
           <GlassSheen />
           <SectionLabel>Ward</SectionLabel>
           {myWard ? <Chip label={myWard.name} color={myWard.color} /> : null}
         </View>
-        <View style={styles.statCard}>
+        <View style={[styles.statCard, wide && styles.statCardWide]}>
           <GlassSheen />
           <SectionLabel>League</SectionLabel>
           <Chip label={myLeague.label} color={myLeague.color} />
           {profile.pending_league_id ? <Text style={styles.pendingNote}>Pending review</Text> : null}
           {profile.league_id ? <Text style={styles.certLink} onPress={() => setCertKind('league')}>View Certificate</Text> : null}
         </View>
-        <View style={styles.statCard}>
+        <View style={[styles.statCard, wide && styles.statCardWide]}>
           <GlassSheen />
           <SectionLabel>Baptism</SectionLabel>
           <Chip
@@ -129,7 +132,7 @@ export default function Portal() {
           />
           {profile.baptised ? <Text style={styles.certLink} onPress={() => setCertKind('baptism')}>View Certificate</Text> : null}
         </View>
-        <View style={styles.statCard}>
+        <View style={[styles.statCard, wide && styles.statCardWide]}>
           <GlassSheen />
           <SectionLabel>Confirmation</SectionLabel>
           <Chip
@@ -170,11 +173,18 @@ export default function Portal() {
 
       {section === 'dashboard' ? (
         <>
-          <CeremonyConfirmationCard />
-          <PortalDetailsCard profile={profile} onChanged={loadAll} />
-          <PortalInvolvementCard profile={profile} onChanged={loadAll} />
-          <PortalFamilyCard />
-          <PortalHouseholdCard dependents={dependents} onChanged={loadAll} />
+          <Columns
+            left={
+              <>
+                <CeremonyConfirmationCard />
+                <PortalDetailsCard profile={profile} onChanged={loadAll} />
+                <PortalInvolvementCard profile={profile} onChanged={loadAll} />
+                <PortalFamilyCard />
+              </>
+            }
+            right={
+              <>
+                <PortalHouseholdCard dependents={dependents} onChanged={loadAll} />
 
           {announcements.length ? (
             <Card>
@@ -204,12 +214,21 @@ export default function Portal() {
           />
           <GenderBreakdownCard genderStats={genderStats} />
           <SacramentsCard sacraments={sacraments} />
+              </>
+            }
+          />
         </>
       ) : section === 'leagues' ? (
         <>
-          <MyLeagueCard />
-          <LeaguesDirectoryCard leagueStats={leagueStats} />
-          <LeagueBreakdownCard leagueStats={leagueStats} />
+          <Columns
+            left={<MyLeagueCard />}
+            right={
+              <>
+                <LeaguesDirectoryCard leagueStats={leagueStats} />
+                <LeagueBreakdownCard leagueStats={leagueStats} />
+              </>
+            }
+          />
         </>
       ) : (
         <ParishCalendarCard />

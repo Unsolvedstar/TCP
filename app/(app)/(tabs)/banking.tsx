@@ -6,6 +6,7 @@ import { supabase } from '../../../lib/supabase'
 import { useLiturgicalSeason } from '../../../lib/liturgicalTheme'
 import { useCongregationData } from '../../../lib/congregationContext'
 import { styles } from '../../../styles/banking.styles'
+import { contentMedium } from '../../../lib/layout'
 
 type MyFamily = { id: string; name: string; code: string }
 
@@ -33,7 +34,7 @@ export default function Banking() {
   const altAccountName = altCode ? bankAccounts.find((a) => a.id === altCode.account_id)?.name : undefined
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.flex} contentContainerStyle={[styles.content, contentMedium]}>
       <View style={[styles.hero, { backgroundColor: season.color }]}>
         <HeroDecor />
         <Text style={[styles.heroLabel, { color: season.text }]}>Banking Information</Text>

@@ -8,6 +8,7 @@ import { formatShortDate } from '../lib/dates'
 import { VISITOR_LINK } from '../lib/config'
 import { openUrlSafely } from '../lib/safeLink'
 import { styles } from './landingPage.styles'
+import { useIsWide } from '../lib/layout'
 
 const FEATURES = [
   { title: 'Your membership, in one place', body: 'See your ward, league, baptism and confirmation status, and request changes without waiting for the office.' },
@@ -24,6 +25,7 @@ export function LandingPage() {
   // old separate /welcome screen, which asked the same question but one tap
   // deeper, behind "Create Account".)
   const [showMemberOptions, setShowMemberOptions] = useState(false)
+  const wide = useIsWide()
 
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
@@ -73,19 +75,23 @@ export function LandingPage() {
         )}
       </View>
 
-      <View style={styles.body}>
+      <View style={[styles.body, wide && styles.bodyWide]}>
         {FEATURES.map((f) => (
-          <Card key={f.title}>
-            <Text style={styles.featureTitle}>{f.title}</Text>
-            <Text style={styles.featureBody}>{f.body}</Text>
-          </Card>
+          <View key={f.title} style={wide ? styles.featureCellWide : undefined}>
+            <Card>
+              <Text style={styles.featureTitle}>{f.title}</Text>
+              <Text style={styles.featureBody}>{f.body}</Text>
+            </Card>
+          </View>
         ))}
 
-        <Card>
-          <Text style={styles.featureTitle}>Part of a different congregation?</Text>
-          <Text style={styles.featureBody}>This app serves multiple ELCSA congregations — find yours to register.</Text>
-          <Button title="Find Your Congregation" variant="secondary" onPress={() => router.push('/congregations')} />
-        </Card>
+        <View style={wide ? styles.featureCellWide : undefined}>
+          <Card>
+            <Text style={styles.featureTitle}>Part of a different congregation?</Text>
+            <Text style={styles.featureBody}>This app serves multiple ELCSA congregations — find yours to register.</Text>
+            <Button title="Find Your Congregation" variant="secondary" onPress={() => router.push('/congregations')} />
+          </Card>
+        </View>
 
         <Text style={styles.footer}>
           959 Pretorius Street, Arcadia, Tshwane{'\n'}elcsatcp.org

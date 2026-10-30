@@ -10,6 +10,7 @@ import { colors } from '../../../theme'
 import { useCongregationData } from '../../../lib/congregationContext'
 import { styles } from '../../../styles/members.styles'
 import type { DirectoryEntry } from '../../../lib/types'
+import { contentMedium } from '../../../lib/layout'
 
 export { ErrorBoundary } from '../../../components/errorBoundary'
 
@@ -69,7 +70,7 @@ export default function Directory() {
       style={styles.flex}
       data={filtered}
       keyExtractor={(e) => e.id}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, contentMedium]}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.g700} />}
       ListHeaderComponent={
         <View>

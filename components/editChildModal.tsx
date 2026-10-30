@@ -10,6 +10,7 @@ import { rpcAction } from '../lib/rpcAction'
 import { colors, genders } from '../theme'
 import { useCongregationData } from '../lib/congregationContext'
 import type { ChildRow, Household } from '../lib/types'
+import { contentSheet } from '../lib/layout'
 
 export function EditChildModal({
   child,
@@ -135,7 +136,7 @@ export function EditChildModal({
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
-      <ScrollView style={{ flex: 1, backgroundColor: colors.cream }} contentContainerStyle={{ padding: 20, paddingTop: 60 }}>
+      <ScrollView style={{ flex: 1, backgroundColor: colors.cream }} contentContainerStyle={{ padding: 20, paddingTop: 60, ...contentSheet }}>
         <Text style={styles.modalHeading}>Edit Child</Text>
         <Text style={styles.guardianNote}>
           Guardian: {child.guardian?.full_name ?? 'Unknown'}

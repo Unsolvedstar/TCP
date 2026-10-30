@@ -17,6 +17,7 @@ export const styles = StyleSheet.create({
   pendingText: { fontSize: 13, fontWeight: '700', color: '#8a6310' },
   pendingLink: { fontSize: 13, fontWeight: '700', color: colors.g700 },
   wardGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
+  wardCardWide: { flexGrow: 1 },
   wardCard: {
     width: '18.5%',
     minWidth: 66,

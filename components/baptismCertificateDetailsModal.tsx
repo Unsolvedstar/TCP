@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase'
 import { rpcAction } from '../lib/rpcAction'
 import { colors } from '../theme'
 import type { BaptismApplication } from '../lib/types'
+import { contentSheet } from '../lib/layout'
 
 /**
  * Admin-only editor for the extra detail a baptism certificate needs beyond
@@ -68,7 +69,7 @@ export function BaptismCertificateDetailsModal({
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
-      <ScrollView style={{ flex: 1, backgroundColor: colors.cream }} contentContainerStyle={{ padding: 20, paddingTop: 60 }}>
+      <ScrollView style={{ flex: 1, backgroundColor: colors.cream }} contentContainerStyle={{ padding: 20, paddingTop: 60, ...contentSheet }}>
         <Text style={styles.modalHeading}>Baptism Certificate Details</Text>
         <Text style={styles.guardianNote}>{name}</Text>
         <View style={{ gap: 12 }}>

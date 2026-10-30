@@ -15,6 +15,7 @@ import { applicationDetailText, applicationCertificateList } from '../../../lib/
 import { colors } from '../../../theme'
 import { styles } from '../../../styles/members.styles'
 import type { ChildRow, ChurchEventRow, Profile } from '../../../lib/types'
+import { contentMedium } from '../../../lib/layout'
 
 export { ErrorBoundary } from '../../../components/errorBoundary'
 
@@ -230,7 +231,7 @@ export default function LeagueAdmin() {
   return (
     <ScrollView
       style={styles.flex}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, contentMedium]}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.g700} />}
     >
       <Text style={styles.screenTitle}>{isAdmin ? 'League Tools' : 'My League'}</Text>

@@ -58,8 +58,11 @@ export const styles = StyleSheet.create({
   btn: { borderWidth: 1.5, borderRadius: 99, minHeight: 50, paddingVertical: 12, alignItems: 'center', justifyContent: 'center' },
   btnPrimaryShadow: { shadowColor: colors.g800, shadowOpacity: 0.25, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 3 },
   btnText: { fontSize: 14.5, fontWeight: '700' },
-  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,.4)', justifyContent: 'flex-end' },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,.4)', justifyContent: 'flex-end', alignItems: 'center' },
+  // Capped so a bottom sheet doesn't stretch across a desktop window.
   modalSheet: {
+    width: '100%',
+    maxWidth: 560,
     backgroundColor: 'rgba(255,255,255,0.96)',
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,

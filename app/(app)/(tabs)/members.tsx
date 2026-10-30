@@ -19,6 +19,7 @@ import { applicationDetailText, applicationCertificateList } from '../../../lib/
 import { classifyAge, AGE_GROUP_LABELS } from '../../../lib/ageGroups'
 import { styles } from '../../../styles/members.styles'
 import type { BaptismApplication, ChildRow, ConfirmationApplication, Household, LeagueApplication, Profile } from '../../../lib/types'
+import { contentMedium } from '../../../lib/layout'
 
 const AGE_GROUP_COLORS = { child: '#c1447e', adult: colors.g700, elder: colors.brandNavy } as const
 
@@ -333,7 +334,7 @@ export default function Members() {
       <FlatList
         data={data}
         keyExtractor={(m) => m.id}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, contentMedium]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.g700} />}
         ListHeaderComponent={
           <View>

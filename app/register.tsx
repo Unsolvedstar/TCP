@@ -11,6 +11,7 @@ import { getRegistrationCongregation, listRegistrationCongregations } from '../l
 import type { WardRow, LeagueRow, CongregationSummary } from '../lib/types'
 import { radius } from '../theme'
 import { styles } from '../styles/register.styles'
+import { contentNarrow } from '../lib/layout'
 
 export { ErrorBoundary } from '../components/errorBoundary'
 
@@ -248,7 +249,7 @@ export default function Register() {
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[styles.scroll, contentNarrow]} keyboardShouldPersistTaps="handled">
         <ChurchHeader title="Register" subtitle={congregation?.name ?? 'Choose your congregation'} showSeason={false} logoUrl={congregation?.logo_url ?? undefined} />
 
         <View style={[styles.card, glassBlur]}>

@@ -2,6 +2,7 @@ import { Image, Modal, ScrollView, Text, View } from 'react-native'
 import { Button, Card } from './ui'
 import { styles } from './elcsasoModal.styles'
 import { colors } from '../theme'
+import { contentSheet } from '../lib/layout'
 
 const CHAPTERS = [
   {
@@ -33,7 +34,7 @@ const CHAPTERS = [
 export function ElcsasoModal({ onClose }: { onClose: () => void }) {
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
-      <ScrollView style={{ flex: 1, backgroundColor: colors.cream }} contentContainerStyle={{ padding: 20, paddingTop: 60 }}>
+      <ScrollView style={{ flex: 1, backgroundColor: colors.cream }} contentContainerStyle={{ padding: 20, paddingTop: 60, ...contentSheet }}>
         <Text style={styles.heading}>ELCSASO Chapters</Text>
         <Text style={styles.sub}>ELCSA Student Organisation — one campus chapter each, all under the same parish</Text>
 

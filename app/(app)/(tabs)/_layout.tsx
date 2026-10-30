@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { SignOutButton } from '../../../components/signOutButton'
 import { useAuth } from '../../../lib/authContext'
 import { useLeagueAdmin } from '../../../lib/leagueAdminContext'
+import { useIsWide } from '../../../lib/layout'
 import { colors, radius } from '../../../theme'
 
 export { ErrorBoundary } from '../../../components/errorBoundary'
@@ -14,6 +15,8 @@ export default function TabsLayout() {
   const { profile } = useAuth()
   const { myLeagueIds } = useLeagueAdmin()
   const isAdmin = profile?.role === 'admin'
+  // Wide windows get a left-hand sidebar instead of a bottom bar stretched across the screen.
+  const wide = useIsWide()
 
   return (
     <Tabs
@@ -24,8 +27,20 @@ export default function TabsLayout() {
         headerRight: () => <SignOutButton />,
         tabBarActiveTintColor: colors.g700,
         tabBarInactiveTintColor: colors.muted,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
-        tabBarStyle: {
+        tabBarLabelStyle: wide ? { fontSize: 14, fontWeight: '700', marginLeft: 12 } : { fontSize: 11, fontWeight: '700' },
+        tabBarPosition: wide ? 'left' : 'bottom',
+        tabBarLabelPosition: wide ? 'beside-icon' : 'below-icon',
+        tabBarStyle: wide
+          ? {
+              backgroundColor: colors.white,
+              borderRightWidth: 1,
+              borderRightColor: colors.warmBorder,
+              paddingTop: 12,
+              paddingHorizontal: 8,
+              width: 232,
+              minWidth: 232,
+            }
+          : {
           backgroundColor: colors.white,
           borderTopWidth: 0,
           borderTopLeftRadius: radius.lg,
@@ -39,6 +54,8 @@ export default function TabsLayout() {
           shadowOffset: { width: 0, height: -4 },
           elevation: 12,
         },
+        tabBarActiveBackgroundColor: wide ? colors.g50 : undefined,
+        tabBarItemStyle: wide ? { justifyContent: 'flex-start', paddingHorizontal: 14, borderRadius: radius.md } : undefined,
       }}
     >
       <Tabs.Screen

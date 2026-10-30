@@ -10,6 +10,7 @@ import { colors, genders } from '../theme'
 import { useCongregationData } from '../lib/congregationContext'
 import { applicationDetailText } from '../lib/applicationDetail'
 import type { Household, Profile } from '../lib/types'
+import { contentSheet } from '../lib/layout'
 
 export function EditMemberModal({
   member,
@@ -162,7 +163,7 @@ export function EditMemberModal({
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
-      <ScrollView style={{ flex: 1, backgroundColor: colors.cream }} contentContainerStyle={{ padding: 20, paddingTop: 60 }}>
+      <ScrollView style={{ flex: 1, backgroundColor: colors.cream }} contentContainerStyle={{ padding: 20, paddingTop: 60, ...contentSheet }}>
         <Text style={styles.modalHeading}>Edit Member</Text>
         {member.email ? <Text style={styles.guardianNote}>{member.email}</Text> : null}
         {member.profession ? <Text style={styles.guardianNote}>{member.profession}</Text> : null}

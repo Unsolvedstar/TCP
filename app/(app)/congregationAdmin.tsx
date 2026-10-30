@@ -10,6 +10,7 @@ import { useCongregationData } from '../../lib/congregationContext'
 import { colors } from '../../theme'
 import { styles } from '../../styles/members.styles'
 import type { BankAccountRow, LeagueRow, PaymentCodeRow, WardRow } from '../../lib/types'
+import { contentMedium } from '../../lib/layout'
 
 export { ErrorBoundary } from '../../components/errorBoundary'
 
@@ -328,7 +329,7 @@ export default function CongregationAdmin() {
   }
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.flex} contentContainerStyle={[styles.content, contentMedium]}>
       <Text style={styles.screenTitle}>Congregation Settings</Text>
       <Text style={styles.screenSub}>Manage your congregation's own name, branding, wards, leagues, and banking details.</Text>
 

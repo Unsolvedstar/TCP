@@ -8,6 +8,7 @@ import { getQueryParams } from '../lib/queryParams'
 import { supabase } from '../lib/supabase'
 import { colors, radius } from '../theme'
 import { styles } from '../styles/resetPassword.styles'
+import { contentNarrow } from '../lib/layout'
 
 export { ErrorBoundary } from '../components/errorBoundary'
 
@@ -85,7 +86,7 @@ export default function ResetPassword() {
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[styles.scroll, contentNarrow]} keyboardShouldPersistTaps="handled">
         <ChurchHeader title="Reset Password" showSeason={false} />
 
         <View style={[styles.card, glassBlur]}>

@@ -17,7 +17,10 @@ export const styles = StyleSheet.create({
   heroNote: { fontSize: 11.5, textAlign: 'center', marginTop: 12, opacity: 0.85, maxWidth: 340, lineHeight: 16 },
   heroBackLink: { fontSize: 12.5, fontWeight: '700', textAlign: 'center', marginTop: 10, opacity: 0.85 },
   body: { padding: 20, gap: 4 },
+  // Wide windows: centred, feature cards three across instead of one long stack.
+  bodyWide: { width: '100%', maxWidth: 1080, alignSelf: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 16, paddingTop: 32 },
+  featureCellWide: { flexGrow: 1, flexBasis: 300, minWidth: 260 },
   featureTitle: { fontSize: 15, fontWeight: '700', color: colors.g800, marginBottom: 4 },
   featureBody: { fontSize: 13, color: colors.muted, lineHeight: 19 },
-  footer: { textAlign: 'center', fontSize: 11.5, color: colors.muted, marginTop: 12, marginBottom: 28 },
+  footer: { width: '100%', textAlign: 'center', fontSize: 11.5, color: colors.muted, marginTop: 12, marginBottom: 28 },
 })

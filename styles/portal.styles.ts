@@ -11,6 +11,8 @@ export const styles = StyleSheet.create({
   heroName: { fontSize: 26, fontWeight: '800', color: colors.white },
   heroSub: { fontSize: 14, color: 'rgba(255,255,255,.85)', marginTop: 6 },
   statGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
+  // Four across instead of 2x2 once the window is wide.
+  statCardWide: { width: '23.8%', flexGrow: 1 },
   statCard: {
     width: '47%',
     backgroundColor: 'rgba(255,255,255,0.88)',

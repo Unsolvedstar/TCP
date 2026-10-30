@@ -9,6 +9,7 @@ import { colors } from '../theme'
 import { classifyAge, AGE_GROUP_LABELS } from '../lib/ageGroups'
 import { applicationDetailText, applicationCertificateList } from '../lib/applicationDetail'
 import type { CeremonyKind, ChildRow, Household, LeagueRow, Profile, WardRow } from '../lib/types'
+import { contentSheet } from '../lib/layout'
 
 const AGE_GROUP_COLORS = { child: '#c1447e', adult: colors.g700, elder: colors.brandNavy } as const
 
@@ -55,7 +56,7 @@ export function MemberProfileModal({
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
-      <ScrollView style={{ flex: 1, backgroundColor: colors.cream }} contentContainerStyle={{ padding: 20, paddingTop: 60 }}>
+      <ScrollView style={{ flex: 1, backgroundColor: colors.cream }} contentContainerStyle={{ padding: 20, paddingTop: 60, ...contentSheet }}>
         <Text style={styles.name}>{member.full_name}</Text>
         <View style={styles.chipsRow}>
           {ward ? <Chip label={ward.name} color={ward.color} /> : null}

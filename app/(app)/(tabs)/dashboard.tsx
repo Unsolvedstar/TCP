@@ -17,6 +17,8 @@ import { shouldShowMembershipCheckIn } from '../../../lib/membershipCheckIn'
 import { colors, radius } from '../../../theme'
 import { styles } from '../../../styles/dashboard.styles'
 import type { GenderStat, LeagueStat, SacramentStat, WardStat } from '../../../lib/types'
+import { contentWide, useIsWide } from '../../../lib/layout'
+import { Columns } from '../../../components/columns'
 
 export { ErrorBoundary } from '../../../components/errorBoundary'
 
@@ -24,6 +26,7 @@ export default function Dashboard() {
   const router = useRouter()
   const { profile } = useAuth()
   const { wards } = useCongregationData()
+  const wide = useIsWide()
   const season = useLiturgicalSeason()
   const [section, setSection] = useState<'dashboard' | 'leagues' | 'calendar'>('dashboard')
   const [refreshing, setRefreshing] = useState(false)
@@ -68,7 +71,7 @@ export default function Dashboard() {
   return (
     <ScrollView
       style={styles.flex}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, contentWide]}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.g700} />}
     >
       <View style={[styles.hero, { backgroundColor: season.color }]}>
@@ -114,7 +117,7 @@ export default function Dashboard() {
         <>
           <View style={styles.wardGrid}>
             {wards.map((w) => (
-              <View key={w.id} style={[styles.wardCard, { borderTopColor: w.color }]}>
+              <View key={w.id} style={[styles.wardCard, { borderTopColor: w.color }, wide && styles.wardCardWide]}>
                 <GlassSheen cornerRadius={radius.md} />
                 <Text style={styles.wardLabel}>{w.name}</Text>
                 <Text style={styles.wardNum}>{wardStats.find((s) => s.ward_id === w.id)?.cnt ?? 0}</Text>
@@ -123,14 +126,19 @@ export default function Dashboard() {
             ))}
           </View>
 
-          <WardBreakdownCard wardStats={wardStats} />
-          <GenderBreakdownCard genderStats={genderStats} />
-          <SacramentsCard sacraments={sacraments} />
+          <Columns
+            left={<WardBreakdownCard wardStats={wardStats} />}
+            right={
+              <>
+                <GenderBreakdownCard genderStats={genderStats} />
+                <SacramentsCard sacraments={sacraments} />
+              </>
+            }
+          />
         </>
       ) : section === 'leagues' ? (
         <>
-          <LeaguesDirectoryCard leagueStats={leagueStats} />
-          <LeagueBreakdownCard leagueStats={leagueStats} />
+          <Columns left={<LeaguesDirectoryCard leagueStats={leagueStats} />} right={<LeagueBreakdownCard leagueStats={leagueStats} />} />
         </>
       ) : (
         <ParishCalendarCard />
