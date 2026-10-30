@@ -1,45 +1,15 @@
 import { useEffect, useRef, useState, type ComponentRef } from 'react'
-import { Image, Modal, Platform, ScrollView, Text, View } from 'react-native'
+import { Modal, Platform, ScrollView, View } from 'react-native'
 import { captureRef } from 'react-native-view-shot'
-import { MaterialCommunityIcons } from '@expo/vector-icons'
-import { colors } from '../theme'
 import * as Sharing from 'expo-sharing'
 import { Alert } from '../lib/alert'
-import { Button, formatDate } from './ui'
-import { LeagueBadge } from './leagueBadge'
+import { Button } from './ui'
+import { CertificatePaper } from './certificatePaper'
 import { supabase } from '../lib/supabase'
+import { useCongregationData } from '../lib/congregationContext'
 import { applicationDetailText, type AnyApplication } from '../lib/applicationDetail'
 import { styles } from './certificateModal.styles'
-import type { BaptismApplication, CeremonyKind, LeagueRow } from '../lib/types'
-
-const TITLES: Record<CeremonyKind, string> = {
-  baptism: 'Certificate of Holy Baptism',
-  confirmation: 'Certificate of Confirmation',
-  league: 'Certificate of Installation',
-}
-
-function bodyLine(kind: CeremonyKind, leagueLabel?: string): string {
-  if (kind === 'baptism') return 'was received into the family of Christ through Holy Baptism'
-  if (kind === 'confirmation') return 'affirmed their baptismal faith and was confirmed as a full member of the church'
-  return `was installed as a member of the ${leagueLabel ?? 'league'}`
-}
-
-type DetailRow = { label: string; value: string }
-
-// "On {date} at {place}" / "On {date}" / "At {place}" — omits the row
-// entirely (returns null) rather than printing a label with nothing after
-// it when neither half is known.
-function onAtRow(label: string, dateIso: string | null | undefined, place: string | null | undefined): DetailRow | null {
-  const datePart = dateIso ? formatDate(dateIso) : null
-  if (datePart && place) return { label, value: `On ${datePart} at ${place}` }
-  if (datePart) return { label, value: `On ${datePart}` }
-  if (place) return { label, value: `At ${place}` }
-  return null
-}
-
-function plainRow(label: string, value: string | null | undefined): DetailRow | null {
-  return value && value.trim() ? { label, value: value.trim() } : null
-}
+import type { CeremonyKind, LeagueRow } from '../lib/types'
 
 /**
  * Viewable/downloadable certificate for a granted baptism, confirmation, or
@@ -48,16 +18,9 @@ function plainRow(label: string, value: string | null | undefined): DetailRow | 
  * original application's submitted_at, since a proposal is the only place an
  * exact ceremony date is ever recorded — see supabase/migrations/0010.
  *
- * Baptism and league certificates are laid out to resemble the parish's
- * actual paper certificates (verse quote, signature lines, structured
- * detail rows) — see supabase/migrations/0022_certificate_details.sql for
- * where that detail comes from. The corner flourish, parish seal, and
- * (baptism-only) cross-and-dove arch artwork are cropped from a real scan of
- * those paper certificates (assets/brand/certificateCornerFlourish.png,
- * certificateSeal.png, baptismArch.png) — the seal in particular is a photo
- * of a physical ink stamp, not clean vector art, so it carries some of that
- * texture on purpose. Confirmation has no paper template to work from yet,
- * so it keeps the original plain layout unchanged.
+ * The sheet itself lives in certificatePaper.tsx and its vector artwork in
+ * certificateArt.tsx; this modal only loads the ceremony date and handles
+ * saving/sharing the rendered sheet as a PNG.
  */
 export function CertificateModal({
   visible,
@@ -82,6 +45,7 @@ export function CertificateModal({
   league?: LeagueRow | null
   dateOfBirth?: string | null
 }) {
+  const { congregation } = useCongregationData()
   const [ceremonyDate, setCeremonyDate] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const paperRef = useRef<ComponentRef<typeof View>>(null)
@@ -107,23 +71,7 @@ export function CertificateModal({
   }, [visible, subjectId, kind, isDependent])
 
   const displayDate = ceremonyDate ?? reviewedAt?.slice(0, 10) ?? application?.submitted_at?.slice(0, 10) ?? null
-  const detail = kind === 'league' ? null : applicationDetailText(kind, application)
-
-  const baptismApp = kind === 'baptism' ? (application as BaptismApplication | null | undefined) : null
-  const baptismRows: DetailRow[] = kind === 'baptism'
-    ? ([
-        onAtRow('Born', dateOfBirth, baptismApp?.birth_place),
-        onAtRow('Baptized', displayDate, baptismApp?.location),
-        plainRow('Officiated By', baptismApp?.officiant_name),
-        plainRow('Register No.', baptismApp?.register_no),
-        plainRow('Parish', 'Tshwane City'),
-        plainRow('Diocese', baptismApp?.diocese),
-        plainRow('Parents', baptismApp?.parents),
-      ].filter(Boolean) as DetailRow[])
-    : []
-
-  const verseText = kind === 'baptism' ? baptismApp?.verse_text : kind === 'league' ? league?.verse_text : null
-  const verseReference = kind === 'baptism' ? baptismApp?.verse_reference : kind === 'league' ? league?.verse_reference : null
+  const detail = kind === 'confirmation' ? applicationDetailText(kind, application) : null
 
   async function handleSave() {
     setSaving(true)
@@ -151,81 +99,18 @@ export function CertificateModal({
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-        <View ref={paperRef} style={styles.paper} collapsable={false}>
-          {kind !== 'confirmation' ? (
-            <>
-              <Image source={require('../assets/brand/certificateCornerFlourish.png')} style={[styles.cornerFlourish, styles.cornerTL]} resizeMode="contain" />
-              <Image source={require('../assets/brand/certificateCornerFlourish.png')} style={[styles.cornerFlourish, styles.cornerTR]} resizeMode="contain" />
-              <Image source={require('../assets/brand/certificateCornerFlourish.png')} style={[styles.cornerFlourish, styles.cornerBL]} resizeMode="contain" />
-              <Image source={require('../assets/brand/certificateCornerFlourish.png')} style={[styles.cornerFlourish, styles.cornerBR]} resizeMode="contain" />
-            </>
-          ) : null}
-          <View style={styles.paperInner}>
-            <Image source={require('../assets/brand/churchLogo.png')} style={styles.crest} resizeMode="contain" />
-            <Text style={styles.kicker}>ELCSA Tshwane City Parish</Text>
-            <Text style={styles.parishName}>Growing Together in Christ</Text>
-            <View style={styles.rule} />
-            <Text style={styles.title}>{TITLES[kind]}</Text>
-            {kind === 'baptism' ? (
-              <Image source={require('../assets/brand/baptismArch.png')} style={styles.baptismArch} resizeMode="contain" />
-            ) : null}
-            <Text style={styles.bodyLine}>This certifies that</Text>
-            <Text style={styles.name}>{name}</Text>
-            <Text style={styles.bodyLine}>{bodyLine(kind, league?.label)}</Text>
-
-            {verseText ? (
-              <View style={styles.verseBlock}>
-                <Text style={styles.verseText}>&ldquo;{verseText}&rdquo;</Text>
-                {verseReference ? <Text style={styles.verseRef}>— {verseReference}</Text> : null}
-              </View>
-            ) : null}
-
-            {kind === 'confirmation' && detail ? <Text style={styles.detail}>{detail}</Text> : null}
-
-            {kind === 'baptism' && baptismRows.length > 0 ? (
-              <View style={styles.detailsGrid}>
-                {baptismRows.map((row) => (
-                  <View key={row.label} style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>{row.label}</Text>
-                    <Text style={styles.detailValue}>{row.value}</Text>
-                  </View>
-                ))}
-              </View>
-            ) : null}
-
-            {kind === 'league' && league ? <LeagueBadge leagueKey={league.key} size={56} /> : null}
-
-            {kind !== 'baptism' && displayDate ? <Text style={styles.date}>{formatDate(displayDate)}</Text> : null}
-
-            {kind === 'league' && (league?.chairperson_name || league?.pastor_name) ? (
-              <View style={styles.signatureRow}>
-                {league?.chairperson_name ? (
-                  <View style={styles.signatureBlock}>
-                    <View style={styles.signatureLine} />
-                    <Text style={styles.signatureName}>{league.chairperson_name}</Text>
-                    <Text style={styles.signatureCaption}>{league.label} Chairperson</Text>
-                  </View>
-                ) : null}
-                {league?.pastor_name ? (
-                  <View style={styles.signatureBlock}>
-                    <View style={styles.signatureLine} />
-                    <Text style={styles.signatureName}>{league.pastor_name}</Text>
-                    <Text style={styles.signatureCaption}>Parish Pastor</Text>
-                  </View>
-                ) : null}
-              </View>
-            ) : null}
-
-            <View style={styles.seal}>
-              {kind === 'confirmation' ? (
-                <MaterialCommunityIcons name="cross" size={26} color={colors.g700} />
-              ) : (
-                <Image source={require('../assets/brand/certificateSeal.png')} style={styles.sealImage} resizeMode="cover" />
-              )}
-            </View>
-            <Text style={styles.footer}>ELCSA Tshwane City Parish · Growing Together in Christ</Text>
-          </View>
-        </View>
+        <CertificatePaper
+          paperRef={paperRef}
+          kind={kind}
+          name={name}
+          displayDate={displayDate}
+          dateOfBirth={dateOfBirth}
+          application={application}
+          detail={detail}
+          league={league}
+          parishName={congregation?.name}
+          parishAddress={congregation?.address}
+        />
 
         <View style={styles.actions}>
           <Button title={Platform.OS === 'web' ? 'Download Certificate' : 'Save / Share Certificate'} onPress={handleSave} loading={saving} />
