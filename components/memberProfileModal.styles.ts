@@ -9,5 +9,4 @@ export const styles = StyleSheet.create({
   boxText: { fontSize: 13.5, color: colors.text },
   boxSub: { fontSize: 12, color: colors.muted, marginTop: 2 },
   certThumb: { width: 72, height: 72, borderRadius: radius.md, backgroundColor: colors.g50 },
-  certLink: { fontSize: 12, color: colors.g700, fontWeight: '700', textDecorationLine: 'underline', marginTop: 4 },
 })

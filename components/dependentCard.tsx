@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { Alert } from '../lib/alert'
-import { Button, Chip, DateField, Field, SelectField, formatDate } from './ui'
+import { Button, Chip, DateField, Field, SelectField, formatDate, ActionButton, OptionButton } from './ui'
 import { CertificatePicker } from './certificatePicker'
 import { CertificateModal } from './certificateModal'
 import { styles } from './dependentCard.styles'
@@ -120,7 +120,7 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
 
   return (
     <View style={styles.card}>
-      <Pressable style={styles.headerRow} onPress={() => setExpanded((v) => !v)}>
+      <Pressable style={styles.headerRow} accessibilityRole="button" accessibilityLabel={dependent.full_name} accessibilityState={{ expanded }} onPress={() => setExpanded((v) => !v)}>
         <View style={{ flex: 1 }}>
           <Text style={styles.name}>{dependent.full_name}</Text>
           <Text style={styles.sub}>{dependent.date_of_birth ? formatDate(dependent.date_of_birth) : 'No birthday on file'}</Text>
@@ -141,9 +141,7 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
           <View style={styles.actionRow}>
             <Text style={styles.actionLabel}>League</Text>
             {dependent.league_id ? (
-              <Text style={styles.editLink} onPress={() => setCertKind('league')}>
-                View Certificate
-              </Text>
+              <ActionButton label="View Certificate" tone="neutral" onPress={() => setCertKind('league')} />
             ) : null}
             {dependent.pending_league_id ? (
               <View style={{ gap: 8 }}>
@@ -157,13 +155,12 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
             ) : (
               <View style={{ gap: 8 }}>
                 {[{ id: '', label: NONE_LEAGUE.label }, ...leagues].map((l) => (
-                  <Text
+                  <OptionButton
                     key={l.id}
+                    label={l.label}
+                    selected={(selectedLeague ?? dependent.league_id ?? '') === l.id}
                     onPress={() => setSelectedLeague(l.id)}
-                    style={[styles.leagueOption, (selectedLeague ?? dependent.league_id ?? '') === l.id && styles.leagueOptionActive]}
-                  >
-                    {l.label}
-                  </Text>
+                  />
                 ))}
                 {selectedLeague !== null && (selectedLeague || null) !== dependent.league_id ? (
                   <>
@@ -185,9 +182,7 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
 <Text style={styles.hint}>Baptised. Praise God!</Text>
 <MaterialCommunityIcons name="cross" size={14} color={colors.muted} />
 </View>
-                <Text style={styles.editLink} onPress={() => setCertKind('baptism')}>
-                  View Certificate
-                </Text>
+                <ActionButton label="View Certificate" tone="neutral" onPress={() => setCertKind('baptism')} />
               </View>
             ) : dependent.pending_baptism ? (
               <View style={{ gap: 8 }}>
@@ -224,9 +219,7 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
 <Text style={styles.hint}>Confirmed. Praise God!</Text>
 <MaterialCommunityIcons name="cross" size={14} color={colors.muted} />
 </View>
-                <Text style={styles.editLink} onPress={() => setCertKind('confirmation')}>
-                  View Certificate
-                </Text>
+                <ActionButton label="View Certificate" tone="neutral" onPress={() => setCertKind('confirmation')} />
               </View>
             ) : dependent.pending_confirmation ? (
               <View style={{ gap: 8 }}>
@@ -270,9 +263,7 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
               />
             </View>
           ) : (
-            <Text style={styles.editLink} onPress={() => setEditingDob(true)}>
-              Edit birthday
-            </Text>
+            <ActionButton label="Edit birthday" tone="neutral" onPress={() => setEditingDob(true)} />
           )}
 
           {editingGender ? (
@@ -297,9 +288,7 @@ export function DependentCard({ dependent, onChanged }: { dependent: Dependent; 
               />
             </View>
           ) : (
-            <Text style={styles.editLink} onPress={() => setEditingGender(true)}>
-              Edit gender
-            </Text>
+            <ActionButton label="Edit gender" tone="neutral" onPress={() => setEditingGender(true)} />
           )}
 
           <Button

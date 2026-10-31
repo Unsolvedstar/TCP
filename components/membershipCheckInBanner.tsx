@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Text, View } from 'react-native'
 import { Alert } from '../lib/alert'
-import { Button, GlassSheen, glassBlur } from './ui'
+import { Button, GlassSheen, glassBlur, ActionButton } from './ui'
 import { supabase } from '../lib/supabase'
 import { rpcAction } from '../lib/rpcAction'
 import { useAuth } from '../lib/authContext'
@@ -44,9 +44,7 @@ export function MembershipCheckInBanner() {
               <Button title="I've left" variant="secondary" onPress={() => respond(false)} loading={busy === 'no'} disabled={busy === 'yes'} />
             </View>
           </View>
-          <Text style={styles.snooze} onPress={() => setDismissed(true)}>
-            Ask me later
-          </Text>
+          <ActionButton label="Ask me later" tone="neutral" onPress={() => setDismissed(true)} />
         </>
       )}
     </View>

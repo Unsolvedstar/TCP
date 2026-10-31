@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native'
-import { Link, router } from 'expo-router'
+import { router } from 'expo-router'
 import * as Linking from 'expo-linking'
-import { Button, Field, GlassSheen, glassBlur } from '../components/ui'
+import { Button, Field, GlassSheen, glassBlur, ActionButton } from '../components/ui'
 import { ChurchHeader } from '../components/churchHeader'
 import { supabase } from '../lib/supabase'
 import { radius } from '../theme'
@@ -88,9 +88,7 @@ export default function Login() {
             <Field label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" />
             <Field label="Password" value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" />
             <Button title="Sign In" onPress={onSubmit} loading={loading} />
-            <Text style={styles.forgotLink} onPress={() => setForgotOpen(true)}>
-              Forgot your password?
-            </Text>
+            <ActionButton label="Forgot your password?" tone="neutral" style={{ alignSelf: 'center' }} onPress={() => setForgotOpen(true)} />
             <Text style={styles.hint}>
               First time as parish admin? Use the email/password you set for the account created via the Supabase dashboard, then promote it to
               admin in the database.
@@ -98,11 +96,9 @@ export default function Login() {
           </View>
         )}
 
-        <Link href="/register" asChild>
-          <Pressable>
-            <Text style={styles.registerLink}>New here? Create a member account →</Text>
-          </Pressable>
-        </Link>
+        <View style={{ marginTop: 20 }}>
+          <Button title="New here? Create a member account" variant="secondary" onPress={() => router.push('/register')} />
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   )

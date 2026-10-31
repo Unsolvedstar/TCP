@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Image, Modal, ScrollView, Text, View } from 'react-native'
-import { Button, Chip, formatDate } from './ui'
+import { Button, Chip, formatDate, ActionButton } from './ui'
 import { WhatsAppButton } from './whatsAppButton'
 import { CertificateModal } from './certificateModal'
 import { BaptismCertificateDetailsModal } from './baptismCertificateDetailsModal'
@@ -101,22 +101,16 @@ export function MemberProfileModal({
           <Text style={styles.boxTitle}>Sacraments</Text>
           <Text style={styles.boxText}>Baptism — {member.baptised ? baptismDetail ?? 'Granted' : member.pending_baptism ? 'Pending review' : 'Not yet'}</Text>
           {member.baptised ? (
-            <Text style={styles.certLink} onPress={() => setCertKind('baptism')}>
-              View Certificate
-            </Text>
+            <ActionButton label="View Certificate" tone="neutral" onPress={() => setCertKind('baptism')} />
           ) : null}
           {member.baptised ? (
-            <Text style={styles.certLink} onPress={() => setEditingBaptismCert(true)}>
-              Edit Certificate Details
-            </Text>
+            <ActionButton label="Edit Certificate Details" tone="neutral" onPress={() => setEditingBaptismCert(true)} />
           ) : null}
           <Text style={styles.boxText}>
             Confirmation — {member.confirmed ? confirmationDetail ?? 'Granted' : member.pending_confirmation ? 'Pending review' : 'Not yet'}
           </Text>
           {member.confirmed ? (
-            <Text style={styles.certLink} onPress={() => setCertKind('confirmation')}>
-              View Certificate
-            </Text>
+            <ActionButton label="View Certificate" tone="neutral" onPress={() => setCertKind('confirmation')} />
           ) : null}
           {member.reviewed_at ? <Text style={styles.boxSub}>Last reviewed {formatDate(member.reviewed_at.slice(0, 10))}</Text> : null}
         </View>
@@ -130,9 +124,7 @@ export function MemberProfileModal({
             <Text style={styles.boxSub}>Administers: {leagueAdminFor.map((l) => l.label).join(', ')}</Text>
           ) : null}
           {member.league_id && league ? (
-            <Text style={styles.certLink} onPress={() => setCertKind('league')}>
-              View Certificate
-            </Text>
+            <ActionButton label="View Certificate" tone="neutral" onPress={() => setCertKind('league')} />
           ) : null}
         </View>
 

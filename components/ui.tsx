@@ -1,5 +1,5 @@
 import { createElement, useRef, useState } from 'react'
-import { ActivityIndicator, FlatList, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native'
+import { ActivityIndicator, FlatList, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View, type StyleProp, type TextInputProps, type ViewStyle } from 'react-native'
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
@@ -93,7 +93,7 @@ export function Chip({ label, color, onPress, selected, icon }: { label: string;
       </Text>
     </View>
   )
-  return onPress ? <Pressable onPress={onPress} hitSlop={4}>{body}</Pressable> : body
+  return onPress ? <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ selected: !!selected }} hitSlop={4}>{body}</Pressable> : body
 }
 
 export function BarRow({ label, sub, value, max, color }: { label: string; sub?: string; value: number; max: number; color: string }) {
@@ -125,7 +125,7 @@ export function CopyButton({ value, size = 17 }: { value: string; size?: number 
     setTimeout(() => setCopied(false), 1500)
   }
   return (
-    <Pressable onPress={copy} hitSlop={10}>
+    <Pressable onPress={copy} accessibilityRole="button" accessibilityLabel={copied ? 'Copied' : 'Copy to clipboard'} hitSlop={10}>
       <Ionicons name={copied ? 'checkmark' : 'copy-outline'} size={size} color={copied ? colors.g700 : colors.muted} />
     </Pressable>
   )
@@ -174,7 +174,7 @@ export function SelectField({
   return (
     <View style={{ gap: 6 }}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <Pressable style={[styles.inputWrap, open && styles.inputFocused, { justifyContent: 'space-between', paddingHorizontal: 14 }]} onPress={() => setOpen(true)}>
+      <Pressable accessibilityRole="button" accessibilityLabel={label} style={[styles.inputWrap, open && styles.inputFocused, { justifyContent: 'space-between', paddingHorizontal: 14 }]} onPress={() => setOpen(true)}>
         <Text style={{ flex: 1, fontSize: 15, color: current ? colors.text : '#b3a99b' }} numberOfLines={1}>{current ? current.label : placeholder}</Text>
         <Ionicons name="chevron-down" size={18} color={colors.muted} />
       </Pressable>
@@ -188,6 +188,9 @@ export function SelectField({
               style={{ maxHeight: 360 }}
               renderItem={({ item }) => (
                 <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={item.label}
+                  accessibilityState={{ selected: item.value === value }}
                   style={[styles.modalOption, item.value === value && styles.modalOptionActive]}
                   onPress={() => {
                     onChange(item.value)
@@ -265,7 +268,7 @@ export function DateField({
   return (
     <View style={{ gap: 6 }}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <Pressable style={[styles.inputWrap, { justifyContent: 'space-between', paddingHorizontal: 14 }]} onPress={open}>
+      <Pressable accessibilityRole="button" accessibilityLabel={label} style={[styles.inputWrap, { justifyContent: 'space-between', paddingHorizontal: 14 }]} onPress={open}>
         <Text style={{ flex: 1, fontSize: 15, color: value ? colors.text : '#b3a99b' }}>{value ? formatDate(value) : placeholder}</Text>
         <Ionicons name="calendar-outline" size={18} color={colors.muted} />
       </Pressable>
@@ -294,6 +297,25 @@ export function DateField({
   )
 }
 
+// Guards every button in the app: ignores re-taps while an async handler is
+// still running (double-submits), and turns a rejected handler into an alert
+// instead of an unhandled promise rejection.
+function useGuardedPress(onPress: () => void | Promise<unknown>, label: string) {
+  const inFlight = useRef(false)
+  return async function handlePress() {
+    if (inFlight.current) return
+    inFlight.current = true
+    try {
+      await onPress()
+    } catch (e) {
+      console.error(`Button "${label}" handler failed`, e)
+      Alert.alert('Something went wrong', e instanceof Error ? e.message : 'Please try again.')
+    } finally {
+      inFlight.current = false
+    }
+  }
+}
+
 export function Button({
   title,
   onPress,
@@ -312,22 +334,7 @@ export function Button({
   // (pass the banner's own text colour as `background` and its fill as `text`).
   inverse?: { background: string; text: string }
 }) {
-  // Guards every button in the app: ignores re-taps while an async handler is
-  // still running (double-submits), and turns a rejected handler into an alert
-  // instead of an unhandled promise rejection.
-  const inFlight = useRef(false)
-  async function handlePress() {
-    if (inFlight.current) return
-    inFlight.current = true
-    try {
-      await onPress()
-    } catch (e) {
-      console.error(`Button "${title}" handler failed`, e)
-      Alert.alert('Something went wrong', e instanceof Error ? e.message : 'Please try again.')
-    } finally {
-      inFlight.current = false
-    }
-  }
+  const handlePress = useGuardedPress(onPress, title)
   // 'back' is a tinted green fill with a solid green border, so it stands out on
   // both the cream page and white cards (plain white 'secondary' blends into them).
   let bg = variant === 'primary' ? colors.g700 : variant === 'back' ? colors.g100 : colors.white
@@ -342,6 +349,9 @@ export function Button({
     <Pressable
       onPress={handlePress}
       disabled={disabled || loading}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
       style={({ pressed }) => [
         styles.btn,
         variant === 'primary' && !disabled && styles.btnPrimaryShadow,
@@ -349,6 +359,111 @@ export function Button({
       ]}
     >
       {loading ? <ActivityIndicator color={textColor} /> : <Text style={[styles.btnText, { color: textColor }]}>{title}</Text>}
+    </Pressable>
+  )
+}
+
+type ActionTone = 'primary' | 'danger' | 'neutral'
+
+// Small button for row/card actions (Approve, Remove, View Certificate, Edit…).
+// Always drawn as a bordered button — never bare text — with hover, pressed and
+// keyboard-focus states, and the same double-tap guard as <Button>.
+const ACTION_TONES: Record<ActionTone, { bg: string; hover: string; pressed: string; border: string; text: string }> = {
+  primary: { bg: colors.g700, hover: colors.g800, pressed: colors.g900, border: colors.g700, text: colors.white },
+  danger: { bg: colors.white, hover: colors.dangerBg, pressed: colors.dangerBg, border: colors.dangerBorder, text: colors.danger },
+  neutral: { bg: colors.white, hover: colors.g50, pressed: colors.g100, border: colors.g700, text: colors.g700 },
+}
+
+export function ActionButton({
+  label,
+  onPress,
+  tone = 'neutral',
+  disabled = false,
+  accessibilityLabel,
+  style,
+}: {
+  label: string
+  onPress: () => void | Promise<unknown>
+  tone?: ActionTone
+  disabled?: boolean
+  // For when the visible label alone is ambiguous, e.g. a bare "Remove" in a list of people.
+  accessibilityLabel?: string
+  style?: StyleProp<ViewStyle>
+}) {
+  const handlePress = useGuardedPress(onPress, label)
+  const t = ACTION_TONES[tone]
+  return (
+    <Pressable
+      onPress={handlePress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ disabled }}
+      hitSlop={4}
+      style={({ pressed, hovered }: HoverablePressableState) => [
+        styles.actionBtn,
+        { backgroundColor: pressed ? t.pressed : hovered ? t.hover : t.bg, borderColor: t.border, opacity: disabled ? 0.5 : 1 },
+        style,
+      ]}
+    >
+      <Text style={[styles.actionBtnText, { color: t.text }]} numberOfLines={1}>
+        {label}
+      </Text>
+    </Pressable>
+  )
+}
+
+// react-native-web passes `hovered` to Pressable style callbacks; RN's own types don't list it.
+type HoverablePressableState = { pressed: boolean; hovered?: boolean }
+
+// One option of a segmented switcher (Dashboard | Leagues | Calendar), filling its share of the row.
+export function TabButton({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: active }}
+      style={({ pressed, hovered }: HoverablePressableState) => [
+        styles.tabButton,
+        active ? styles.tabButtonActive : hovered || pressed ? styles.tabButtonHover : null,
+      ]}
+    >
+      <Text style={[styles.tabButtonText, active && styles.tabButtonTextActive]} numberOfLines={1}>
+        {label}
+      </Text>
+    </Pressable>
+  )
+}
+
+// A pill toggle for filter lists (activity filters); several can sit in a wrapping row.
+export function ChipButton({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: active }}
+      hitSlop={4}
+      style={({ pressed, hovered }: HoverablePressableState) => [styles.chipButton, active ? styles.chipButtonActive : hovered || pressed ? styles.chipButtonHover : null]}
+    >
+      <Text style={[styles.chipButtonText, active && styles.chipButtonTextActive]}>{label}</Text>
+    </Pressable>
+  )
+}
+
+// One choice in a pick-one list (e.g. which league): a full-width bordered row
+// that shows as selected once chosen.
+export function OptionButton({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected }}
+      style={({ pressed, hovered }: HoverablePressableState) => [styles.optionButton, selected ? styles.optionButtonActive : hovered || pressed ? styles.optionButtonHover : null]}
+    >
+      <Text style={[styles.optionButtonText, selected && styles.optionButtonTextActive]}>{label}</Text>
     </Pressable>
   )
 }

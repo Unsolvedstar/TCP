@@ -26,7 +26,7 @@ export function CollapsibleSection({
   return (
     <View style={[uiStyles.card, glassBlur]}>
       <GlassSheen />
-      <Pressable onPress={() => setOpen(!open)} style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <Pressable onPress={() => setOpen(!open)} accessibilityRole="button" accessibilityLabel={title} accessibilityState={{ expanded: open }} style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View style={{ flex: 1 }}>
           <Text style={statStyles.cardTitle}>{title}</Text>
           {subtitle ? <Text style={[statStyles.cardSub, { marginBottom: 0 }]}>{subtitle}</Text> : null}

@@ -36,7 +36,7 @@ export default function Congregations() {
       {congregations && congregations.length === 0 ? <Text style={styles.empty}>No congregations are set up yet.</Text> : null}
 
       {congregations?.map((c) => (
-        <Pressable key={c.id} style={styles.row} onPress={() => router.push({ pathname: '/register', params: { slug: c.slug } })}>
+        <Pressable key={c.id} accessibilityRole="button" style={styles.row} onPress={() => router.push({ pathname: '/register', params: { slug: c.slug } })}>
           <View style={styles.logoWrap}>
             {c.logo_url ? (
               <Image source={{ uri: c.logo_url }} style={styles.logo} resizeMode="contain" />

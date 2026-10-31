@@ -59,11 +59,11 @@ export function MonthCalendar({
   return (
     <View>
       <View style={styles.header}>
-        <Pressable onPress={() => onMonthChange(new Date(year, monthIndex - 1, 1))} hitSlop={10}>
+        <Pressable onPress={() => onMonthChange(new Date(year, monthIndex - 1, 1))} accessibilityRole="button" accessibilityLabel="Previous month" hitSlop={10}>
           <Text style={styles.nav}>‹</Text>
         </Pressable>
         <Text style={styles.monthLabel}>{monthLabel}</Text>
-        <Pressable onPress={() => onMonthChange(new Date(year, monthIndex + 1, 1))} hitSlop={10}>
+        <Pressable onPress={() => onMonthChange(new Date(year, monthIndex + 1, 1))} accessibilityRole="button" accessibilityLabel="Next month" hitSlop={10}>
           <Text style={styles.nav}>›</Text>
         </Pressable>
       </View>
@@ -84,6 +84,8 @@ export function MonthCalendar({
           return (
             <Pressable
               key={i}
+              accessibilityRole="button"
+              accessibilityLabel={formatDate(cell.iso)}
               style={[styles.cell, isToday && styles.cellToday]}
               onPress={() => (dayMarkers.length ? setSelectedDate(cell.iso) : undefined)}
             >

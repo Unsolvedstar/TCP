@@ -15,7 +15,6 @@ export const styles = StyleSheet.create({
   heroBreakdown: { fontSize: 11.5, color: 'rgba(255,255,255,.55)', marginTop: 10 },
   pendingBanner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.goldBg, borderWidth: 1, borderColor: '#f0e0a8', borderRadius: radius.md, padding: 12, marginBottom: 16 },
   pendingText: { fontSize: 13, fontWeight: '700', color: '#8a6310' },
-  pendingLink: { fontSize: 13, fontWeight: '700', color: colors.g700 },
   wardGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
   wardCardWide: { flexGrow: 1 },
   wardCard: {
@@ -47,8 +46,5 @@ export const styles = StyleSheet.create({
   annTitle: { fontSize: 14, fontWeight: '700', color: colors.g800, marginTop: 2 },
   annBody: { fontSize: 12.5, color: '#444', marginTop: 3, lineHeight: 18 },
   annPoster: { width: '100%', height: 160, borderRadius: radius.md, marginTop: 8, backgroundColor: colors.cream },
-  removeLink: { fontSize: 12, fontWeight: '700', color: colors.danger },
   tabRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  tabBtn: { flex: 1, textAlign: 'center', fontSize: 13, fontWeight: '700', color: colors.muted, paddingVertical: 9, borderRadius: radius.md, borderWidth: 1, borderColor: colors.warmBorder, backgroundColor: colors.white, overflow: 'hidden' },
-  tabBtnActive: { color: colors.white, backgroundColor: colors.g700, borderColor: colors.g700 },
 })

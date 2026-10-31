@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
 import { ActivityIndicator, Image, RefreshControl, ScrollView, Text, View } from 'react-native'
-import { Card, Chip, GlassSheen, HeroDecor, SectionLabel } from '../../../components/ui'
+import { Card, Chip, GlassSheen, HeroDecor, SectionLabel, ActionButton, TabButton } from '../../../components/ui'
 import { PortalDetailsCard } from '../../../components/portalDetailsCard'
 import { PortalInvolvementCard } from '../../../components/portalInvolvementCard'
 import { PortalHouseholdCard } from '../../../components/portalHouseholdCard'
@@ -120,7 +120,7 @@ export default function Portal() {
           <SectionLabel>League</SectionLabel>
           <Chip label={myLeague.label} color={myLeague.color} />
           {profile.pending_league_id ? <Text style={styles.pendingNote}>Pending review</Text> : null}
-          {profile.league_id ? <Text style={styles.certLink} onPress={() => setCertKind('league')}>View Certificate</Text> : null}
+          {profile.league_id ? <ActionButton label="View Certificate" tone="neutral" onPress={() => setCertKind('league')} /> : null}
         </View>
         <View style={[styles.statCard, wide && styles.statCardWide]}>
           <GlassSheen />
@@ -130,7 +130,7 @@ export default function Portal() {
             icon={profile.baptised ? 'checkmark-circle' : undefined}
             color={profile.baptised ? colors.g700 : profile.pending_baptism ? colors.gold : colors.muted}
           />
-          {profile.baptised ? <Text style={styles.certLink} onPress={() => setCertKind('baptism')}>View Certificate</Text> : null}
+          {profile.baptised ? <ActionButton label="View Certificate" tone="neutral" onPress={() => setCertKind('baptism')} /> : null}
         </View>
         <View style={[styles.statCard, wide && styles.statCardWide]}>
           <GlassSheen />
@@ -140,7 +140,7 @@ export default function Portal() {
             icon={profile.confirmed ? 'checkmark-circle' : undefined}
             color={profile.confirmed ? colors.g700 : profile.pending_confirmation ? colors.gold : colors.muted}
           />
-          {profile.confirmed ? <Text style={styles.certLink} onPress={() => setCertKind('confirmation')}>View Certificate</Text> : null}
+          {profile.confirmed ? <ActionButton label="View Certificate" tone="neutral" onPress={() => setCertKind('confirmation')} /> : null}
         </View>
       </View>
 
@@ -160,15 +160,9 @@ export default function Portal() {
       ) : null}
 
       <View style={styles.tabRow}>
-        <Text onPress={() => setSection('dashboard')} style={[styles.tabBtn, section === 'dashboard' && styles.tabBtnActive]}>
-          Dashboard
-        </Text>
-        <Text onPress={() => setSection('leagues')} style={[styles.tabBtn, section === 'leagues' && styles.tabBtnActive]}>
-          Leagues
-        </Text>
-        <Text onPress={() => setSection('calendar')} style={[styles.tabBtn, section === 'calendar' && styles.tabBtnActive]}>
-          Calendar
-        </Text>
+        <TabButton label="Dashboard" active={section === 'dashboard'} onPress={() => setSection('dashboard')} />
+        <TabButton label="Leagues" active={section === 'leagues'} onPress={() => setSection('leagues')} />
+        <TabButton label="Calendar" active={section === 'calendar'} onPress={() => setSection('calendar')} />
       </View>
 
       {section === 'dashboard' ? (
@@ -200,9 +194,7 @@ export default function Portal() {
                 </View>
               ))}
               {announcements.length > 3 ? (
-                <Text style={styles.certLink} onPress={() => setShowAllAnnouncements((v) => !v)}>
-                  {showAllAnnouncements ? 'Show fewer' : `Show all ${announcements.length} announcements`}
-                </Text>
+                <ActionButton label={showAllAnnouncements ? 'Show fewer' : `Show all ${announcements.length} announcements`} tone="neutral" onPress={() => setShowAllAnnouncements((v) => !v)} />
               ) : null}
             </Card>
           ) : null}

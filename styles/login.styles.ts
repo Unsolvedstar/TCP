@@ -21,6 +21,4 @@ export const styles = StyleSheet.create({
   error: { backgroundColor: colors.dangerBg, borderWidth: 1, borderColor: colors.dangerBorder, color: colors.danger, fontSize: 13, padding: 10, borderRadius: radius.md },
   notice: { backgroundColor: colors.g50, borderWidth: 1, borderColor: colors.g100, color: colors.g700, fontSize: 13, padding: 10, borderRadius: radius.md },
   hint: { fontSize: 11.5, color: colors.muted, textAlign: 'center', lineHeight: 17, marginTop: 4 },
-  registerLink: { textAlign: 'center', color: colors.g700, fontWeight: '700', fontSize: 13.5, marginTop: 20 },
-  forgotLink: { textAlign: 'center', color: colors.g700, fontWeight: '700', fontSize: 12.5 },
 })

@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { RefreshControl, ScrollView, Text, View } from 'react-native'
-import { GlassSheen, HeroDecor } from '../../../components/ui'
+import { GlassSheen, HeroDecor, ActionButton, TabButton } from '../../../components/ui'
 import { WardBreakdownCard } from '../../../components/wardBreakdownCard'
 import { LeagueBreakdownCard } from '../../../components/leagueBreakdownCard'
 import { LeaguesDirectoryCard } from '../../../components/leaguesDirectoryCard'
@@ -93,24 +93,16 @@ export default function Dashboard() {
       {pendingCount > 0 ? (
         <View style={styles.pendingBanner}>
           <Text style={styles.pendingText}>{pendingCount} pending request{pendingCount !== 1 ? 's' : ''}</Text>
-          <Text style={styles.pendingLink} onPress={() => router.push('/members')}>
-            Review →
-          </Text>
+          <ActionButton label="Review →" tone="neutral" onPress={() => router.push('/members')} />
         </View>
       ) : null}
 
       {profile && shouldShowMembershipCheckIn(profile) ? <MembershipCheckInBanner /> : null}
 
       <View style={styles.tabRow}>
-        <Text onPress={() => setSection('dashboard')} style={[styles.tabBtn, section === 'dashboard' && styles.tabBtnActive]}>
-          Dashboard
-        </Text>
-        <Text onPress={() => setSection('leagues')} style={[styles.tabBtn, section === 'leagues' && styles.tabBtnActive]}>
-          Leagues
-        </Text>
-        <Text onPress={() => setSection('calendar')} style={[styles.tabBtn, section === 'calendar' && styles.tabBtnActive]}>
-          Calendar
-        </Text>
+        <TabButton label="Dashboard" active={section === 'dashboard'} onPress={() => setSection('dashboard')} />
+        <TabButton label="Leagues" active={section === 'leagues'} onPress={() => setSection('leagues')} />
+        <TabButton label="Calendar" active={section === 'calendar'} onPress={() => setSection('calendar')} />
       </View>
 
       {section === 'dashboard' ? (

@@ -32,7 +32,7 @@ export function LeaguesDirectoryCard({ leagueStats }: { leagueStats: LeagueStat[
         )
         if (league.key !== 'ELCSASO') return <View key={league.id}>{row}</View>
         return (
-          <Pressable key={league.id} onPress={() => setElcsasoOpen(true)}>
+          <Pressable key={league.id} accessibilityRole="button" onPress={() => setElcsasoOpen(true)}>
             {row}
           </Pressable>
         )

@@ -9,6 +9,4 @@ export const styles = StyleSheet.create({
   actionCol: { gap: 8 },
   hintText: { fontSize: 12.5, color: colors.muted, fontStyle: 'italic' },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  leagueOption: { fontSize: 13.5, color: colors.text, paddingVertical: 7, paddingHorizontal: 10, borderRadius: radius.md, borderWidth: 1, borderColor: colors.warmBorder },
-  leagueOptionActive: { borderColor: colors.g700, backgroundColor: colors.g50, color: colors.g700, fontWeight: '700' },
 })

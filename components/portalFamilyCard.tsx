@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Alert } from '../lib/alert'
 import { Button, Card, CopyButton, Field } from './ui'
+import { colors } from '../theme'
 import { styles } from './portalFamilyCard.styles'
 import { supabase } from '../lib/supabase'
 
@@ -82,10 +83,16 @@ function JoinOptions({
           <Field label="Relative's name" value={query} onChangeText={onQueryChange} placeholder="Start typing their name…" />
           {searching ? <Text style={styles.nudgeText}>Searching…</Text> : null}
           {results.map((r) => (
-            <Text key={r.profile_id} style={styles.resultRow} onPress={() => onSelect(r)}>
+            <Pressable
+              key={r.profile_id}
+              style={({ pressed }) => [styles.resultRow, pressed && { backgroundColor: colors.g50 }]}
+              accessibilityRole="button"
+              accessibilityLabel={`${r.full_name}, ${r.ward_name} Ward`}
+              onPress={() => onSelect(r)}
+            >
               <Text style={styles.resultText}>{r.full_name}</Text>
-              <Text style={styles.resultSub}>{'\n'}{r.ward_name} Ward</Text>
-            </Text>
+              <Text style={styles.resultSub}>{r.ward_name} Ward</Text>
+            </Pressable>
           ))}
           {!searching && query.trim().length >= 2 && results.length === 0 ? (
             <Text style={styles.nudgeText}>No matches found. Double-check the spelling, or ask them for their code instead.</Text>

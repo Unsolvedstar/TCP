@@ -28,7 +28,6 @@ export const styles = StyleSheet.create({
     elevation: 2,
   },
   pendingNote: { fontSize: 11, color: colors.gold, fontWeight: '700' },
-  certLink: { fontSize: 11, color: colors.g700, fontWeight: '700', textDecorationLine: 'underline' },
   cardTitle: { fontSize: 16, fontWeight: '700', color: colors.g800 },
   cardSub: { fontSize: 12.5, color: colors.muted, marginBottom: 14, marginTop: 2 },
   annItem: { borderTopWidth: 1, borderTopColor: colors.cream, paddingTop: 10, marginTop: 10 },
@@ -37,6 +36,4 @@ export const styles = StyleSheet.create({
   annBody: { fontSize: 12.5, color: '#444', marginTop: 3, lineHeight: 18 },
   annPoster: { width: '100%', height: 160, borderRadius: radius.md, marginTop: 8, backgroundColor: colors.cream },
   tabRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  tabBtn: { flex: 1, textAlign: 'center', fontSize: 13, fontWeight: '700', color: colors.muted, paddingVertical: 9, borderRadius: radius.md, borderWidth: 1, borderColor: colors.warmBorder, backgroundColor: colors.white, overflow: 'hidden' },
-  tabBtnActive: { color: colors.white, backgroundColor: colors.g700, borderColor: colors.g700 },
 })

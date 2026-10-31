@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ScrollView, Text, View } from 'react-native'
 import { Alert } from '../../lib/alert'
-import { Button, Card, Chip, Field, SelectField } from '../../components/ui'
+import { Button, Card, Chip, Field, SelectField, ActionButton } from '../../components/ui'
 import { ChipRow } from '../../components/chipRow'
 import { CertificatePicker } from '../../components/certificatePicker'
 import { supabase } from '../../lib/supabase'
@@ -380,12 +380,8 @@ export default function CongregationAdmin() {
             <View style={{ flex: 1, minWidth: 0, alignItems: 'flex-start' }}>
               <Chip label={`${w.name} · ${w.bank_code}`} color={w.color} selected />
             </View>
-            <Text style={styles.approveBtn} onPress={() => startEditWard(w)}>
-              Edit
-            </Text>
-            <Text style={[styles.denyBtn, { marginLeft: 8 }]} onPress={() => removeWard(w)}>
-              Remove
-            </Text>
+            <ActionButton label="Edit" tone="primary" onPress={() => startEditWard(w)} />
+            <ActionButton label="Remove" tone="danger" onPress={() => removeWard(w)} style={{ marginLeft: 8 }} />
           </View>
         ))}
       </Card>
@@ -418,12 +414,8 @@ export default function CongregationAdmin() {
             <View style={{ flex: 1, minWidth: 0, alignItems: 'flex-start' }}>
               <Chip label={l.label} color={l.color} selected />
             </View>
-            <Text style={styles.approveBtn} onPress={() => startEditLeague(l)}>
-              Edit
-            </Text>
-            <Text style={[styles.denyBtn, { marginLeft: 8 }]} onPress={() => removeLeague(l)}>
-              Remove
-            </Text>
+            <ActionButton label="Edit" tone="primary" onPress={() => startEditLeague(l)} />
+            <ActionButton label="Remove" tone="danger" onPress={() => removeLeague(l)} style={{ marginLeft: 8 }} />
           </View>
         ))}
       </Card>
@@ -452,12 +444,8 @@ export default function CongregationAdmin() {
               <Text style={{ flex: 1, fontSize: 13.5, fontWeight: '700', color: colors.g800 }}>
                 {a.name} — {a.bank_name}
               </Text>
-              <Text style={styles.approveBtn} onPress={() => startEditAccount(a)}>
-                Edit
-              </Text>
-              <Text style={[styles.denyBtn, { marginLeft: 8 }]} onPress={() => removeAccount(a)}>
-                Remove
-              </Text>
+              <ActionButton label="Edit" tone="primary" onPress={() => startEditAccount(a)} />
+              <ActionButton label="Remove" tone="danger" onPress={() => removeAccount(a)} style={{ marginLeft: 8 }} />
             </View>
             <Text style={styles.pendingDetail}>
               Acc. {a.account_number} · Branch {a.branch_code}
@@ -488,12 +476,8 @@ export default function CongregationAdmin() {
             <Text style={{ flex: 1, fontSize: 13.5, color: colors.text }}>
               {c.code} — {c.label} ({bankAccounts.find((a) => a.id === c.account_id)?.name ?? 'Unknown account'})
             </Text>
-            <Text style={styles.approveBtn} onPress={() => startEditCode(c)}>
-              Edit
-            </Text>
-            <Text style={[styles.denyBtn, { marginLeft: 8 }]} onPress={() => removeCode(c)}>
-              Remove
-            </Text>
+            <ActionButton label="Edit" tone="primary" onPress={() => startEditCode(c)} />
+            <ActionButton label="Remove" tone="danger" onPress={() => removeCode(c)} style={{ marginLeft: 8 }} />
           </View>
         ))}
       </Card>

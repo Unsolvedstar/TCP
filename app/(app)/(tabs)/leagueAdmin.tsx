@@ -3,7 +3,7 @@ import { useFocusEffect } from 'expo-router'
 import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Alert } from '../../../lib/alert'
-import { Button, Card, DateField, Field } from '../../../components/ui'
+import { Button, Card, DateField, Field, ActionButton } from '../../../components/ui'
 import { ChipRow } from '../../../components/chipRow'
 import { VerseField } from '../../../components/verseField'
 import { supabase } from '../../../lib/supabase'
@@ -264,12 +264,8 @@ export default function LeagueAdmin() {
                   </View>
                   {isScheduling ? null : (
                     <View style={styles.pendingActions}>
-                      <Text style={styles.approveBtn} onPress={() => startScheduling(p)}>
-                        Schedule
-                      </Text>
-                      <Text style={styles.denyBtn} onPress={() => deny(p)}>
-                        Deny
-                      </Text>
+                      <ActionButton label="Schedule" tone="primary" onPress={() => startScheduling(p)} />
+                      <ActionButton label="Deny" tone="danger" onPress={() => deny(p)} />
                     </View>
                   )}
                 </View>
@@ -332,9 +328,7 @@ export default function LeagueAdmin() {
                 <Text style={styles.pendingName}>{e.title}</Text>
                 {e.description ? <Text style={styles.pendingDetail}>{e.description}</Text> : null}
               </View>
-              <Text style={styles.denyBtn} onPress={() => removeEvent(e.id)}>
-                Remove
-              </Text>
+              <ActionButton label="Remove" tone="danger" onPress={() => removeEvent(e.id)} />
             </View>
           </View>
         ))}

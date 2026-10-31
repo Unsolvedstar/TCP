@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Text, View } from 'react-native'
-import { Card, Chip } from './ui'
+import { Card, Chip, ChipButton } from './ui'
 import { styles } from '../styles/members.styles'
 import { colors } from '../theme'
 import type { Profile } from '../lib/types'
@@ -89,8 +89,6 @@ export function ActivityList({ people }: { people: Profile[] }) {
 
 function FilterChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   return (
-    <Text onPress={onPress} style={[styles.filterChip, active && styles.filterChipActive]}>
-      {label}
-    </Text>
+    <ChipButton label={label} active={active} onPress={onPress} />
   )
 }

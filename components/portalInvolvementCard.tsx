@@ -3,7 +3,7 @@ import { Text, View } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { colors } from '../theme'
 import { Alert } from '../lib/alert'
-import { Button, Card, Field, SelectField } from './ui'
+import { Button, Card, Field, SelectField, OptionButton } from './ui'
 import { LeagueBadge } from './leagueBadge'
 import { CertificatePicker } from './certificatePicker'
 import { styles } from './portalInvolvementCard.styles'
@@ -116,13 +116,12 @@ export function PortalInvolvementCard({ profile, onChanged }: { profile: Profile
         ) : (
           <View style={styles.actionCol}>
             {[NONE_LEAGUE, ...leagues].map((l) => (
-              <Text
+              <OptionButton
                 key={l.id}
+                label={l.label}
+                selected={(selectedLeague ?? profile.league_id ?? '') === l.id}
                 onPress={() => setSelectedLeague(l.id)}
-                style={[styles.leagueOption, (selectedLeague ?? profile.league_id ?? '') === l.id && styles.leagueOptionActive]}
-              >
-                {l.label}
-              </Text>
+              />
             ))}
             {currentLeague.info ? (
               <View style={styles.infoRow}>

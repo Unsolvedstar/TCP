@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
 import { ActivityIndicator, Image, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { Alert } from '../../../lib/alert'
-import { Button, Card, Field } from '../../../components/ui'
+import { Button, Card, Field, ActionButton } from '../../../components/ui'
 import { ChipRow } from '../../../components/chipRow'
 import { SpeakButton } from '../../../components/speakButton'
 import { CertificatePicker } from '../../../components/certificatePicker'
@@ -156,9 +156,7 @@ export default function Announcements() {
                   <SpeakButton text={[a.title, a.date_text, a.body].filter(Boolean).join('. ')} />
                 </View>
                 {isAdmin || a.league_id ? (
-                  <Text style={styles.denyBtn} onPress={() => removeAnnouncement(a.id)}>
-                    Remove
-                  </Text>
+                  <ActionButton label="Remove" tone="danger" onPress={() => removeAnnouncement(a.id)} />
                 ) : null}
               </View>
             </View>

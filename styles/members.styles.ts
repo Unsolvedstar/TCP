@@ -16,11 +16,7 @@ export const styles = StyleSheet.create({
   pendingAppText: { fontSize: 11.5, color: colors.text },
   pendingSignature: { width: 70, height: 40, backgroundColor: colors.white, borderRadius: 4, borderWidth: 1, borderColor: colors.warmBorder },
   pendingThumbLabel: { fontSize: 9.5, color: colors.muted, marginTop: 2 },
-  approveBtn: { flexShrink: 0, fontSize: 12.5, fontWeight: '700', color: colors.white, backgroundColor: colors.g700, paddingVertical: 6, paddingHorizontal: 12, borderRadius: radius.md, overflow: 'hidden' },
-  denyBtn: { flexShrink: 0, fontSize: 12.5, fontWeight: '700', color: colors.danger, borderWidth: 1, borderColor: colors.dangerBorder, paddingVertical: 5, paddingHorizontal: 12, borderRadius: radius.md, overflow: 'hidden' },
   tabRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  tabBtn: { flex: 1, textAlign: 'center', fontSize: 12.5, fontWeight: '700', color: colors.muted, paddingVertical: 11, paddingHorizontal: 2, borderRadius: radius.md, borderWidth: 1, borderColor: colors.warmBorder, backgroundColor: colors.white, overflow: 'hidden' },
-  tabBtnActive: { color: colors.white, backgroundColor: colors.g700, borderColor: colors.g700 },
   search: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.warmBorder, borderRadius: radius.md, paddingVertical: 10, paddingHorizontal: 14, fontSize: 14, marginBottom: 10 },
   snapScanLink: {
     flexDirection: 'row',
@@ -37,8 +33,6 @@ export const styles = StyleSheet.create({
   snapScanLinkLabel: { flex: 1, fontSize: 13, fontWeight: '700', color: colors.g800, marginRight: 8 },
   snapScanLinkArrow: { fontSize: 13.5, fontWeight: '700', color: colors.g700 },
   filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  filterChip: { fontSize: 12.5, fontWeight: '600', color: colors.text, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 99, borderWidth: 1, borderColor: colors.warmBorder, backgroundColor: colors.white, overflow: 'hidden' },
-  filterChipActive: { borderColor: colors.g700, backgroundColor: colors.g50, color: colors.g700, fontWeight: '700' },
   memberCard: {
     backgroundColor: 'rgba(255,255,255,0.88)',
     borderRadius: radius.lg,

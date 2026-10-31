@@ -166,7 +166,7 @@ export default function BankingSnapScan() {
           />
           <View style={styles.quickAmounts}>
             {QUICK_AMOUNTS.map((amt) => (
-              <Pressable key={amt} style={[styles.quickAmount, amountInput === String(amt) && styles.quickAmountActive]} onPress={() => setAmountInput(String(amt))}>
+              <Pressable key={amt} accessibilityRole="button" accessibilityLabel={`R${amt}`} accessibilityState={{ selected: amountInput === String(amt) }} style={[styles.quickAmount, amountInput === String(amt) && styles.quickAmountActive]} onPress={() => setAmountInput(String(amt))}>
                 <Text style={[styles.quickAmountText, amountInput === String(amt) && styles.quickAmountTextActive]}>R{amt}</Text>
               </Pressable>
             ))}

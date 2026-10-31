@@ -78,4 +78,23 @@ export const styles = StyleSheet.create({
   modalOptionActive: { backgroundColor: colors.g50 },
   modalOptionText: { fontSize: 15, color: colors.text },
   modalOptionTextActive: { color: colors.g700, fontWeight: '700' },
+
+  // --- ActionButton / TabButton / ChipButton ---------------------------------
+  actionBtn: { flexShrink: 0, alignSelf: 'flex-start', minHeight: 36, alignItems: 'center', justifyContent: 'center', paddingVertical: 7, paddingHorizontal: 14, borderRadius: radius.md, borderWidth: 1 },
+  actionBtnText: { fontSize: 13, fontWeight: '700' },
+  tabButton: { flex: 1, minHeight: 40, alignItems: 'center', justifyContent: 'center', paddingVertical: 9, paddingHorizontal: 4, borderRadius: radius.md, borderWidth: 1, borderColor: colors.warmBorder, backgroundColor: colors.white },
+  tabButtonActive: { backgroundColor: colors.g700, borderColor: colors.g700 },
+  tabButtonHover: { backgroundColor: colors.g50, borderColor: colors.g700 },
+  tabButtonText: { fontSize: 13, fontWeight: '700', color: colors.muted, textAlign: 'center' },
+  tabButtonTextActive: { color: colors.white },
+  chipButton: { paddingVertical: 7, paddingHorizontal: 13, borderRadius: 99, borderWidth: 1, borderColor: colors.warmBorder, backgroundColor: colors.white },
+  chipButtonActive: { borderColor: colors.g700, backgroundColor: colors.g50 },
+  chipButtonHover: { borderColor: colors.g700 },
+  chipButtonText: { fontSize: 12.5, fontWeight: '600', color: colors.text },
+  chipButtonTextActive: { color: colors.g700, fontWeight: '700' },
+  optionButton: { minHeight: 40, justifyContent: 'center', paddingVertical: 8, paddingHorizontal: 12, borderRadius: radius.md, borderWidth: 1, borderColor: colors.warmBorder, backgroundColor: colors.white },
+  optionButtonActive: { borderColor: colors.g700, backgroundColor: colors.g50 },
+  optionButtonHover: { borderColor: colors.g700 },
+  optionButtonText: { fontSize: 13.5, color: colors.text },
+  optionButtonTextActive: { color: colors.g700, fontWeight: '700' },
 })

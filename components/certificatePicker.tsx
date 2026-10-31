@@ -3,7 +3,7 @@ import { Image, Platform, Text, View } from 'react-native'
 import { Alert } from '../lib/alert'
 import * as ImagePicker from 'expo-image-picker'
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator'
-import { Button } from './ui'
+import { Button, ActionButton } from './ui'
 import { styles } from './certificatePicker.styles'
 
 /**
@@ -62,9 +62,7 @@ export function CertificatePicker({ label, value, onChange }: { label: string; v
       {value ? (
         <View style={styles.previewRow}>
           <Image source={{ uri: value }} style={styles.preview} />
-          <Text style={styles.removeLink} onPress={() => onChange(null)}>
-            Remove
-          </Text>
+          <ActionButton label="Remove" tone="danger" onPress={() => onChange(null)} />
         </View>
       ) : (
         <View style={styles.buttonRow}>

@@ -6,5 +6,4 @@ export const styles = StyleSheet.create({
   buttonRow: { flexDirection: 'row', gap: 10 },
   previewRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   preview: { width: 70, height: 70, borderRadius: radius.md, borderWidth: 1, borderColor: colors.warmBorder, backgroundColor: colors.white },
-  removeLink: { fontSize: 12, fontWeight: '700', color: colors.danger },
 })

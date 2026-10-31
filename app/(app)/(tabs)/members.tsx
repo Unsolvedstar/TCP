@@ -3,7 +3,7 @@ import { router, useFocusEffect } from 'expo-router'
 import { ActivityIndicator, FlatList, Image, Pressable, RefreshControl, Text, TextInput, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Alert } from '../../../lib/alert'
-import { Button, Card, Chip, DateField, GlassSheen, SelectField, formatDate } from '../../../components/ui'
+import { Button, Card, Chip, DateField, GlassSheen, SelectField, formatDate, ActionButton, TabButton } from '../../../components/ui'
 import { EditMemberModal } from '../../../components/editMemberModal'
 import { MemberProfileModal } from '../../../components/memberProfileModal'
 import { EditChildModal } from '../../../components/editChildModal'
@@ -365,12 +365,8 @@ export default function Members() {
                         </View>
                         {isScheduling ? null : (
                           <View style={styles.pendingActions}>
-                            <Text style={styles.approveBtn} onPress={() => startScheduling(p)}>
-                              Schedule
-                            </Text>
-                            <Text style={styles.denyBtn} onPress={() => deny(p)}>
-                              Deny
-                            </Text>
+                            <ActionButton label="Schedule" tone="primary" onPress={() => startScheduling(p)} />
+                            <ActionButton label="Deny" tone="danger" onPress={() => deny(p)} />
                           </View>
                         )}
                       </View>
@@ -411,18 +407,10 @@ export default function Members() {
             )}
 
             <View style={styles.tabRow}>
-              <Text onPress={() => setTab('adults')} numberOfLines={1} style={[styles.tabBtn, tab === 'adults' && styles.tabBtnActive]}>
-                Members
-              </Text>
-              <Text onPress={() => setTab('children')} numberOfLines={1} style={[styles.tabBtn, tab === 'children' && styles.tabBtnActive]}>
-                Dependents
-              </Text>
-              <Text onPress={() => setTab('families')} numberOfLines={1} style={[styles.tabBtn, tab === 'families' && styles.tabBtnActive]}>
-                Families
-              </Text>
-              <Text onPress={() => setTab('activity')} numberOfLines={1} style={[styles.tabBtn, tab === 'activity' && styles.tabBtnActive]}>
-                Activity
-              </Text>
+              <TabButton label="Members" active={tab === 'adults'} onPress={() => setTab('adults')} />
+              <TabButton label="Dependents" active={tab === 'children'} onPress={() => setTab('children')} />
+              <TabButton label="Families" active={tab === 'families'} onPress={() => setTab('families')} />
+              <TabButton label="Activity" active={tab === 'activity'} onPress={() => setTab('activity')} />
             </View>
 
             <View style={{ marginBottom: 16 }}>
@@ -459,8 +447,8 @@ export default function Members() {
                           {f.match_type === 'self_selected' ? 'picked as their own sibling' : `matched surname: ${f.matched_surname}`})
                         </Text>
                         <View style={styles.pendingActions}>
-                          <Text style={styles.approveBtn} onPress={() => confirmAutoMerge(f)}>Confirm</Text>
-                          <Text style={styles.denyBtn} onPress={() => splitAutoMerge(f)}>Split Off</Text>
+                          <ActionButton label="Confirm" tone="primary" onPress={() => confirmAutoMerge(f)} />
+                          <ActionButton label="Split Off" tone="danger" onPress={() => splitAutoMerge(f)} />
                         </View>
                       </View>
                     ))}
@@ -540,9 +528,7 @@ export default function Members() {
                   {admins.map((a) => (
                     <View key={a.id} style={[styles.pendingRow, { flexDirection: 'row', alignItems: 'center' }]}>
                       <Text style={{ flex: 1, fontSize: 13.5, color: colors.text }}>{a.full_name}</Text>
-                      <Text style={styles.denyBtn} onPress={() => confirmDemoteAdmin(a)}>
-                        Remove Access
-                      </Text>
+                      <ActionButton label="Remove Access" tone="danger" onPress={() => confirmDemoteAdmin(a)} />
                     </View>
                   ))}
                   <Text style={styles.adminHint}>To give someone admin access, open their profile below and tap "Promote to Admin".</Text>
@@ -560,9 +546,7 @@ export default function Members() {
                           assigned.map((a) => (
                             <View key={a.profileId} style={{ flexDirection: 'row', alignItems: 'center' }}>
                               <Text style={{ flex: 1, fontSize: 13, color: colors.text }}>{a.name}</Text>
-                              <Text style={styles.denyBtn} onPress={() => revokeLeagueAdmin(a.profileId, l.id, l.label, a.name)}>
-                                Remove
-                              </Text>
+                              <ActionButton label="Remove" tone="danger" onPress={() => revokeLeagueAdmin(a.profileId, l.id, l.label, a.name)} />
                             </View>
                           ))
                         )}
@@ -587,7 +571,7 @@ export default function Members() {
           const ageGroup = classifyAge(item.date_of_birth)
           const familyName = item.household_id ? householdsById.get(item.household_id)?.name : null
           return (
-            <Pressable style={styles.memberCard} onPress={() => (isChild ? setEditingChild(child) : setViewingMember(item as Profile))}>
+            <Pressable accessibilityRole="button" style={styles.memberCard} onPress={() => (isChild ? setEditingChild(child) : setViewingMember(item as Profile))}>
               <GlassSheen />
               <View style={{ flex: 1 }}>
                 <Text style={styles.memberName}>{item.full_name}</Text>

@@ -98,6 +98,8 @@ export default function Directory() {
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.cream }}>
               <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={item.phone ? `Call ${item.full_name}` : `${item.full_name} has no phone number`}
                 disabled={!item.phone}
                 onPress={() => item.phone && openUrlSafely(`tel:${item.phone.replace(/\s/g, '')}`, "This device can't place calls.")}
                 style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}

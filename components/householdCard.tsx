@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase'
 import { rpcAction } from '../lib/rpcAction'
 import { colors } from '../theme'
 import type { ChildRow, Household, Profile } from '../lib/types'
+import { ActionButton } from './ui'
 
 export function HouseholdCard({
   household,
@@ -69,23 +70,18 @@ export function HouseholdCard({
       {renaming ? (
         <View style={styles.editingRow}>
           <TextInput style={styles.nameInput} value={nameInput} onChangeText={setNameInput} autoFocus placeholderTextColor="#a99" />
-          <Text style={styles.headerLink} onPress={busy ? undefined : saveRename}>Save</Text>
-          <Text
-            style={styles.headerLink}
-            onPress={() => {
+          <ActionButton label="Save" tone="primary" onPress={saveRename} disabled={busy} />
+          <ActionButton label="Cancel" tone="neutral" onPress={() => {
               setNameInput(household.name ?? '')
               setRenaming(false)
-            }}
-          >
-            Cancel
-          </Text>
+            }} />
         </View>
       ) : (
         <View style={styles.headerRow}>
           <Text style={unclaimed ? styles.nameUnclaimed : styles.name}>{household.name ?? 'Unclaimed code'}</Text>
           <View style={styles.headerActions}>
-            <Text style={styles.headerLink} onPress={() => setRenaming(true)}>Rename</Text>
-            <Text style={styles.headerLinkDanger} onPress={confirmDelete}>Delete</Text>
+            <ActionButton label="Rename" tone="neutral" onPress={() => setRenaming(true)} />
+            <ActionButton label="Delete" tone="danger" onPress={confirmDelete} />
           </View>
         </View>
       )}
@@ -94,7 +90,7 @@ export function HouseholdCard({
         <Text style={styles.codeText}>
           Family code: <Text style={styles.codeValue}>{household.code}</Text>
         </Text>
-        <Text style={styles.headerLink} onPress={confirmRegenerateCode}>Regenerate</Text>
+        <ActionButton label="Regenerate" tone="neutral" onPress={confirmRegenerateCode} />
       </View>
 
       {members.length === 0 && dependents.length === 0 ? (
@@ -104,14 +100,14 @@ export function HouseholdCard({
           {members.map((m) => (
             <View key={m.id} style={styles.personRow}>
               <Text style={styles.personName}>{m.full_name}</Text>
-              <Text style={styles.removeLink} onPress={() => removeMember(m.id)}>Remove</Text>
+              <ActionButton label="Remove" tone="danger" onPress={() => removeMember(m.id)} />
             </View>
           ))}
           {dependents.map((d) => (
             <View key={d.id} style={styles.personRow}>
               <Ionicons name="body-outline" size={13} color={colors.muted} />
               <Text style={styles.personName}>{d.full_name}</Text>
-              <Text style={styles.removeLink} onPress={() => removeDependent(d.id)}>Remove</Text>
+              <ActionButton label="Remove" tone="danger" onPress={() => removeDependent(d.id)} />
             </View>
           ))}
         </>
