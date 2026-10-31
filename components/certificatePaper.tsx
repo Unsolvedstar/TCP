@@ -2,9 +2,10 @@ import type { ComponentRef, Ref } from 'react'
 import { Text, View } from 'react-native'
 import { colors } from '../theme'
 import { formatDate } from './ui'
-import { BaptismArch, CertificateFrame, LeagueEmblem, RoundSeal } from './certificateArt'
+import { BaptismArch, CertificateFrame, ConfirmationEmblem, LeagueEmblem, OrnamentRule, RoundSeal } from './certificateArt'
 import { INK, styles } from './certificatePaper.styles'
 import type { AnyApplication } from '../lib/applicationDetail'
+import { resolveVerse, type CertificateVerse } from '../lib/certificateVerse'
 import type { BaptismApplication, CeremonyKind, LeagueRow } from '../lib/types'
 
 export const CERTIFICATE_TITLES: Record<CeremonyKind, string> = {
@@ -42,19 +43,35 @@ function Crest({ size }: { size: number }) {
   return <RoundSeal size={size} color={colors.g700} topText="EVANGELICAL LUTHERAN CHURCH" bottomText="IN SOUTHERN AFRICA" topSweep={236} />
 }
 
-function Verse({ text, reference, plain }: { text?: string | null; reference?: string | null; plain?: boolean }) {
-  if (!text) return null
+// Every certificate carries a verse — see lib/certificateVerse.ts for where it comes from.
+function Verse({ verse, plain }: { verse: CertificateVerse; plain?: boolean }) {
   if (plain) {
+    // The baptism paper prints it as a run-in line: Text: "…". Psalm 25:1-3
+    // The full stop moves outside the closing quote, so drop the verse's own.
+    const text = verse.reference ? verse.text.replace(/\.\s*$/, '') : verse.text
     return (
       <Text style={styles.baptismVerse}>
-        Text: &ldquo;{text}&rdquo;{reference ? `. ${reference}` : ''}
+        Text: &ldquo;{text}&rdquo;{verse.reference ? `. ${verse.reference}` : ''}
       </Text>
     )
   }
   return (
     <View style={styles.verseBlock}>
-      <Text style={styles.verseText}>&ldquo;{text}&rdquo;</Text>
-      {reference ? <Text style={styles.verseRef}>{reference}</Text> : null}
+      <View style={styles.verseRule}>
+        <OrnamentRule width={150} color={INK} />
+      </View>
+      <Text style={styles.verseText}>&ldquo;{verse.text}&rdquo;</Text>
+      {verse.reference ? <Text style={styles.verseRef}>{verse.reference}</Text> : null}
+    </View>
+  )
+}
+
+// The ELCSA crest, very faint, centred behind the content — the way printed
+// certificates carry a watermark. Purely decorative.
+function Watermark() {
+  return (
+    <View pointerEvents="none" style={styles.watermark}>
+      <RoundSeal size={300} color={colors.g700} topText="EVANGELICAL LUTHERAN CHURCH" bottomText="IN SOUTHERN AFRICA" topSweep={236} />
     </View>
   )
 }
@@ -108,6 +125,7 @@ export function CertificatePaper({
 
     return (
       <View ref={paperRef} style={styles.paper} collapsable={false}>
+        <Watermark />
         <View style={styles.baptismRuleTop} />
         <View style={styles.baptismRuleBottom} />
         <View style={styles.baptismBody}>
@@ -115,7 +133,7 @@ export function CertificatePaper({
           <Text style={styles.baptismHeading}>in Southern Africa</Text>
           <Text style={styles.baptismTitle}>Baptismal Certificate</Text>
           <BaptismArch width={300} color={INK} />
-          <Verse text={app?.verse_text} reference={app?.verse_reference} plain />
+          <Verse verse={resolveVerse('baptism', { text: app?.verse_text, reference: app?.verse_reference })} plain />
 
           <View style={styles.certifyBlock}>
             <Text style={styles.certifyLead}>It is hereby certified that</Text>
@@ -162,6 +180,7 @@ export function CertificatePaper({
   if (kind === 'league') {
     return (
       <View ref={paperRef} style={styles.paper} collapsable={false}>
+        <Watermark />
         <CertificateFrame color={INK} />
         <View style={styles.body}>
           <View style={styles.leagueTopRow}>
@@ -171,13 +190,16 @@ export function CertificatePaper({
           <Text style={styles.headerBold}>{CHURCH_NAME}</Text>
           <Text style={styles.headerBold}>{parish}</Text>
           {parishAddress ? <Text style={styles.headerBold}>{parishAddress}</Text> : null}
+          <View style={{ marginTop: 14 }}>
+            <OrnamentRule width={170} color={INK} />
+          </View>
 
           <Text style={styles.leagueName}>{league?.label ?? 'League'}</Text>
           <Text style={styles.scriptName}>{name}</Text>
           <View style={styles.dottedLine} />
           {displayDate ? <Text style={styles.installDate}>Installation date: {formatDate(displayDate)}</Text> : null}
 
-          <Verse text={league?.verse_text} reference={league?.verse_reference} />
+          <Verse verse={resolveVerse('league', { text: league?.verse_text, reference: league?.verse_reference })} />
 
           <View style={styles.signatureRow}>
             <View style={styles.signatureBlock}>
@@ -199,27 +221,40 @@ export function CertificatePaper({
     )
   }
 
-  // Confirmation — no paper template to follow yet.
+  // Confirmation — no paper template to follow yet, so this is the same line-art
+  // language as the other two, with its own emblem.
   return (
     <View ref={paperRef} style={styles.paper} collapsable={false}>
+      <Watermark />
       <CertificateFrame color={INK} />
       <View style={styles.body}>
-        <Crest size={72} />
-        <Text style={[styles.kicker, { marginTop: 10 }]}>{parish}</Text>
+        <Crest size={60} />
+        <Text style={[styles.kicker, { marginTop: 8 }]}>{parish}</Text>
         <Text style={styles.tagline}>{TAGLINE}</Text>
-        <View style={styles.rule} />
         <Text style={styles.title}>{CERTIFICATE_TITLES[kind]}</Text>
-        <Text style={styles.bodyLine}>This certifies that</Text>
-        <Text style={styles.plainName}>{name}</Text>
+        <ConfirmationEmblem width={150} color={INK} leaf={colors.g700} flame={colors.brandRed} />
+        <Text style={[styles.bodyLine, { marginTop: 10 }]}>This certifies that</Text>
+        <Text style={styles.scriptName}>{name}</Text>
+        <View style={styles.dottedLine} />
         <Text style={styles.bodyLine}>{bodyLine(kind, league?.label)}</Text>
         {detail ? <Text style={styles.detail}>{detail}</Text> : null}
-        {displayDate ? <Text style={styles.date}>{formatDate(displayDate)}</Text> : null}
-        <View style={{ marginTop: 20 }}>
-          <ParishSeal size={80} parishName={parish} />
+        {displayDate ? <Text style={styles.installDate}>{formatDate(displayDate)}</Text> : null}
+
+        <Verse verse={resolveVerse('confirmation')} />
+
+        <View style={styles.signatureRow}>
+          <View style={styles.signatureBlock}>
+            <View style={styles.signatureLine} />
+            <Text style={styles.signatureCaption}>Parish Pastor</Text>
+          </View>
+          <View style={styles.signatureSeal}>
+            <ParishSeal size={80} parishName={parish} />
+          </View>
+          <View style={styles.signatureBlock}>
+            <View style={styles.signatureLine} />
+            <Text style={styles.signatureCaption}>Date</Text>
+          </View>
         </View>
-        <Text style={styles.footer}>
-          {parish} · {TAGLINE}
-        </Text>
       </View>
     </View>
   )

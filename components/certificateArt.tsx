@@ -214,6 +214,33 @@ export function EdgeOrnament({ width, color }: { width: number; color: string })
   )
 }
 
+// An outlined leaf with a centre vein, pointing along +x from (x, y), turned by `rot` degrees.
+function Leaf({ x, y, rot, len = 14 }: { x: number; y: number; rot: number; len?: number }) {
+  const l = len
+  return (
+    <G transform={`translate(${x} ${y}) rotate(${rot})`}>
+      <Path d={`M0 0 C${l * 0.3} ${-l * 0.4} ${l * 0.75} ${-l * 0.34} ${l} 0 C${l * 0.75} ${l * 0.34} ${l * 0.3} ${l * 0.4} 0 0 Z`} strokeWidth={1.1} />
+      <Path d={`M0 0 L${l * 0.82} 0`} strokeWidth={0.7} />
+    </G>
+  )
+}
+
+// One upper-corner vine of the baptism arch: a stem that sweeps in from the
+// corner and winds into a spiral, with leaves and a berry along it.
+function Vine() {
+  return (
+    <G>
+      <Path d="M24 27 C46 28 64 34 76 46 C86 56 80 72 66 70 C55 68 54 54 63 52 C70 50 72 59 66 60" strokeWidth={1.6} />
+      <Path d="M30 27 C34 40 30 52 22 58" strokeWidth={1.2} />
+      <Leaf x={40} y={29} rot={-28} len={13} />
+      <Leaf x={52} y={33} rot={18} len={14} />
+      <Leaf x={66} y={40} rot={52} len={14} />
+      <Leaf x={31} y={40} rot={92} len={12} />
+      <Circle cx={22} cy={58} r={2.4} />
+    </G>
+  )
+}
+
 /** Cross with a descending dove under an arch of vine scrollwork (baptism). */
 export function BaptismArch({ width, color }: { width: number; color: string }) {
   const height = width * 0.5
@@ -225,21 +252,19 @@ export function BaptismArch({ width, color }: { width: number; color: string }) 
         <Path d="M10 150 V12 H310 V150" strokeWidth={2.6} />
         <Path d="M20 150 V22 H300 V150" strokeWidth={1} />
         <Path d="M34 150 V92 C34 30 286 30 286 92 V150" strokeWidth={1.8} />
-        {/* Vine scrollwork filling the two upper corners: a stem that curls into a spiral, with leaves */}
-        <Path d="M24 27 C46 28 64 34 76 46 C86 56 80 72 66 70 C55 68 54 54 63 52 C70 50 72 59 66 60" strokeWidth={1.6} />
-        <Path d="M40 29 C42 38 38 46 30 50" strokeWidth={1.2} />
-        <Path d="M296 27 C274 28 256 34 244 46 C234 56 240 72 254 70 C265 68 266 54 257 52 C250 50 248 59 254 60" strokeWidth={1.6} />
-        <Path d="M280 29 C278 38 282 46 290 50" strokeWidth={1.2} />
+        {/* Vine scrollwork filling the two upper corners (left drawn, right mirrored) */}
+        <G>
+          <Vine />
+        </G>
+        <G transform="translate(320 0) scale(-1 1)">
+          <Vine />
+        </G>
         {/* Small corner blocks at the foot of each post */}
         <Rect x={4} y={124} width={32} height={32} strokeWidth={2} />
         <Rect x={284} y={124} width={32} height={32} strokeWidth={2} />
         <Path d="M12 132 L28 148 M28 132 L12 148" strokeWidth={1.2} />
         <Circle cx={300} cy={140} r={9} strokeWidth={1.2} />
         <Circle cx={300} cy={140} r={3.5} strokeWidth={1.2} />
-      </G>
-      <G fill={ink}>
-        <Path d="M52 30 C58 24 68 24 72 29 C66 35 57 35 52 30 Z" />
-        <Path d="M268 30 C262 24 252 24 248 29 C254 35 263 35 268 30 Z" />
       </G>
       {/* Cross */}
       <G fill="#ffffff" stroke={ink} strokeWidth={2} strokeLinejoin="round">
@@ -311,3 +336,58 @@ const styles = StyleSheet.create({
   ruleInner: { position: 'absolute', borderWidth: 0.75 },
   edge: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
 })
+
+/** A fine rule with a small diamond in the middle, to divide sections. */
+export function OrnamentRule({ width, color }: { width: number; color: string }) {
+  return (
+    <Svg width={width} height={12} viewBox="0 0 200 12">
+      <G stroke={color} strokeWidth={1} strokeLinecap="round">
+        <Line x1={4} y1={6} x2={86} y2={6} />
+        <Line x1={114} y1={6} x2={196} y2={6} />
+      </G>
+      <G fill={color}>
+        <Path d="M100 1 L106 6 L100 11 L94 6 Z" />
+        <Circle cx={88} cy={6} r={1.6} />
+        <Circle cx={112} cy={6} r={1.6} />
+      </G>
+    </Svg>
+  )
+}
+
+/**
+ * Confirmation emblem: three flames of the Holy Spirit over a cross, inside a
+ * wreath. The paper certificates have no confirmation artwork, so this is
+ * original, in the same line-art style as the baptism arch.
+ */
+export function ConfirmationEmblem({ width, color, leaf, flame }: { width: number; color: string; leaf: string; flame: string }) {
+  const cx = 80
+  const cy = 84
+  const R = 54
+  const leaves = (side: -1 | 1) =>
+    [0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
+      // Sweep up each side of the circle from the bottom, leaves pointing along the branch.
+      const deg = 98 + i * 17
+      const a = side === -1 ? deg : 180 - deg
+      const [x, y] = polar(cx, cy, R, a)
+      const tangent = a + (side === -1 ? 90 : -90)
+      return <Ellipse key={`${side}-${i}`} cx={x} cy={y} rx={7.5} ry={3.1} fill={leaf} fillOpacity={0.85} transform={`rotate(${tangent + (i % 2 ? 22 : -22)} ${x} ${y})`} />
+    })
+  const flameAt = (x: number, y: number, h: number, fill: string) => (
+    <Path d={`M${x} ${y} C${x - h * 0.3} ${y - h * 0.3} ${x - h * 0.18} ${y - h * 0.7} ${x} ${y - h} C${x + h * 0.18} ${y - h * 0.7} ${x + h * 0.3} ${y - h * 0.3} ${x} ${y} Z`} fill={fill} />
+  )
+  return (
+    <Svg width={width} height={width * (116 / 160)} viewBox="0 24 160 116">
+      <G fill="none" stroke={leaf} strokeWidth={1.2} strokeLinecap="round">
+        <Path d={arcPath(cx, cy, R, 98, 98 + 7 * 17, true)} />
+        <Path d={arcPath(cx, cy, R, 82, 82 - 7 * 17, false)} />
+      </G>
+      {leaves(-1)}
+      {leaves(1)}
+      <Path d="M74 58 H86 V74 H102 V86 H86 V116 H74 V86 H58 V74 H74 Z" fill={color} />
+      {flameAt(80, 54, 26, flame)}
+      {flameAt(60, 70, 17, flame)}
+      {flameAt(100, 70, 17, flame)}
+      <Circle cx={80} cy={80} r={2.2} fill="#ffffff" />
+    </Svg>
+  )
+}

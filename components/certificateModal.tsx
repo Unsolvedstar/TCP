@@ -11,6 +11,16 @@ import { applicationDetailText, type AnyApplication } from '../lib/applicationDe
 import { styles } from './certificateModal.styles'
 import type { CeremonyKind, LeagueRow } from '../lib/types'
 
+// react-native-view-shot's web capture renders at the screen's pixel density and
+// has no scale option, so on an ordinary monitor the download comes out ~480px
+// wide — soft if printed. Render the sheet at 3x directly instead.
+async function captureWebHighRes(node: unknown): Promise<string> {
+  if (!node) throw new Error('Certificate is not ready yet.')
+  const html2canvas = (await import('html2canvas-pro')).default
+  const canvas = await html2canvas(node as HTMLElement, { scale: 3, useCORS: true, backgroundColor: '#ffffff' })
+  return canvas.toDataURL('image/png')
+}
+
 /**
  * Viewable/downloadable certificate for a granted baptism, confirmation, or
  * league installation. The ceremony date shown prefers the actual confirmed
@@ -76,7 +86,7 @@ export function CertificateModal({
   async function handleSave() {
     setSaving(true)
     try {
-      const uri = await captureRef(paperRef, { format: 'png', quality: 1, result: Platform.OS === 'web' ? 'data-uri' : 'tmpfile' })
+      const uri = Platform.OS === 'web' ? await captureWebHighRes(paperRef.current) : await captureRef(paperRef, { format: 'png', quality: 1, result: 'tmpfile' })
       if (Platform.OS === 'web') {
         const link = document.createElement('a')
         link.href = uri

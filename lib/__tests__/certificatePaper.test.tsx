@@ -9,7 +9,8 @@ jest.mock('@react-native-community/datetimepicker', () => ({ __esModule: true, d
 jest.mock('../alert', () => ({ Alert: { alert: jest.fn() } }))
 
 import { CertificatePaper } from '../../components/certificatePaper'
-import type { LeagueRow } from '../types'
+import { DEFAULT_VERSES } from '../certificateVerse'
+import type { CeremonyKind, LeagueRow } from '../types'
 
 jest.setTimeout(30000)
 
@@ -33,6 +34,14 @@ const baptism = {
   diocese: 'Central Diocese',
   parents: 'Parent One & Parent Two',
   birth_place: 'Pretoria',
+}
+
+// All visible text on the sheet, flattened to one string so split text nodes read naturally.
+function flat(node: unknown): string {
+  if (node == null) return ''
+  if (typeof node === 'string') return node
+  if (Array.isArray(node)) return node.map(flat).join('')
+  return flat((node as { children?: unknown }).children)
 }
 
 // Every string the sheet renders, in order.
@@ -87,5 +96,31 @@ describe('CertificatePaper', () => {
   it('falls back to the default parish name when none is given', async () => {
     const out = texts(await render(<CertificatePaper kind="confirmation" name="Test Person" displayDate={null} />))
     expect(out).toContain('ELCSA Tshwane City Parish')
+  })
+
+  describe('Bible verse', () => {
+    const KINDS: CeremonyKind[] = ['baptism', 'confirmation', 'league']
+    const bare = (kind: CeremonyKind) => (
+      <CertificatePaper kind={kind} name="Test Person" displayDate="2026-07-26" application={kind === 'baptism' ? ({ ...baptism } as never) : undefined} league={kind === 'league' ? ({ ...league, verse_text: null, verse_reference: null } as LeagueRow) : undefined} />
+    )
+
+    it.each(KINDS)('%s certificate always shows a verse, falling back to the default when none is set', async (kind) => {
+      const text = flat((await render(bare(kind))).toJSON())
+      expect(text).toContain(DEFAULT_VERSES[kind].reference)
+      expect(text).toContain(DEFAULT_VERSES[kind].text.slice(0, 30))
+    })
+
+    it('prefers the verse an admin set over the default', async () => {
+      const text = flat((await render(<CertificatePaper kind="baptism" name="T" displayDate={null} application={{ ...baptism, verse_text: 'Custom words.', verse_reference: 'Psalm 1:1' } as never} />)).toJSON())
+      expect(text).toContain('Custom words')
+      expect(text).toContain('Psalm 1:1')
+      expect(text).not.toContain(DEFAULT_VERSES.baptism.reference)
+    })
+
+    it('does not double the full stop around a baptism verse', async () => {
+      const text = flat((await render(bare('baptism'))).toJSON())
+      expect(text).not.toContain('.”.')
+      expect(text).toContain('put on Christ”. Galatians 3:27 WEB')
+    })
   })
 })

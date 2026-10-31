@@ -35,9 +35,12 @@ export const styles = StyleSheet.create({
   dottedLine: { width: '86%', borderBottomWidth: 1.5, borderStyle: 'dotted', borderBottomColor: INK, marginTop: 2, marginBottom: 12 },
   detail: { fontSize: 12.5, color: colors.muted, textAlign: 'center', marginTop: 10, lineHeight: 18 },
   date: { fontSize: 13, fontWeight: '700', color: colors.g700, textAlign: 'center', marginTop: 14 },
-  verseBlock: { marginTop: 14, marginBottom: 2, paddingHorizontal: 4 },
+  verseBlock: { marginTop: 16, marginBottom: 2, paddingHorizontal: 4, alignItems: 'center' },
+  verseRule: { marginBottom: 10 },
   verseText: { fontFamily: serif, fontStyle: 'italic', fontSize: 13.5, color: INK, textAlign: 'center', lineHeight: 20 },
   verseRef: { fontSize: 12, fontWeight: '700', color: INK, textAlign: 'center', marginTop: 4, letterSpacing: 0.3 },
+  // Sits behind everything; whole-sheet, faint, centred.
+  watermark: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', opacity: 0.055 },
   footer: { fontSize: 10.5, color: colors.muted, marginTop: 10, textAlign: 'center' },
 
   // --- league installation -------------------------------------------------
