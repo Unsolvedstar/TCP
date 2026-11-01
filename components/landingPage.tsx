@@ -63,7 +63,9 @@ export function LandingPage() {
             <Text style={[styles.heroNote, { color: season.text }]}>
               Registering will automatically group you with your family if we recognise you, or start a new family record for you.
             </Text>
-            <Button title="Back" variant="back" inverse={{ background: season.text, text: season.color }} onPress={() => setShowMemberOptions(false)} />
+            <View style={styles.backRow}>
+              <Button title="Back" variant="back" inverse={{ background: season.text, text: season.color }} onPress={() => setShowMemberOptions(false)} />
+            </View>
           </>
         ) : (
           <View style={styles.heroButtons}>

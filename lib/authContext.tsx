@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type PropsWithChildren } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import type { Profile } from './types'
@@ -22,12 +22,21 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
 
-  async function loadProfile(userId: string, email?: string | null) {
+  // What `last_active_at` was before THIS visit stamped it. lib/membershipCheckIn.ts decides whether
+  // to ask "are you still part of the parish?" from the person's previous activity; if we let a later
+  // re-fetch (the portal re-fetches on focus) pick up the fresh stamp, the question could never show.
+  const priorActive = useRef<{ id: string; at: string | null } | null>(null)
+
+  const loadProfile = useCallback(async (userId: string, email?: string | null) => {
     const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
     const isHardcodedAdmin = email?.toLowerCase() === HARDCODED_ADMIN_EMAIL
-    const loaded = (data as Profile) ?? null
+    let loaded = (data as Profile) ?? null
+    if (loaded) {
+      if (priorActive.current?.id !== loaded.id) priorActive.current = { id: loaded.id, at: loaded.last_active_at }
+      loaded = { ...loaded, last_active_at: priorActive.current.at }
+    }
     setProfile(loaded && isHardcodedAdmin ? { ...loaded, role: 'admin' } : loaded)
-  }
+  }, [])
 
   // Fire-and-forget: records "last active" both for a real sign-in and for
   // opening the app with an already-valid session, since sessions persist
@@ -73,23 +82,25 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return () => sub.subscription.unsubscribe()
   }, [])
 
-  async function refreshProfile() {
+  // These two must keep the same identity between renders. Screens put refreshProfile in the
+  // dependency list of their focus-effect loaders; a new function every render made that effect
+  // re-run, re-fetch the profile, re-render the provider, and so on forever — a continuous
+  // stream of requests that made the whole app twitch.
+  const refreshProfile = useCallback(async () => {
     if (session) await loadProfile(session.user.id, session.user.email)
-  }
+  }, [session, loadProfile])
 
-  async function signOut() {
+  const signOut = useCallback(async () => {
     try {
       await supabase.auth.signOut()
     } catch (err) {
       console.error('Sign out failed', err)
     }
-  }
+  }, [])
 
-  return (
-    <AuthContext.Provider value={{ session, profile, loading, refreshProfile, signOut }}>
-      {children}
-    </AuthContext.Provider>
-  )
+  const value = useMemo(() => ({ session, profile, loading, refreshProfile, signOut }), [session, profile, loading, refreshProfile, signOut])
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

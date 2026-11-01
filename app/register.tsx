@@ -240,7 +240,7 @@ export default function Register() {
       render: () => (
         <>
           <Field label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" />
-          <Field label="Password" value={password} onChangeText={setPassword} secureTextEntry placeholder="At least 6 characters" />
+          <Field label="Password" value={password} onChangeText={setPassword} secureTextEntry placeholder="At least 8 characters" />
           <Field label="Confirm Password" value={password2} onChangeText={setPassword2} secureTextEntry placeholder="••••••••" />
         </>
       ),

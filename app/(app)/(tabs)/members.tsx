@@ -93,7 +93,7 @@ export default function Members() {
   async function fetchAll() {
     const [{ data: mem, error: memErr }, { data: dep, error: depErr }, { data: adm, error: admErr }, { data: la }, { data: hh }, { data: amf }] = await Promise.all([
       supabase.from('profiles').select('*').eq('role', 'member').order('full_name'),
-      supabase.from('dependents').select('*, guardian:profiles(full_name)').order('full_name'),
+      supabase.from('dependents').select('*, guardian:profiles!guardian_id(full_name)').order('full_name'),
       supabase.from('profiles').select('*').eq('role', 'admin').order('full_name'),
       supabase.from('league_admins').select('profile_id, league_id, profiles(full_name)'),
       supabase.from('households').select('*').order('name'),

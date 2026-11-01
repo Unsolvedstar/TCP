@@ -15,6 +15,8 @@ export const styles = StyleSheet.create({
   heroQuestion: { fontSize: 14.5, fontWeight: '700', textAlign: 'center', marginTop: 22 },
   heroButtons: { flexDirection: 'row', gap: 12, marginTop: 12, width: '100%', maxWidth: 360 },
   privacyRow: { width: '100%', alignItems: 'center', marginTop: 8 },
+  // Without a width the hero's centred layout shrinks this button to a tiny pill.
+  backRow: { width: '100%', maxWidth: 360, marginTop: 10 },
   installRow: { width: '100%', maxWidth: 360, marginTop: 14 },
   heroNote: { fontSize: 11.5, textAlign: 'center', marginTop: 12, opacity: 0.85, maxWidth: 340, lineHeight: 16 },
   heroBackLink: { fontSize: 12.5, fontWeight: '700', textAlign: 'center', marginTop: 10, opacity: 0.85 },

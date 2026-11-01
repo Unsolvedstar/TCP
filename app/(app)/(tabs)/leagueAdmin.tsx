@@ -120,7 +120,7 @@ export default function LeagueAdmin() {
   async function fetchPending(churchWideFilter: string) {
     const [{ data: mem }, { data: dep }, { data: ev }] = await Promise.all([
       supabase.from('profiles').select('*').eq('pending_league_id', activeLeagueId),
-      supabase.from('dependents').select('*, guardian:profiles(full_name)').eq('pending_league_id', activeLeagueId),
+      supabase.from('dependents').select('*, guardian:profiles!guardian_id(full_name)').eq('pending_league_id', activeLeagueId),
       supabase.from('events').select('*').or(`league_id.eq.${activeLeagueId},${churchWideFilter}`).order('event_date', { ascending: false }),
     ])
     setPendingMembers((mem as Profile[]) ?? [])

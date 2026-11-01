@@ -82,7 +82,7 @@ const SECTIONS: { title: string; paragraphs?: string[]; bullets?: string[] }[] =
   {
     title: 'Children',
     paragraphs: [
-      'A parent or guardian who registers a child confirms that they are entitled to do so and agrees to this policy on the child’s behalf. To see, correct or remove a child’s record, use the household section of the app or ask the parish office.',
+      'A parent or guardian who registers a child confirms that they are entitled to do so and agrees to this policy on the child’s behalf. A child’s name and birthday appear in the upcoming-birthdays list that other signed-in members of the congregation can see; their other details are visible only to the guardian and the parish office. To see, correct or remove a child’s record, use the household section of the app or ask the parish office.',
     ],
   },
   {
