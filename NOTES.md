@@ -16,6 +16,9 @@ Done in code: SDK 58 upgrade, vector certificates (always print a verse), PWA
 layout, real buttons everywhere, security headers. Production Supabase project
 is active and has all 31 migrations.
 
+Documentation: see the table in README.md — member guide, admin guide, deployment &
+operations runbook, architecture. Keep them in step with the app (e.g. button names).
+
 Still needs a person:
 
 - [x] **Website deployed: https://tcp-tau.vercel.app** (Vercel, from this repo).

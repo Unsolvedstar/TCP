@@ -1,322 +1,114 @@
-# ELCSA Tshwane City Parish — Mobile App
+# ELCSA Tshwane City Parish — Parish App
 
-A mobile-first church member app: sign in, see which league/organisation you belong
-to, request baptism/confirmation or a league change, register children who don't
-have their own phone under your household, keep everyone's birthday on file, and
-(for admins) approve those requests and see live ward/league/sacrament/birthday
-stats and post announcements.
+A web app that church members install on their phone (a PWA). Members sign in,
+see their ward, league and sacraments, register their children and family, and
+download their baptism, confirmation and league certificates. The parish office
+approves requests, posts announcements, keeps the registry and sees live
+numbers. It also holds the parish's banking details and a SnapScan giving page.
 
-**Stack**
-- [Expo](https://expo.dev) + React Native + TypeScript, using [Expo Router](https://docs.expo.dev/router/introduction/) for navigation — this is the standard, actively-maintained way to ship one codebase to iOS, Android, *and* a web build, testable instantly via the free Expo Go app (no Mac, no Android Studio, no Apple/Google developer account needed for development).
-- **This is also a real website, not just a phone app.** The exact same code renders in a browser via [react-native-web](https://necolas.github.io/react-native-web/) — same screens, same login, same Supabase backend, no separate build to maintain.
-- [Supabase](https://supabase.com) for the backend: Postgres database, real authentication (email + password), and Row Level Security so the rules about who-can-see/change-what live in the database itself, not just in app code. Free tier is enough for a parish this size.
+It is built to serve **any ELCSA congregation**, not just Tshwane City: each
+congregation has its own wards, leagues, branding and banking, and can never see
+another's data.
 
-## 1. Create your Supabase project
+**Live:** https://tcp-tau.vercel.app
 
-1. Go to [supabase.com](https://supabase.com), create a free account and a new project (any region close to South Africa, e.g. `eu-west` or `af-south-1` if offered).
-2. Once it's provisioned, open **SQL Editor** in the left sidebar, paste the entire contents of [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql), and run it. This creates every table, security policy, and function the app needs.
-3. Open **Authentication → Providers → Email** and leave **"Confirm email" off**. This app sends no emails at all (no confirmation links, no password-reset emails), so new sign-ups can log in immediately. If a member forgets their password, the parish office resets it (see NOTES.md).
-4. Open **Project Settings → API**. Copy the **Project URL** and the **anon / public key**.
+## Documentation
 
-## 2. Configure the app
+| If you are… | Read |
+|---|---|
+| A member | [Member guide](docs/MEMBER_GUIDE.md) |
+| In the parish office / an admin | [Admin guide](docs/ADMIN_GUIDE.md) |
+| Hosting or looking after the app | [Deployment & operations](docs/DEPLOYMENT.md) |
+| A developer changing the code | [Architecture](docs/ARCHITECTURE.md) (this page covers getting started) |
+| Looking for what is still to do | [NOTES.md](NOTES.md) — the running checklist |
 
-```bash
-cp .env.example .env
-```
+[MULTI_CONGREGATION_TODO.md](MULTI_CONGREGATION_TODO.md) is the finished plan
+and test record for making the app multi-congregation; it is history, not a to-do list.
 
-Paste your Project URL and anon key into `.env`.
+## What it does
 
-## 3. Install and run
+**Members**
+- Register with ward, league, sacrament details and family; sign in with email and password.
+- A portal showing ward, league, baptism and confirmation status, with request forms for baptism, confirmation and a league change.
+- Household: register children who have no phone, join relatives' families by code or name.
+- Certificates (baptism, confirmation, league installation) viewable and downloadable as a PNG.
+- Parish announcements (with a Listen button), upcoming birthdays, the church calendar, a member directory (opt-in), banking details and SnapScan giving.
+- Installs to the home screen and opens offline (data still needs a connection).
+
+**Parish office**
+- Dashboard: people counts and breakdowns by ward, league, gender and sacrament.
+- Registry: search and filter members and dependents, edit anyone, review pending requests, schedule ceremonies, manage families and family codes, promote or remove admins.
+- Announcements and events, for the whole church or one league.
+- Per-league admins, with their own tools and certificate details.
+- Congregation settings: branding, wards, leagues, bank accounts, payment reference codes, SnapScan.
+
+## Stack
+
+- [Expo](https://expo.dev) SDK 58 + React Native + TypeScript, with [Expo Router](https://docs.expo.dev/router/introduction/). One codebase; **the web build is what ships**.
+- [Supabase](https://supabase.com): Postgres, authentication, Row Level Security, and one Edge Function (the SnapScan webhook).
+- Hosted on [Vercel](https://vercel.com) as a static site (`vercel.json`).
+- Jest for unit tests; a Docker-based suite for the database's security rules.
+
+The app **sends no email** — there is no email confirmation and no password-reset
+email, so no email service is needed. A forgotten password is reset by the parish
+office (see the [Admin guide](docs/ADMIN_GUIDE.md)).
+
+## Run it locally
+
+You need Node 22 and a Supabase project (free tier is fine) — see
+[Deployment & operations](docs/DEPLOYMENT.md) to create and prepare one.
 
 ```bash
 npm install
-npx expo start
+cp .env.example .env      # then fill in your project's URL and anon key
+npm run web               # http://localhost:8081
 ```
 
-Scan the QR code with the **Expo Go** app (iOS App Store / Google Play) on your phone. That's it — no build step, no simulator required. Shake your phone to reload if needed.
+`EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` are safe to ship
+in the app: the anon key only grants what the database's Row Level Security allows.
+They are baked into the build, so set them **before** building or deploying.
 
-**To run it as a website instead**, in the same folder:
+### Commands
 
-```bash
-npx expo start --web
-```
+| Command | What it does |
+|---|---|
+| `npm run web` | Dev server for the website, with hot reload |
+| `npm test` | Unit tests (Jest) |
+| `npx tsc --noEmit` | Type-check |
+| `npm run build:web` | Production build into `dist/` |
+| `npx supabase start` | Local database in Docker (needs Docker Desktop) |
+| `npx supabase db reset` | Rebuild the local database from every migration |
+| `node --test supabase/tests/rls.test.mjs` | Database security tests (run against the **local** database only) |
+| `node supabase/tests/smoke.local.mjs` | Extra local checks (admin rule, RPCs) |
 
-This opens the app in your regular browser at `http://localhost:8081`, with hot reload, using the exact same screens and Supabase backend as the phone app.
-
-### Installing the website as an app (PWA)
-
-The web build is an installable Progressive Web App: `public/manifest.webmanifest`
-(name, colours, icons), `public/sw.js` (a small service worker) and the head tags
-in `public/index.html`. On Android/Chrome and desktop, the browser offers
-"Install"; on iPhone use Share → Add to Home Screen.
-
-- The service worker only caches the app shell and Expo's content-hashed static
-  files. Supabase and every other cross-origin or non-GET request goes straight
-  to the network, so account data is never served from cache.
-- The app opens offline but shows its normal "couldn't load" states for data.
-- Icons in `public/icons/` are rendered from the vector crest. To force every
-  installed copy to drop its caches after changing `sw.js`, bump `VERSION` in it.
-- It isn't registered on Expo's dev server (port 8081), so hot reload is unaffected.
-- The landing and sign-in screens show an **Install the app** button wherever the
-  browser can install it (Android/desktop prompt; on iPhone it shows the
-  Share → Add to Home Screen steps). It hides itself inside the installed app.
-- The manifest allows any orientation, so tablets and desktop windows use the wide layout.
-
-## 4. Make yourself the first admin
-
-1. In the running app, register a normal account (this is what real members will do too).
-2. In the Supabase dashboard, go to **Authentication → Users**, find your new account, and copy its **User UID**.
-3. Back in **SQL Editor**, run:
-   ```sql
-   update public.profiles set role = 'admin' where id = 'paste-your-uid-here';
-   ```
-4. Sign out and back in inside the app — you'll now land on the admin Dashboard instead of the member Portal.
-
-This raw-SQL step is only needed once, to create your *first* admin (there's no
-one with admin access yet to click a button for you). Every admin after that can
-be promoted straight from the app — open their profile in **Members** and tap
-"Promote to Admin". The Members screen also lists current admins with a "Remove
-Access" button, so demoting someone back to a regular member doesn't need SQL
-either. (You can't demote the very last admin — the app blocks it, since that
-would lock everyone out of admin tools.)
-
-## What changed from the earlier browser prototype
-
-The original version (the `.html` files one folder up) stored everything in the
-browser's `localStorage` — fine for a demo on one device, but it meant no real
-login security, no syncing between phones, and no way for two admins to see the
-same data. This version fixes all of that:
-
-- **Real accounts.** Supabase Auth issues real sessions; passwords are hashed
-  server-side, never stored in the app.
-- **Server-enforced permissions.** A member cannot make themselves an admin, mark
-  themselves as baptised, or edit someone else's profile — even by tampering with
-  the app — because every sensitive write runs through a Postgres function that
-  checks the request is coming from an admin *inside the database*, not just in
-  the app's UI.
-- **One shared database.** Every phone sees the same live data — a pending request
-  approved by one admin instantly disappears for every other admin.
-
-**One deliberate simplification:** because every member now needs a real login,
-admins can no longer hand-register a "member" who's never opened the app
-themselves (the old prototype allowed this, since it had no real accounts). Every
-member — including office staff — signs up once through the Register screen; an
-admin then reviews/edits their ward, league, and sacrament status, or promotes
-them to admin via the SQL command above.
-
-**Birthdays and children.** Every profile now has an optional birthday (asked at
-sign-up, editable anytime under "My Details"), and every account can register a
-"household" of dependents — kids who don't have their own phone. A parent manages
-a child's league/baptism/confirmation requests from their own portal, and the
-child appears in the admin Members screen under a separate "Children" tab, with
-the guardian's name shown. Both adults and children count toward the "people in
-the church" total and the ward/league/sacrament charts, and a congregation-wide
-"Upcoming Birthdays" list (next 30 days) is visible to everyone, member portal and
-admin dashboard alike — matching the common practice of announcing birthdays in
-service.
-
-**Gender.** An optional Gender field (Male/Female) lives alongside ward and
-birthday — asked at sign-up, editable anytime by the member or an admin, and set
-per-child in a household too. It shows as a chip in the registry and rolls up into
-a "Gender Breakdown" chart next to the ward/league/sacrament ones, since two of
-the leagues (Prayer Men's and Prayer Women's) are gender-specific.
-
-**Church Calendar.** Easter, Lent, Pentecost, Advent, and the rest of the major
-observances of the Christian year are computed on the fly (Easter's date moves
-every year, so everything else — Ash Wednesday, Holy Week, Ascension, Pentecost —
-is calculated from it) and shown as an upcoming-events list on both the portal and
-dashboard. No database table for this — it's pure date math, nothing to maintain.
-
-**Real branding, pulled from the parish's own bulletins.** The green in this app
-isn't a colour someone picked — it's sampled directly from the actual ELCSA
-Tshwane City Parish crest, scanned out of the weekly Sunday bulletin PDFs
-(`assets/brand/churchLogo.png`), along with the navy, gold, and red used
-elsewhere in the parish's own materials (`theme.ts` → `colors.brandNavy` /
-`brandGoldVivid` / `brandRed`). Three leagues that have their own official badge
-artwork — Young Adults League, ELCSAMO, and the Prayer Men's League — show that
-badge (`components/leagueBadge.tsx`) instead of just a colour chip; the rest
-still get a colour chip, since that's an honest reflection of what artwork
-actually exists for them.
-
-**The theme shifts with the church year.** `lib/liturgicalTheme.ts` derives the
-traditional Western liturgical colour for today's date — purple for Lent and
-Advent, red for Pentecost and Reformation Day, gold for the festal seasons
-(Christmas, Eastertide, Maundy Thursday, All Saints), green the rest of the year
-— the same reckoning that decides paraments on the altar. That colour tints hero
-banners across the portal, dashboard, banking screen, and landing page, and shows
-as a small season label (e.g. "LENT", "EASTERTIDE") so it reads as intentional,
-not random. It's an accent layer only — the parish's green crest and identity
-never change underneath it.
-
-**A real landing page.** Signed-out visitors — mainly on the web build — now land
-on `components/landingPage.tsx` instead of being bounced straight to the sign-in
-form: the crest, today's liturgical season, what's next in the church calendar,
-and Sign In / Create Account buttons. Signed-in users skip straight past it to
-their portal or dashboard, same as before.
-
-**The app icon and splash screen are the real crest too.** `assets/icon.png`,
-`assets/androidIconForeground.png` / `androidIconMonochrome.png`,
-`assets/favicon.png`, and `assets/splashIcon.png` were all regenerated from the
-same scanned crest — cream background, full seal ring (the "Growing Together in
-Christ" tagline was dropped from the small versions since it turns to an
-illegible smear at actual home-screen icon sizes; the seal shape alone still
-reads clearly even at 32px). The splash screen uses the `expo-splash-screen`
-plugin (newly added to `app.json`), which was sitting half-configured before —
-the asset existed but nothing referenced it.
->
-> **Not verified on a real build.** I generated and composited these correctly
-> and confirmed `npx expo config` resolves them without error, but an app
-> icon/splash only truly proves itself in a native build (`eas build` or
-> `expo prebuild`) or the Expo Go icon cache, neither of which I can run here.
-> Check it once you've built — home-screen icon, Android adaptive icon on a
-> circular/squircle launcher, and the splash flash on cold start — before
-> shipping it.
-
-**Registration collects sacraments/league too — and records them as fact.**
-Register (and "Add Child") also ask "already baptised?", "already confirmed?",
-and which league someone already belongs to, using tap-to-select chips rather
-than dropdowns or free text wherever the answer is a short, clearly-optional
-choice. Unlike requesting these things *later* from the portal, claiming them
-at registration sets `baptised` / `confirmed` / `league` directly — the
-reasoning being that this is a statement about something that already
-happened (you already got baptised, you're already in a league), not a new
-event the church needs to schedule, so there's nothing for an admin to
-"approve." The sponsor/mentor name, and (for baptism/confirmation) *where* and
-*who* — the officiating pastor — are still captured and stored as
-an attestation record on the profile (`baptism_application` /
-`confirmation_application` / `league_application`) even though nothing needs
-to clear it. Registration deliberately does **not** ask for a baptism/
-confirmation certificate photo — asking a new sign-up to dig one up was the
-single biggest source of registration friction, and "where + who performed
-it" is enough for an admin to follow up on if needed. Requesting baptism,
-confirmation, or a league change *after* you're already a member is a
-different, forward-looking action — the church still has to actually schedule
-and perform that — so that still goes through the pending/admin-approval flow
-described below, certificate uploads included. Answering "already confirmed"
-without "already baptised" is rejected client-side and dropped server-side
-too, since confirmation always follows baptism.
-
-**Baptism, confirmation, and league requests are real application forms.**
-Requesting baptism asks for the type (Infant/Adult) and a sponsor/godparent
-name; requesting confirmation asks for a mentor; requesting a league asks why.
-These can be submitted at registration, from the portal, and for a child in
-the household. Admins see the answers right next to each pending request in
-**Members**, not just a bare "wants to join X" line. The app does **not**
-collect a drawn signature for any of this — POPIA (South Africa's data
-protection act) treats a captured signature image as personal data the app
-has no real need to retain, so it's deliberately left out.
-
-Answers are stored as `jsonb` (`baptism_application` /
-`confirmation_application` / `league_application` on both `profiles` and
-`dependents`), each with a `submitted_at` timestamp. These are cleared once an
-admin approves or denies the request; they're for reviewing *this* pending
-request, not a permanent record of who someone's godparent was.
-
-**Certificate photos, for confirmation and league requests — from the portal,
-not at registration.** Requesting confirmation can attach a baptism
-certificate "if applicable" — mainly for someone baptised elsewhere, where the
-parish has no record of their own to go on. Requesting a league can attach
-both a baptism *and* a confirmation certificate, since league membership
-generally assumes both. Neither is a hard requirement (nothing here blocks
-submission if you don't have one to hand) — they're supporting evidence for
-whoever reviews the request. This applies to the portal's post-registration
-request flow only; the registration wizard itself never asks for a
-certificate (see above).
-
-`components/certificatePicker.tsx` uses `expo-image-picker` to choose or
-photograph an image, then `expo-image-manipulator` to resize it down (~1000px
-wide, JPEG) before it's stored as a data URI — without that resize step a
-full-resolution phone photo would be several MB, too big to store inline this
-way. It doesn't need a `.native`/`.web` split: both underlying packages have
-real web support, confirmed by checking their source rather than assuming it.
-
-**No emails.** The app deliberately sends no email: there are no confirmation links
-and no "forgot password" emails, so it needs no email sender or redirect URLs.
-A member who forgets their password asks the parish office, who resets it (see
-NOTES.md).
-
-**Account removal is honest about its blast radius.** Removing a member can only
-ever delete their `profiles` row — the app has no access to delete the underlying
-Supabase Auth account, by design (that needs service-role access, which the
-client deliberately never has). If a removed member tries to log back in with
-their old password, they land on a clear "Account Not Found" screen instead of a
-stuck loading spinner. And since children are registered under a guardian,
-removing an adult who has kids in the household now warns you by name before it
-cascades and removes them too.
-
-**A light audit trail.** Every league/baptism/confirmation approval or denial now
-stamps who reviewed it and when (`reviewed_by`, `reviewed_at` on `profiles` and
-`dependents`) — shown as "Last reviewed …" in the edit screens. It's a
-last-action marker, not a full history log of every past decision, but it beats
-having no record at all of who approved what.
-
-> If you already ran an earlier version of this migration against a live Supabase
-> project (before birthdays/children/gender existed), `0001_init.sql` will now fail
-> partway through with "relation already exists" — `create table` isn't safe to
-> re-run as-is. With no real member data yet, the simplest fix is to wipe and
-> start over: in the SQL Editor, run `drop schema public cascade; create schema
-> public;`, then run the full `0001_init.sql` fresh. If you do have real data you
-> need to keep, don't run that drop — ask for an incremental migration instead
-> (just the new columns/tables/functions you're missing) rather than the whole
-> file.
+GitHub Actions (`.github/workflows/ci.yml`) type-checks, runs the Jest tests and
+builds the website on every push and pull request.
 
 ## Project layout
 
 ```
-app/
-  index.tsx                        — landing page (signed out) or redirect to portal/dashboard (signed in)
-  login.tsx, register.tsx, privacy.tsx — public screens
-  (app)/_layout.tsx               — tab bar; hides admin-only tabs from members
-  (app)/portal.tsx                — member home: profile, requests, parish stats
-  (app)/dashboard.tsx             — admin home: stats + announcements CRUD
-  (app)/members.tsx               — admin: registry, search/filter, approvals, edit
-  (app)/banking.tsx               — shared: account details & payment references
-lib/
-  supabase.ts                     — Supabase client
-  authContext.tsx                 — session + profile React context
-  types.ts                        — shared TypeScript types
-  churchCalendar.ts               — Easter/Lent/Advent/etc. date math
-  liturgicalTheme.ts              — today's liturgical season → accent colour
-components/
-  ui.tsx                          — shared UI kit (Card, Chip, BarRow, SelectField…)
-  churchHeader.tsx                — crest + seasonal ring, used on every public screen
-  landingPage.tsx                 — the signed-out landing page
-  leagueBadge.tsx                 — real badge artwork for the 3 leagues that have any
-  certificatePicker.tsx           — attach a baptism/confirmation certificate photo
-assets/brand/                     — church crest + league badges, scanned from the parish's own bulletins
-theme.ts                          — colours (sampled from the real crest), wards, leagues, liturgical palette
-supabase/migrations/0001_init.sql — full database schema + security policies
+app/                 Screens (Expo Router: one file = one URL)
+  index.tsx            landing page, or redirect to the portal/dashboard when signed in
+  login, register, congregations, privacy      public screens
+  (app)/               signed-in area
+    (tabs)/              portal, dashboard, members, announcements, directory, banking, leagueAdmin
+    congregationAdmin, bankingSnapscan         pushed screens
+components/          Reusable UI (ui.tsx has the buttons and fields; certificate*.tsx draw the certificates)
+lib/                 Logic with no UI: Supabase client, auth/congregation context, dates, calendar, validation helpers
+  __tests__/           Jest tests
+styles/              Per-screen style sheets
+public/              Files served as-is: PWA manifest, service worker, icons, index.html
+supabase/
+  migrations/          the database, in order (0001 … 0031) — the source of truth
+  functions/           snapscan-webhook (Edge Function)
+  tests/               database security tests
+scripts/             One-off admin scripts (createLeagueAdminAccounts.mjs)
+docs/                The documentation above
+theme.ts             Colours; the green is the parish crest's
 ```
 
-## Publishing the website (Vercel)
+More detail on how the pieces fit together is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-`vercel.json` is already set up: it builds with `npx expo export --platform web`
-into `dist/` (a plain static site — HTML/JS, no server required) and rewrites every
-path to `index.html` so client-side routes like `/login` or `/(app)/members` work
-on a hard refresh or a direct link.
+## Licence
 
-1. Push this repo to GitHub.
-2. On [vercel.com](https://vercel.com), **New Project** → import the repo. Vercel
-   will detect `vercel.json` and use it as-is — no framework preset needed.
-3. Under **Environment Variables**, add `EXPO_PUBLIC_SUPABASE_URL` and
-   `EXPO_PUBLIC_SUPABASE_ANON_KEY` (same values as your local `.env`). These are
-   baked in at build time, so they must be set *before* you deploy, not after.
-4. Deploy. Vercel gives you a `https://your-project.vercel.app` domain (or attach
-   your own).
-
-Since login and every data call go straight to your Supabase project from the
-browser, there's nothing else to deploy — no API routes, no server to manage. To
-preview the production build locally first: `npm run build:web && npx serve dist`.
-
-## Publishing to the App Store / Play Store
-
-When you're ready to ship beyond Expo Go, use [EAS Build](https://docs.expo.dev/build/introduction/):
-
-```bash
-npx eas-cli build --platform all
-```
-
-This is a separate, later step — it needs a (free) Expo account and, for App Store
-submission specifically, a paid Apple Developer account. None of that is required
-just to use and test the app today, and it's entirely independent of the website —
-you can ship the web version without ever touching EAS.
+See [LICENSE](LICENSE).

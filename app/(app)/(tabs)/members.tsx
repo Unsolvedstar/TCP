@@ -424,8 +424,9 @@ export default function Members() {
                 <Card>
                   <Text style={styles.cardTitle}>Family Codes</Text>
                   <Text style={styles.adminHint}>
-                    Generate a batch of codes and hand them out. A code is required to register — whoever registers or joins with a fresh code becomes
-                    that family's first member, and the family is named after them automatically.
+                    Codes are optional. Registration already places people in a family automatically, so you only need codes to let someone join a
+                    specific family later (My Portal → Family → Join a family). Generate a batch and hand them out; whoever uses a fresh code becomes
+                    that family's first member, and the family is named after them.
                   </Text>
                   <View style={{ marginTop: 10 }}>
                     <Button title="Generate 20 Codes" variant="secondary" onPress={generateCodes} loading={generatingCodes} />
