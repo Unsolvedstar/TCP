@@ -2,7 +2,7 @@ import type { ComponentRef, Ref } from 'react'
 import { Text, View } from 'react-native'
 import { colors } from '../theme'
 import { formatDate } from './ui'
-import { BaptismArch, CertificateFrame, ConfirmationEmblem, LeagueEmblem, OrnamentRule, RoundSeal } from './certificateArt'
+import { BaptismArch, CertificateFrame, ConfirmationEmblem, LeagueEmblem, OrnamentRule, ParishCrest, RoundSeal } from './certificateArt'
 import { INK, styles } from './certificatePaper.styles'
 import type { AnyApplication } from '../lib/applicationDetail'
 import { resolveVerse, type CertificateVerse } from '../lib/certificateVerse'
@@ -40,7 +40,7 @@ function ParishSeal({ size, parishName }: { size: number; parishName: string }) 
 
 // The ELCSA emblem.
 function Crest({ size }: { size: number }) {
-  return <RoundSeal size={size} color={colors.g700} topText="EVANGELICAL LUTHERAN CHURCH" bottomText="IN SOUTHERN AFRICA" topSweep={236} />
+  return <ParishCrest size={size} />
 }
 
 // Every certificate carries a verse — see lib/certificateVerse.ts for where it comes from.

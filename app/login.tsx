@@ -100,6 +100,9 @@ export default function Login() {
         <View style={{ marginTop: 12 }}>
           <InstallAppButton />
         </View>
+        <View style={{ marginTop: 12, alignItems: 'center' }}>
+          <ActionButton label="Privacy Policy" onPress={() => router.push('/privacy')} />
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   )

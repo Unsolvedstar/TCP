@@ -1,5 +1,6 @@
 // g700 is the parish's real crest green, sampled directly from the official
-// ELCSA logo (assets/brand/churchLogo.png) — the rest of the green scale is
+// ELCSA crest (originally sampled from the bulletin scans; now drawn as vector in
+// components/certificateArt.tsx) — the rest of the green scale is
 // built outward from that anchor.
 export const colors = {
   g900: '#0a2603',

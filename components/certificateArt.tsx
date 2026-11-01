@@ -1,5 +1,6 @@
 import { useId } from 'react'
 import { Platform, StyleSheet, View } from 'react-native'
+import { colors } from '../theme'
 import Svg, { Circle, Defs, Ellipse, G, Line, Path, Polygon, Rect, Text as SvgText, TextPath } from 'react-native-svg'
 
 // Everything on the printed certificates that used to be a cropped scan —
@@ -69,6 +70,11 @@ function JerusalemCross({ cx, cy, size, color }: { cx: number; cy: number; size:
  * Jerusalem cross in the middle — the shape of the ELCSA emblem. `topText`
  * runs along the upper arc, `bottomText` along the lower one.
  */
+/** The ELCSA crest in the parish green, drawn as vector so it is sharp at any size. */
+export function ParishCrest({ size }: { size: number }) {
+  return <RoundSeal size={size} color={colors.g700} topText="EVANGELICAL LUTHERAN CHURCH" bottomText="IN SOUTHERN AFRICA" topSweep={236} />
+}
+
 export function RoundSeal({
   size,
   color,

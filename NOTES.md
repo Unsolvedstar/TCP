@@ -42,10 +42,15 @@ Still needs a person:
       certificate, certificate download, offline open, and the installed icon.
       Note: an installed iPhone web app keeps its own storage, so members sign in
       again after installing.
-- [ ] Privacy policy page/link (POPIA: birthdays, children, certificates).
-- [ ] Optional: Sentry (needs a DSN); redraw `churchLogo.png` and the league
-      badges (still scans of the bulletins); 3 high `npm audit` advisories remain,
-      all in Expo's build CLI (zod), not the shipped app.
+- [ ] **Have the parish review the privacy policy** (`app/privacy.tsx`, served at
+      `/privacy`, linked from the landing, sign-in and registration screens). It is
+      written from what the app really collects and shows, but a POPIA policy
+      should name the parish's Information Officer and a contact email/phone —
+      add those, and have someone qualified approve the wording.
+- [ ] Optional: Sentry (needs a DSN); redraw the league badges in
+      `assets/brand/badge*.png` (still scans of the bulletins; the crest is vector
+      now); 3 high `npm audit` advisories remain, all in Expo's build CLI (zod),
+      not the shipped app.
 
 ## Action items (things a person needs to actually do)
 

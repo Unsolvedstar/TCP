@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
-import { Button, Field, GlassSheen, glassBlur, SelectField } from '../components/ui'
+import { ActionButton, Button, Field, GlassSheen, glassBlur, SelectField } from '../components/ui'
 import { ChurchHeader } from '../components/churchHeader'
 import { CertificatePicker } from '../components/certificatePicker'
 import { ChipRow } from '../components/chipRow'
@@ -9,7 +9,7 @@ import { Wizard, type WizardStepDef } from '../components/wizard'
 import { supabase } from '../lib/supabase'
 import { getRegistrationCongregation, listRegistrationCongregations } from '../lib/congregation'
 import type { WardRow, LeagueRow, CongregationSummary } from '../lib/types'
-import { radius } from '../theme'
+import { colors, radius } from '../theme'
 import { styles } from '../styles/register.styles'
 import { contentNarrow } from '../lib/layout'
 
@@ -262,6 +262,10 @@ export default function Register() {
 
         <View style={{ marginTop: 20 }}>
           <Button title="Back to Sign In" variant="back" onPress={() => router.replace('/login')} />
+        </View>
+        <Text style={{ marginTop: 14, textAlign: 'center', fontSize: 12, color: colors.muted }}>By creating an account you agree to how we use your information.</Text>
+        <View style={{ marginTop: 8, alignItems: 'center' }}>
+          <ActionButton label="Read our Privacy Policy" onPress={() => router.push('/privacy')} />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

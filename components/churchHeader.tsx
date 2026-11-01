@@ -1,4 +1,5 @@
 import { Image, Text, View } from 'react-native'
+import { ParishCrest } from './certificateArt'
 import { useLiturgicalSeason } from '../lib/liturgicalTheme'
 import { styles } from './churchHeader.styles'
 
@@ -26,7 +27,7 @@ export function ChurchHeader({
   return (
     <View style={styles.header}>
       <View style={[styles.halo, { borderColor: season.color }]}>
-        <Image source={logoUrl ? { uri: logoUrl } : require('../assets/brand/churchLogo.png')} style={styles.logo} resizeMode="contain" />
+        {logoUrl ? <Image source={{ uri: logoUrl }} style={styles.logo} resizeMode="contain" /> : <ParishCrest size={66} />}
       </View>
       {showSeason ? (
         <View style={[styles.seasonPill, { backgroundColor: season.color }]}>

@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Image, ScrollView, Text, View } from 'react-native'
+import { ScrollView, Text, View } from 'react-native'
 import { router } from 'expo-router'
-import { Button, Card } from './ui'
+import { ActionButton, Button, Card } from './ui'
+import { ParishCrest } from './certificateArt'
 import { getUpcomingChurchEvents } from '../lib/churchCalendar'
 import { useLiturgicalSeason } from '../lib/liturgicalTheme'
 import { formatShortDate } from '../lib/dates'
@@ -32,7 +33,7 @@ export function LandingPage() {
     <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
       <View style={[styles.hero, { backgroundColor: season.color }]}>
         <View style={styles.halo}>
-          <Image source={require('../assets/brand/churchLogo.png')} style={styles.logo} resizeMode="contain" />
+          <ParishCrest size={78} />
         </View>
         <View style={styles.seasonPill}>
           <Text style={[styles.seasonPillText, { color: season.text }]}>{season.name}</Text>
@@ -97,6 +98,9 @@ export function LandingPage() {
           </Card>
         </View>
 
+        <View style={styles.privacyRow}>
+          <ActionButton label="Privacy Policy" onPress={() => router.push('/privacy')} />
+        </View>
         <Text style={styles.footer}>
           959 Pretorius Street, Arcadia, Tshwane{'\n'}elcsatcp.org
         </Text>
