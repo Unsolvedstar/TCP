@@ -15,7 +15,7 @@ stats and post announcements.
 
 1. Go to [supabase.com](https://supabase.com), create a free account and a new project (any region close to South Africa, e.g. `eu-west` or `af-south-1` if offered).
 2. Once it's provisioned, open **SQL Editor** in the left sidebar, paste the entire contents of [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql), and run it. This creates every table, security policy, and function the app needs.
-3. Open **Authentication → Providers → Email** and, for now, turn **off** "Confirm email" so new sign-ups can log in immediately (turn it back on later once you've set up a custom email sender, if you want that extra step).
+3. Open **Authentication → Providers → Email** and, for now, leave "Confirm email" **off** while you're getting started so new sign-ups can log in immediately. For a real launch, set up a custom email sender (Authentication → Emails → SMTP Settings — a free Gmail account with an app password works), paste the branded emails from `supabase/templates/` into Authentication → Emails → Templates, then turn "Confirm email" **on**. The registration screen already tells new members to check their email.
 4. Open **Authentication → URL Configuration** and add these to **Redirect URLs** (needed for the "Forgot password?" flow — without this, password-reset emails will link somewhere Supabase refuses to redirect to):
    - `elcsatcp://**` (the native app)
    - `http://localhost:8081/**` (the web app in local dev)

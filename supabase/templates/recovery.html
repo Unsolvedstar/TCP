@@ -1,0 +1,39 @@
+<!--
+  Supabase → Authentication → Emails → Templates → "Reset password"
+  Subject: Reset your ELCSA Tshwane City Parish password
+  Paste this whole file as the message body. {{ .ConfirmationURL }} is filled in by Supabase.
+-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f7f4ee;padding:24px 12px;font-family:Arial,Helvetica,sans-serif;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e6dfd2;">
+        <tr>
+          <td align="center" style="background:#1c4906;padding:24px 20px 20px;">
+            <img src="https://tcp-tau.vercel.app/icons/icon-192.png" width="72" height="72" alt="ELCSA crest" style="display:block;border-radius:36px;background:#f7f4ee;">
+            <div style="color:#ffffff;font-size:20px;font-weight:bold;margin-top:12px;">ELCSA Tshwane City Parish</div>
+            <div style="color:#d9e6d0;font-size:13px;font-style:italic;margin-top:2px;">Growing Together in Christ</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:28px 24px 8px;color:#1c1c1c;font-size:15px;line-height:22px;">
+            <div style="font-size:18px;font-weight:bold;color:#123a04;margin-bottom:10px;">Reset your password</div>
+            We received a request to reset the password for your account. Tap the button below to choose a new one.
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding:16px 24px 8px;">
+            <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#1c4906;color:#ffffff;text-decoration:none;font-weight:bold;font-size:15px;padding:14px 28px;border-radius:99px;">Choose a new password</a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:12px 24px 24px;color:#8c7d6c;font-size:12.5px;line-height:19px;">
+            If the button doesn't work, copy this link into your browser:<br>
+            <a href="{{ .ConfirmationURL }}" style="color:#1c4906;word-break:break-all;">{{ .ConfirmationURL }}</a><br><br>
+            This link expires after a short time. If you didn't ask for this, you can safely ignore this email — your password won't change.
+          </td>
+        </tr>
+      </table>
+      <div style="color:#8c7d6c;font-size:11.5px;margin-top:14px;">959 Pretorius Street, Arcadia, Tshwane</div>
+    </td>
+  </tr>
+</table>

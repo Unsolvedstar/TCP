@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
+import * as Linking from 'expo-linking'
 import { ActionButton, Button, Field, GlassSheen, glassBlur, SelectField } from '../components/ui'
 import { ChurchHeader } from '../components/churchHeader'
 import { CertificatePicker } from '../components/certificatePicker'
@@ -84,6 +85,9 @@ export default function Register() {
       email: email.trim(),
       password,
       options: {
+        // Where the link in the confirmation email lands (the site itself, so the new
+        // member arrives already signed in). Must be in Supabase's allowed Redirect URLs.
+        emailRedirectTo: Linking.createURL('/'),
         data: {
           full_name: fullName.trim(),
           congregation_id: congregationId,
