@@ -18,7 +18,10 @@ export function formatDate(iso: string) {
 // backdropFilter straight through to the DOM, but native platforms have no
 // such property, so it's kept out of the typed StyleSheet.create() styles
 // below and merged in only for web.
-export const glassBlur = Platform.OS === 'web' ? ({ backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' } as object) : null
+// Background blur looks nice on a desktop browser but makes scrolling shake and stutter on phones and
+// tablets, where the cards are nearly opaque anyway — so only use it with a mouse/trackpad.
+const canBlur = Platform.OS === 'web' && typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: fine)').matches
+export const glassBlur = canBlur ? ({ backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' } as object) : null
 
 // The glossy highlight that sells the "glass bubble" look — a soft white sheen
 // across the top of a panel, like light catching a curved glass or water

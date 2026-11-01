@@ -74,6 +74,8 @@ function ParticleDot({ p, height }: { p: Particle; height: number }) {
   )
 }
 
+const isTouchWeb = Platform.OS === 'web' && typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches
+
 export function FloatingParticles() {
   const { height } = useWindowDimensions()
   const particles = useMemo(makeParticles, [])
@@ -85,7 +87,9 @@ export function FloatingParticles() {
     return () => sub.remove()
   }, [])
 
-  if (reduceMotion) return null
+  // The drifting dots are animated every frame from JavaScript on the web; on a touch screen that makes
+  // the whole page feel like it's moving and uses battery. Desktop and the native apps keep them.
+  if (reduceMotion || isTouchWeb) return null
 
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>

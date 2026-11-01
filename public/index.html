@@ -43,6 +43,16 @@
         flex: 1;
       }
     </style>
+    <style id="app-stability">
+      /* Must come after the template reset above so these win. Keep the page still on phones and tablets. */
+      html, body { overscroll-behavior: none; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+      /* No double-tap-to-zoom delay/zoom on buttons (pinch zoom still works). */
+      * { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+      /* iPhones zoom the whole page when a field with text under 16px is focused, and often stay zoomed. */
+      @media (pointer: coarse) { input, textarea, select { font-size: 16px !important; } }
+      /* Follow the visible area as phone browser toolbars show/hide, instead of jumping. */
+      @supports (height: 100dvh) { html, body, #root { height: 100dvh; } }
+    </style>
   </head>
 
   <body>
