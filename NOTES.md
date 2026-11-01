@@ -23,27 +23,16 @@ Still needs a person:
       the right types and security headers; the build points at the real Supabase
       project; the congregation record is intact. Still to do for this: attach a
       proper domain if wanted (then update the two Supabase URLs below).
-- [ ] Supabase dashboard → Authentication → URL Configuration: Site URL =
-      `https://tcp-tau.vercel.app`; add `https://tcp-tau.vercel.app/**` to Redirect URLs (password-reset links
-      point at `/resetPassword` on that domain and fail without it).
-- [ ] **Free email sender (so "Confirm email" and password-reset emails work
-      reliably).** Supabase's built-in sender is heavily rate-limited. Easiest free
-      option, no domain needed: a dedicated Gmail account → turn on 2-Step
-      Verification → create an App Password (myaccount.google.com/apppasswords) →
-      Supabase dashboard → Authentication → Emails → SMTP Settings: enable custom
-      SMTP, host `smtp.gmail.com`, port `465`, username = the Gmail address,
-      password = the 16-character app password (type it only into Supabase), sender
-      email = the same address, sender name `ELCSA Tshwane City Parish`. Then paste
-      `supabase/templates/confirmation.html` ("Confirm signup") and
-      `recovery.html` ("Reset password") into Authentication → Emails → Templates,
-      and only then turn "Confirm email" ON. Gmail allows ~500 emails/day, plenty
-      for a parish. If the parish later owns a domain, switch to Resend or Brevo
-      (free tiers) for a proper `noreply@` address.
 - [ ] Supabase dashboard → Authentication: minimum password length 8 (the app
-      enforces it, the server still allows 6); "Confirm email" is currently OFF
-      (production reports mailer_autoconfirm = true) — turn it on once a custom
-      email sender (SMTP) exists — the hard-coded admin in migration 0030
-      is only safe with email confirmation on.
+      enforces it, the server still allows 6). **Email confirmation stays OFF on
+      purpose — the app sends no emails.** Consequence: anyone can register with an
+      email address they don't own, and there is no self-service password reset.
+      Forgotten passwords are reset by the parish office; until an in-app admin
+      reset exists, run this in the Supabase SQL editor:
+      `update auth.users set encrypted_password = crypt('NewTempPass1', gen_salt('bf')) where email = 'member@example.com';`
+      and tell the member to change it under My Details. Keep the hard-coded admin
+      (migration 0030) in mind: if that account were ever deleted, anyone could
+      register its email and become admin.
 - [ ] **Redeploy the SnapScan webhook without JWT verification** — deployed with
       `verify_jwt: true`, so SnapScan's callbacks (no Supabase token) are rejected
       before the function's own HMAC check. `supabase/config.toml` now says
@@ -53,7 +42,7 @@ Still needs a person:
       matters once SnapScan is live.
 - [ ] **Try it on real phones** once deployed: Android Chrome (Install the app
       button / browser prompt) and iPhone Safari (Share → Add to Home Screen).
-      Check sign-in, the password-reset email link, choosing a photo for a
+      Check sign-in, choosing a photo for a
       certificate, certificate download, offline open, and the installed icon.
       Note: an installed iPhone web app keeps its own storage, so members sign in
       again after installing.

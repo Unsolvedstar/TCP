@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native'
 import { router } from 'expo-router'
-import * as Linking from 'expo-linking'
 import { Button, Field, GlassSheen, glassBlur, ActionButton } from '../components/ui'
 import { ChurchHeader } from '../components/churchHeader'
 import { supabase } from '../lib/supabase'
@@ -17,11 +16,6 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-
-  const [forgotOpen, setForgotOpen] = useState(false)
-  const [resetEmail, setResetEmail] = useState('')
-  const [resetSending, setResetSending] = useState(false)
-  const [resetNotice, setResetNotice] = useState('')
 
   async function onSubmit() {
     setError('')
@@ -39,60 +33,20 @@ export default function Login() {
     router.replace('/')
   }
 
-  async function onSendReset() {
-    setError('')
-    setResetNotice('')
-    if (!resetEmail.trim()) {
-      setError('Enter the email address on your account.')
-      return
-    }
-    setResetSending(true)
-    const { error: err } = await supabase.auth.resetPasswordForEmail(resetEmail.trim(), {
-      redirectTo: Linking.createURL('/resetPassword'),
-    })
-    setResetSending(false)
-    if (err) {
-      setError(err.message)
-      return
-    }
-    setResetNotice("If that email has an account, we've sent a link to reset your password. Check your inbox.")
-  }
-
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={[styles.scroll, contentNarrow]} keyboardShouldPersistTaps="handled">
         <ChurchHeader title="ELCSA Tshwane City Parish" subtitle="Growing Together in Christ" />
 
-        {forgotOpen ? (
-          <View style={[styles.card, glassBlur]}>
-            <GlassSheen cornerRadius={radius.xl} />
-            <Text style={styles.cardTitle}>Reset Password</Text>
-            {error ? <Text style={styles.error}>{error}</Text> : null}
-            {resetNotice ? <Text style={styles.notice}>{resetNotice}</Text> : null}
-            <Field label="Email" value={resetEmail} onChangeText={setResetEmail} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" />
-            <Button title="Send Reset Link" onPress={onSendReset} loading={resetSending} />
-            <Button
-              title="Back to Sign In"
-              variant="back"
-              onPress={() => {
-                setForgotOpen(false)
-                setError('')
-                setResetNotice('')
-              }}
-            />
-          </View>
-        ) : (
-          <View style={[styles.card, glassBlur]}>
-            <GlassSheen cornerRadius={radius.xl} />
-            <Text style={styles.cardTitle}>Sign In</Text>
-            {error ? <Text style={styles.error}>{error}</Text> : null}
-            <Field label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" />
-            <Field label="Password" value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" />
-            <Button title="Sign In" onPress={onSubmit} loading={loading} />
-            <ActionButton label="Forgot your password?" tone="neutral" style={{ alignSelf: 'center' }} onPress={() => setForgotOpen(true)} />
-            <Text style={styles.hint}>Trouble signing in? Use “Forgot your password?”, or ask the parish office for help.</Text>
-          </View>
-        )}
+        <View style={[styles.card, glassBlur]}>
+          <GlassSheen cornerRadius={radius.xl} />
+          <Text style={styles.cardTitle}>Sign In</Text>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+          <Field label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" />
+          <Field label="Password" value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" />
+          <Button title="Sign In" onPress={onSubmit} loading={loading} />
+          <Text style={styles.hint}>Forgot your password? Ask the parish office to reset it for you.</Text>
+        </View>
 
         <View style={{ marginTop: 20 }}>
           <Button title="New here? Create a member account" variant="secondary" onPress={() => router.push('/register')} />

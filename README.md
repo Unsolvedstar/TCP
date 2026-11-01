@@ -15,12 +15,8 @@ stats and post announcements.
 
 1. Go to [supabase.com](https://supabase.com), create a free account and a new project (any region close to South Africa, e.g. `eu-west` or `af-south-1` if offered).
 2. Once it's provisioned, open **SQL Editor** in the left sidebar, paste the entire contents of [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql), and run it. This creates every table, security policy, and function the app needs.
-3. Open **Authentication → Providers → Email** and, for now, leave "Confirm email" **off** while you're getting started so new sign-ups can log in immediately. For a real launch, set up a custom email sender (Authentication → Emails → SMTP Settings — a free Gmail account with an app password works), paste the branded emails from `supabase/templates/` into Authentication → Emails → Templates, then turn "Confirm email" **on**. The registration screen already tells new members to check their email.
-4. Open **Authentication → URL Configuration** and add these to **Redirect URLs** (needed for the "Forgot password?" flow — without this, password-reset emails will link somewhere Supabase refuses to redirect to):
-   - `elcsatcp://**` (the native app)
-   - `http://localhost:8081/**` (the web app in local dev)
-   - your production web domain, once you have one, e.g. `https://yourparish.example.com/**`
-5. Open **Project Settings → API**. Copy the **Project URL** and the **anon / public key**.
+3. Open **Authentication → Providers → Email** and leave **"Confirm email" off**. This app sends no emails at all (no confirmation links, no password-reset emails), so new sign-ups can log in immediately. If a member forgets their password, the parish office resets it (see NOTES.md).
+4. Open **Project Settings → API**. Copy the **Project URL** and the **anon / public key**.
 
 ## 2. Configure the app
 
@@ -234,10 +230,10 @@ full-resolution phone photo would be several MB, too big to store inline this
 way. It doesn't need a `.native`/`.web` split: both underlying packages have
 real web support, confirmed by checking their source rather than assuming it.
 
-**Password reset.** "Forgot your password?" on the sign-in screen sends a reset
-link via Supabase Auth. Clicking it re-opens the app (native) or the site (web) at
-a dedicated screen to set a new password — no separate email server to configure,
-Supabase sends it. Requires the redirect URLs from step 4 above to be set.
+**No emails.** The app deliberately sends no email: there are no confirmation links
+and no "forgot password" emails, so it needs no email sender or redirect URLs.
+A member who forgets their password asks the parish office, who resets it (see
+NOTES.md).
 
 **Account removal is honest about its blast radius.** Removing a member can only
 ever delete their `profiles` row — the app has no access to delete the underlying
@@ -269,7 +265,7 @@ having no record at all of who approved what.
 ```
 app/
   index.tsx                        — landing page (signed out) or redirect to portal/dashboard (signed in)
-  login.tsx, register.tsx, resetPassword.tsx — public screens
+  login.tsx, register.tsx, privacy.tsx — public screens
   (app)/_layout.tsx               — tab bar; hides admin-only tabs from members
   (app)/portal.tsx                — member home: profile, requests, parish stats
   (app)/dashboard.tsx             — admin home: stats + announcements CRUD
@@ -307,9 +303,6 @@ on a hard refresh or a direct link.
    baked in at build time, so they must be set *before* you deploy, not after.
 4. Deploy. Vercel gives you a `https://your-project.vercel.app` domain (or attach
    your own).
-5. Back in Supabase → **Authentication → URL Configuration**, add
-   `https://your-project.vercel.app/**` to **Redirect URLs** (see step 4 above) —
-   otherwise the "Forgot password?" email link will be rejected on the live site.
 
 Since login and every data call go straight to your Supabase project from the
 browser, there's nothing else to deploy — no API routes, no server to manage. To
