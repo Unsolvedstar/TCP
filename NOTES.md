@@ -18,16 +18,18 @@ is active and has all 31 migrations.
 
 Still needs a person:
 
-- [ ] **Deploy the website** (Vercel: import the GitHub repo; `vercel.json` already
-      sets the build, SPA rewrite and headers). Set `EXPO_PUBLIC_SUPABASE_URL` and
-      `EXPO_PUBLIC_SUPABASE_ANON_KEY` in the project's environment variables.
-      Use a real HTTPS domain — browsers only offer "install" over HTTPS.
-- [ ] Supabase dashboard → Authentication → URL Configuration: Site URL = the
-      live domain; add `https://<domain>/**` to Redirect URLs (password-reset links
+- [x] **Website deployed: https://tcp-tau.vercel.app** (Vercel, from this repo).
+      Checked 2026-11-01: pages, manifest, service worker and icons are served with
+      the right types and security headers; the build points at the real Supabase
+      project; the congregation record is intact. Still to do for this: attach a
+      proper domain if wanted (then update the two Supabase URLs below).
+- [ ] Supabase dashboard → Authentication → URL Configuration: Site URL =
+      `https://tcp-tau.vercel.app`; add `https://tcp-tau.vercel.app/**` to Redirect URLs (password-reset links
       point at `/resetPassword` on that domain and fail without it).
 - [ ] Supabase dashboard → Authentication: minimum password length 8 (the app
-      enforces it, the server still allows 6); turn on "Confirm email" once a
-      custom email sender (SMTP) exists — the hard-coded admin in migration 0030
+      enforces it, the server still allows 6); "Confirm email" is currently OFF
+      (production reports mailer_autoconfirm = true) — turn it on once a custom
+      email sender (SMTP) exists — the hard-coded admin in migration 0030
       is only safe with email confirmation on.
 - [ ] **Redeploy the SnapScan webhook without JWT verification** — deployed with
       `verify_jwt: true`, so SnapScan's callbacks (no Supabase token) are rejected
