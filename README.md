@@ -61,6 +61,10 @@ in `public/index.html`. On Android/Chrome and desktop, the browser offers
 - Icons in `public/icons/` are rendered from the vector crest. To force every
   installed copy to drop its caches after changing `sw.js`, bump `VERSION` in it.
 - It isn't registered on Expo's dev server (port 8081), so hot reload is unaffected.
+- The landing and sign-in screens show an **Install the app** button wherever the
+  browser can install it (Android/desktop prompt; on iPhone it shows the
+  Share → Add to Home Screen steps). It hides itself inside the installed app.
+- The manifest allows any orientation, so tablets and desktop windows use the wide layout.
 
 ## 4. Make yourself the first admin
 

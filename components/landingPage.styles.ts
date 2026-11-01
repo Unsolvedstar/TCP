@@ -14,6 +14,7 @@ export const styles = StyleSheet.create({
   heroNext: { fontSize: 12.5, textAlign: 'center', marginTop: 16, opacity: 0.85 },
   heroQuestion: { fontSize: 14.5, fontWeight: '700', textAlign: 'center', marginTop: 22 },
   heroButtons: { flexDirection: 'row', gap: 12, marginTop: 12, width: '100%', maxWidth: 360 },
+  installRow: { width: '100%', maxWidth: 360, marginTop: 14 },
   heroNote: { fontSize: 11.5, textAlign: 'center', marginTop: 12, opacity: 0.85, maxWidth: 340, lineHeight: 16 },
   heroBackLink: { fontSize: 12.5, fontWeight: '700', textAlign: 'center', marginTop: 10, opacity: 0.85 },
   body: { padding: 20, gap: 4 },

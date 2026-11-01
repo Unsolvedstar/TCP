@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase'
 import { radius } from '../theme'
 import { styles } from '../styles/login.styles'
 import { contentNarrow } from '../lib/layout'
+import { InstallAppButton } from '../components/installAppButton'
 
 export { ErrorBoundary } from '../components/errorBoundary'
 
@@ -95,6 +96,9 @@ export default function Login() {
 
         <View style={{ marginTop: 20 }}>
           <Button title="New here? Create a member account" variant="secondary" onPress={() => router.push('/register')} />
+        </View>
+        <View style={{ marginTop: 12 }}>
+          <InstallAppButton />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

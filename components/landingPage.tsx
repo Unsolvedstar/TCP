@@ -9,6 +9,7 @@ import { VISITOR_LINK } from '../lib/config'
 import { openUrlSafely } from '../lib/safeLink'
 import { styles } from './landingPage.styles'
 import { useIsWide } from '../lib/layout'
+import { InstallAppButton } from './installAppButton'
 
 const FEATURES = [
   { title: 'Your membership, in one place', body: 'See your ward, league, baptism and confirmation status, and request changes without waiting for the office.' },
@@ -73,6 +74,9 @@ export function LandingPage() {
             </View>
           </View>
         )}
+        <View style={styles.installRow}>
+          <InstallAppButton />
+        </View>
       </View>
 
       <View style={[styles.body, wide && styles.bodyWide]}>

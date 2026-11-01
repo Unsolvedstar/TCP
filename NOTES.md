@@ -7,31 +7,42 @@ separate, already-completed project's own checklist — don't merge into it.)
 
 ## Launch checklist (status 2026-11-01)
 
-Done in code: SDK 58 upgrade, vector certificates (always print a verse), PWA,
-wide-screen layout, real buttons everywhere, security headers, new app icons.
-Production Supabase project is active and has all 31 migrations.
+**Decision: this ships as a website members install as a PWA** — no App Store /
+Play Store. So no bundle ID, developer accounts or EAS builds are needed
+(`eas.json` was removed; the native `ios`/`android` bits of app.json are unused).
+
+Done in code: SDK 58 upgrade, vector certificates (always print a verse), PWA
+(manifest, service worker, icons, in-app "Install the app" button), wide-screen
+layout, real buttons everywhere, security headers. Production Supabase project
+is active and has all 31 migrations.
 
 Still needs a person:
 
-- [ ] **Redeploy the SnapScan webhook without JWT verification** — it was
-      deployed with `verify_jwt: true`, so SnapScan's callbacks (which carry no
-      Supabase token) are rejected before the function's own HMAC check runs.
-      `supabase/config.toml` now says `verify_jwt = false`; production has to be
-      redeployed once: `npx supabase functions deploy snapscan-webhook --no-verify-jwt`
-      (then `npx supabase secrets set SNAPSCAN_WEBHOOK_AUTH_KEY=...`).
+- [ ] **Deploy the website** (Vercel: import the GitHub repo; `vercel.json` already
+      sets the build, SPA rewrite and headers). Set `EXPO_PUBLIC_SUPABASE_URL` and
+      `EXPO_PUBLIC_SUPABASE_ANON_KEY` in the project's environment variables.
+      Use a real HTTPS domain — browsers only offer "install" over HTTPS.
+- [ ] Supabase dashboard → Authentication → URL Configuration: Site URL = the
+      live domain; add `https://<domain>/**` to Redirect URLs (password-reset links
+      point at `/resetPassword` on that domain and fail without it).
 - [ ] Supabase dashboard → Authentication: minimum password length 8 (the app
-      already enforces it, the server still allows 6); Site URL + redirect URLs
-      set to the real domain (password-reset links need them); turn on
-      "Confirm email" once a custom email sender exists (the hard-coded admin in
-      migration 0030 is only safe with email confirmation on).
-- [ ] Hosting: set `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`
-      where the web build runs (Vercel project settings).
-- [ ] Real-device test: `npx eas-cli login`, then
-      `npx eas-cli build --profile preview --platform android`; check sign-in,
-      password reset link, image upload, certificate save/share, splash + icon.
-- [ ] Pick the store bundle ID (`ios.bundleIdentifier` / `android.package` in
-      app.json) — permanent once published. Privacy policy URL (POPIA: birthdays,
-      children, certificates). Apple/Google developer accounts if listing in stores.
+      enforces it, the server still allows 6); turn on "Confirm email" once a
+      custom email sender (SMTP) exists — the hard-coded admin in migration 0030
+      is only safe with email confirmation on.
+- [ ] **Redeploy the SnapScan webhook without JWT verification** — deployed with
+      `verify_jwt: true`, so SnapScan's callbacks (no Supabase token) are rejected
+      before the function's own HMAC check. `supabase/config.toml` now says
+      `verify_jwt = false`; production needs one redeploy:
+      `npx supabase functions deploy snapscan-webhook --no-verify-jwt`
+      (then `npx supabase secrets set SNAPSCAN_WEBHOOK_AUTH_KEY=...`). Only
+      matters once SnapScan is live.
+- [ ] **Try it on real phones** once deployed: Android Chrome (Install the app
+      button / browser prompt) and iPhone Safari (Share → Add to Home Screen).
+      Check sign-in, the password-reset email link, choosing a photo for a
+      certificate, certificate download, offline open, and the installed icon.
+      Note: an installed iPhone web app keeps its own storage, so members sign in
+      again after installing.
+- [ ] Privacy policy page/link (POPIA: birthdays, children, certificates).
 - [ ] Optional: Sentry (needs a DSN); redraw `churchLogo.png` and the league
       badges (still scans of the bulletins); 3 high `npm audit` advisories remain,
       all in Expo's build CLI (zod), not the shipped app.
