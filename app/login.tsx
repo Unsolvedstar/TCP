@@ -89,10 +89,7 @@ export default function Login() {
             <Field label="Password" value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" />
             <Button title="Sign In" onPress={onSubmit} loading={loading} />
             <ActionButton label="Forgot your password?" tone="neutral" style={{ alignSelf: 'center' }} onPress={() => setForgotOpen(true)} />
-            <Text style={styles.hint}>
-              First time as parish admin? Use the email/password you set for the account created via the Supabase dashboard, then promote it to
-              admin in the database.
-            </Text>
+            <Text style={styles.hint}>Trouble signing in? Use “Forgot your password?”, or ask the parish office for help.</Text>
           </View>
         )}
 

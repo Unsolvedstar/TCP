@@ -70,6 +70,7 @@ export default function TabsLayout() {
         name="dashboard"
         options={{
           title: 'Dashboard',
+          tabBarLabel: wide ? 'Dashboard' : 'Home',
           href: isAdmin ? undefined : null,
           tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? 'grid' : 'grid-outline'} size={size} color={color as string} />,
         }}
@@ -86,6 +87,7 @@ export default function TabsLayout() {
         name="announcements"
         options={{
           title: 'Announcements',
+          tabBarLabel: wide ? 'Announcements' : 'News',
           href: isAdmin || myLeagueIds.length > 0 ? undefined : null,
           tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? 'megaphone' : 'megaphone-outline'} size={size} color={color as string} />,
         }}

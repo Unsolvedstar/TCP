@@ -546,7 +546,7 @@ export default function Members() {
                           assigned.map((a) => (
                             <View key={a.profileId} style={{ flexDirection: 'row', alignItems: 'center' }}>
                               <Text style={{ flex: 1, fontSize: 13, color: colors.text }}>{a.name}</Text>
-                              <ActionButton label="Remove" tone="danger" onPress={() => revokeLeagueAdmin(a.profileId, l.id, l.label, a.name)} />
+                              <ActionButton label="Remove" accessibilityLabel={`Remove ${a.name} as ${l.label} admin`} tone="danger" onPress={() => revokeLeagueAdmin(a.profileId, l.id, l.label, a.name)} />
                             </View>
                           ))
                         )}

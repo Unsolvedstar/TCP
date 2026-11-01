@@ -412,3 +412,9 @@ enabled = true
 # declarative_schema_path = "./schemas"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+# SnapScan's servers call this endpoint and can't send a Supabase login token, so
+# the platform's JWT check must be off. The function authenticates callers itself
+# (HMAC-SHA256 signature, fails closed with 503 until SNAPSCAN_WEBHOOK_AUTH_KEY is set).
+[functions.snapscan-webhook]
+verify_jwt = false

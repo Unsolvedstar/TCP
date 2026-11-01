@@ -100,14 +100,14 @@ export function HouseholdCard({
           {members.map((m) => (
             <View key={m.id} style={styles.personRow}>
               <Text style={styles.personName}>{m.full_name}</Text>
-              <ActionButton label="Remove" tone="danger" onPress={() => removeMember(m.id)} />
+              <ActionButton label="Remove" accessibilityLabel={`Remove ${m.full_name}`} tone="danger" onPress={() => removeMember(m.id)} />
             </View>
           ))}
           {dependents.map((d) => (
             <View key={d.id} style={styles.personRow}>
               <Ionicons name="body-outline" size={13} color={colors.muted} />
               <Text style={styles.personName}>{d.full_name}</Text>
-              <ActionButton label="Remove" tone="danger" onPress={() => removeDependent(d.id)} />
+              <ActionButton label="Remove" accessibilityLabel={`Remove ${d.full_name}`} tone="danger" onPress={() => removeDependent(d.id)} />
             </View>
           ))}
         </>

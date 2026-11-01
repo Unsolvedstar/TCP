@@ -156,7 +156,7 @@ export default function Announcements() {
                   <SpeakButton text={[a.title, a.date_text, a.body].filter(Boolean).join('. ')} />
                 </View>
                 {isAdmin || a.league_id ? (
-                  <ActionButton label="Remove" tone="danger" onPress={() => removeAnnouncement(a.id)} />
+                  <ActionButton label="Remove" accessibilityLabel={`Remove announcement ${a.title}`} tone="danger" onPress={() => removeAnnouncement(a.id)} />
                 ) : null}
               </View>
             </View>

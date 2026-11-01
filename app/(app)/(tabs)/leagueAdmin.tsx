@@ -328,7 +328,7 @@ export default function LeagueAdmin() {
                 <Text style={styles.pendingName}>{e.title}</Text>
                 {e.description ? <Text style={styles.pendingDetail}>{e.description}</Text> : null}
               </View>
-              <ActionButton label="Remove" tone="danger" onPress={() => removeEvent(e.id)} />
+              <ActionButton label="Remove" accessibilityLabel={`Remove event ${e.title}`} tone="danger" onPress={() => removeEvent(e.id)} />
             </View>
           </View>
         ))}

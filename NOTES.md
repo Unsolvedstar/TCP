@@ -5,6 +5,37 @@ open decisions, and follow-ups from ongoing work. Check items off as they're
 done; add new ones as they come up. (`MULTI_CONGREGATION_TODO.md` is a
 separate, already-completed project's own checklist — don't merge into it.)
 
+## Launch checklist (status 2026-11-01)
+
+Done in code: SDK 58 upgrade, vector certificates (always print a verse), PWA,
+wide-screen layout, real buttons everywhere, security headers, new app icons.
+Production Supabase project is active and has all 31 migrations.
+
+Still needs a person:
+
+- [ ] **Redeploy the SnapScan webhook without JWT verification** — it was
+      deployed with `verify_jwt: true`, so SnapScan's callbacks (which carry no
+      Supabase token) are rejected before the function's own HMAC check runs.
+      `supabase/config.toml` now says `verify_jwt = false`; production has to be
+      redeployed once: `npx supabase functions deploy snapscan-webhook --no-verify-jwt`
+      (then `npx supabase secrets set SNAPSCAN_WEBHOOK_AUTH_KEY=...`).
+- [ ] Supabase dashboard → Authentication: minimum password length 8 (the app
+      already enforces it, the server still allows 6); Site URL + redirect URLs
+      set to the real domain (password-reset links need them); turn on
+      "Confirm email" once a custom email sender exists (the hard-coded admin in
+      migration 0030 is only safe with email confirmation on).
+- [ ] Hosting: set `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+      where the web build runs (Vercel project settings).
+- [ ] Real-device test: `npx eas-cli login`, then
+      `npx eas-cli build --profile preview --platform android`; check sign-in,
+      password reset link, image upload, certificate save/share, splash + icon.
+- [ ] Pick the store bundle ID (`ios.bundleIdentifier` / `android.package` in
+      app.json) — permanent once published. Privacy policy URL (POPIA: birthdays,
+      children, certificates). Apple/Google developer accounts if listing in stores.
+- [ ] Optional: Sentry (needs a DSN); redraw `churchLogo.png` and the league
+      badges (still scans of the bulletins); 3 high `npm audit` advisories remain,
+      all in Expo's build CLI (zod), not the shipped app.
+
 ## Action items (things a person needs to actually do)
 
 - [ ] Run `scripts/createLeagueAdminAccounts.mjs` to provision the

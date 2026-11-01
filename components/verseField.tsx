@@ -58,6 +58,7 @@ export function VerseField({
         multiline
         numberOfLines={3}
       />
+      <Text style={styles.hint}>Leave the verse blank and the certificate prints a default one.</Text>
     </View>
   )
 }

@@ -14,7 +14,7 @@ export const styles = StyleSheet.create({
   // Four across instead of 2x2 once the window is wide.
   statCardWide: { width: '23.8%', flexGrow: 1 },
   statCard: {
-    width: '47%',
+    width: '48%',
     backgroundColor: 'rgba(255,255,255,0.88)',
     borderRadius: radius.lg,
     borderWidth: 1,

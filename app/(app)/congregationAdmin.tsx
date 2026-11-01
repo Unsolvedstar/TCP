@@ -381,7 +381,7 @@ export default function CongregationAdmin() {
               <Chip label={`${w.name} · ${w.bank_code}`} color={w.color} selected />
             </View>
             <ActionButton label="Edit" tone="primary" onPress={() => startEditWard(w)} />
-            <ActionButton label="Remove" tone="danger" onPress={() => removeWard(w)} style={{ marginLeft: 8 }} />
+            <ActionButton label="Remove" accessibilityLabel={`Remove ward ${w.name}`} tone="danger" onPress={() => removeWard(w)} style={{ marginLeft: 8 }} />
           </View>
         ))}
       </Card>
@@ -415,7 +415,7 @@ export default function CongregationAdmin() {
               <Chip label={l.label} color={l.color} selected />
             </View>
             <ActionButton label="Edit" tone="primary" onPress={() => startEditLeague(l)} />
-            <ActionButton label="Remove" tone="danger" onPress={() => removeLeague(l)} style={{ marginLeft: 8 }} />
+            <ActionButton label="Remove" accessibilityLabel={`Remove league ${l.label}`} tone="danger" onPress={() => removeLeague(l)} style={{ marginLeft: 8 }} />
           </View>
         ))}
       </Card>
@@ -445,7 +445,7 @@ export default function CongregationAdmin() {
                 {a.name} — {a.bank_name}
               </Text>
               <ActionButton label="Edit" tone="primary" onPress={() => startEditAccount(a)} />
-              <ActionButton label="Remove" tone="danger" onPress={() => removeAccount(a)} style={{ marginLeft: 8 }} />
+              <ActionButton label="Remove" accessibilityLabel={`Remove account ${a.name}`} tone="danger" onPress={() => removeAccount(a)} style={{ marginLeft: 8 }} />
             </View>
             <Text style={styles.pendingDetail}>
               Acc. {a.account_number} · Branch {a.branch_code}
@@ -477,7 +477,7 @@ export default function CongregationAdmin() {
               {c.code} — {c.label} ({bankAccounts.find((a) => a.id === c.account_id)?.name ?? 'Unknown account'})
             </Text>
             <ActionButton label="Edit" tone="primary" onPress={() => startEditCode(c)} />
-            <ActionButton label="Remove" tone="danger" onPress={() => removeCode(c)} style={{ marginLeft: 8 }} />
+            <ActionButton label="Remove" accessibilityLabel={`Remove code ${c.code}`} tone="danger" onPress={() => removeCode(c)} style={{ marginLeft: 8 }} />
           </View>
         ))}
       </Card>
