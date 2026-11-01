@@ -14,12 +14,15 @@ another's data.
 
 ## Documentation
 
+The full set, with screenshots, is indexed in **[docs/README.md](docs/README.md)**.
+
 | If you are… | Read |
 |---|---|
-| A member | [Member guide](docs/MEMBER_GUIDE.md) |
-| In the parish office / an admin | [Admin guide](docs/ADMIN_GUIDE.md) |
+| A member | [Your portal](docs/guides/02-your-portal.md), starting from [registering and signing in](docs/guides/01-visitors-and-getting-started.md) |
+| In the parish office / an admin | [Dashboard and registry](docs/guides/06-admin-dashboard-and-registry.md) and the guides after it |
 | Hosting or looking after the app | [Deployment & operations](docs/DEPLOYMENT.md) |
-| A developer changing the code | [Architecture](docs/ARCHITECTURE.md) (this page covers getting started) |
+| Trying it out | [Test accounts](docs/TEST_ACCOUNTS.md) — fictional people for every role |
+| A developer changing the code | [Architecture](docs/ARCHITECTURE.md) and the [database diagram](docs/ERD.md) (this page covers getting started) |
 | Looking for what is still to do | [NOTES.md](NOTES.md) — the running checklist |
 
 [MULTI_CONGREGATION_TODO.md](MULTI_CONGREGATION_TODO.md) is the finished plan
@@ -51,7 +54,7 @@ and test record for making the app multi-congregation; it is history, not a to-d
 
 The app **sends no email** — there is no email confirmation and no password-reset
 email, so no email service is needed. A forgotten password is reset by the parish
-office (see the [Admin guide](docs/ADMIN_GUIDE.md)).
+office (see [Deployment & operations](docs/DEPLOYMENT.md#resetting-a-members-password)).
 
 ## Run it locally
 

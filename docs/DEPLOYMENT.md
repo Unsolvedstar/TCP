@@ -130,6 +130,7 @@ Supabase → Authentication → Users.
 ### Changing the database
 Add a new numbered file in `supabase/migrations/` (never edit an old one), try it locally
 (`npx supabase db reset`, then the security tests in the README), then `npx supabase db push`.
+Afterwards update the [database diagram](ERD.md). To refill a local database with fictional people, see [Test accounts](TEST_ACCOUNTS.md).
 
 ### Free projects pause themselves
 On Supabase's free plan a project with no activity for about a week is **paused** — the

@@ -19,6 +19,14 @@ is active and has all 31 migrations.
 Documentation: see the table in README.md — member guide, admin guide, deployment &
 operations runbook, architecture. Keep them in step with the app (e.g. button names).
 
+Found while documenting (2026-11-01):
+- **Fixed:** the member portal re-fetched the profile in an endless loop (hundreds of requests a minute), which made the screen twitch;
+  the admin Members screen showed **no dependents** (an ambiguous database relationship); the yearly "still part of the parish?" banner
+  could never appear. See the commits for details.
+- **Open design question:** an announcement posted "for a league" is still readable by every member (the database policy lets any member
+  of the congregation read all announcements). The form's label "Who should see this?" suggests otherwise. Either rename the label or restrict who can read league announcements.
+- **Open:** a brand-new member sees the yearly check-in question on their very first visit (it counts from "never answered", not from registration).
+
 Still needs a person:
 
 - [x] **Website deployed: https://tcp-tau.vercel.app** (Vercel, from this repo).

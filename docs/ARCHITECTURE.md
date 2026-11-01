@@ -49,6 +49,8 @@ crossing between them). **Run them after changing any migration.**
 
 ## Data model
 
+The complete diagram, with every column and relationship, is in [ERD.md](ERD.md).
+
 Tables (all in `public`; the league points/leaderboard feature was removed in migration 0026):
 
 | Table | Holds |
