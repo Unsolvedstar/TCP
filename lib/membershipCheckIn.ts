@@ -21,12 +21,14 @@ function daysAgo(iso: string | null, now: Date): number | null {
  * regular user "are you still here?" is closer to an insult than a check-in.
  */
 export function shouldShowMembershipCheckIn(profile: Profile, now: Date = new Date()): boolean {
+  // Someone who has never answered is counted from when they registered, so a
+  // brand-new member isn't asked on their very first visit.
   const lastResponded = [profile.membership_confirmed_at, profile.self_reported_left_at]
     .filter((v): v is string => v !== null)
     .sort()
     .pop()
-  const dueMs = daysAgo(lastResponded ?? null, now)
-  const due = dueMs === null || dueMs > YEAR_MS
+  const dueMs = daysAgo(lastResponded ?? profile.created_at, now)
+  const due = dueMs !== null && dueMs > YEAR_MS
 
   const activeMs = daysAgo(profile.last_active_at, now)
   const recentlyActive = activeMs !== null && activeMs < RECENTLY_ACTIVE_MS

@@ -31,7 +31,7 @@ if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
 
 // Change this if your real congregation domain differs — these addresses
 // only need to be syntactically valid and unique, nobody reads this inbox.
-const EMAIL_DOMAIN = 'league-admin.elcsatcp.internal'
+const EMAIL_DOMAIN = 'elcsa-tcp.internal'
 const CONGREGATION_SLUG = 'tshwane-city-parish'
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
@@ -59,7 +59,7 @@ async function main() {
   const results = []
 
   for (const league of leagues) {
-    const email = `${league.key.toLowerCase()}@${EMAIL_DOMAIN}`
+    const email = `league-${league.key.toLowerCase()}@${EMAIL_DOMAIN}`
 
     const { data: existing } = await supabase.auth.admin.listUsers()
     const already = existing?.users?.find((u) => u.email === email)

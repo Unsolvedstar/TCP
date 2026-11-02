@@ -128,7 +128,7 @@ export default function Announcements() {
       <Card>
         <Text style={styles.cardTitle}>New Announcement</Text>
         <View style={{ gap: 10 }}>
-          <ChipRow label="Who should see this?" options={audienceOptions} value={audience} onChange={setAudience} allowDeselect={false} />
+          <ChipRow label="Post to" options={audienceOptions} value={audience} onChange={setAudience} allowDeselect={false} />
           <Field label="Title" value={title} onChangeText={setTitle} placeholder="e.g. Harvest Celebration" />
           <Field label="Date / when (optional)" value={dateText} onChangeText={setDateText} placeholder="e.g. 18 October 2026" />
           <Field label="Details (optional)" value={body} onChangeText={setBody} placeholder="Short description…" />

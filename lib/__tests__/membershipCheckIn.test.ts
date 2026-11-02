@@ -46,6 +46,11 @@ describe('shouldShowMembershipCheckIn', () => {
     expect(shouldShowMembershipCheckIn(p, NOW)).toBe(true)
   })
 
+  it('is not due for a brand-new member who has never answered', () => {
+    const p = baseProfile({ created_at: daysBefore(1), last_active_at: null })
+    expect(shouldShowMembershipCheckIn(p, NOW)).toBe(false)
+  })
+
   it('is not due within a year of the last confirmation', () => {
     const p = baseProfile({ membership_confirmed_at: daysBefore(200), last_active_at: daysBefore(200) })
     expect(shouldShowMembershipCheckIn(p, NOW)).toBe(false)

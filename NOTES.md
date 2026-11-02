@@ -23,9 +23,9 @@ Found while documenting (2026-11-01):
 - **Fixed:** the member portal re-fetched the profile in an endless loop (hundreds of requests a minute), which made the screen twitch;
   the admin Members screen showed **no dependents** (an ambiguous database relationship); the yearly "still part of the parish?" banner
   could never appear. See the commits for details.
-- **Open design question:** an announcement posted "for a league" is still readable by every member (the database policy lets any member
-  of the congregation read all announcements). The form's label "Who should see this?" suggests otherwise. Either rename the label or restrict who can read league announcements.
-- **Open:** a brand-new member sees the yearly check-in question on their very first visit (it counts from "never answered", not from registration).
+- **Fixed (2026-11-02):** a brand-new member no longer sees the yearly check-in on their first visit (counted from registration).
+- **Partly done:** the "Who should see this?" label is now "Post to", so it no longer promises privacy. The database still lets every
+  member of the congregation read league announcements/events; restricting that needs an RLS policy change (new migration) if wanted.
 
 Still needs a person:
 
@@ -34,8 +34,8 @@ Still needs a person:
       the right types and security headers; the build points at the real Supabase
       project; the congregation record is intact. Still to do for this: attach a
       proper domain if wanted (then update the two Supabase URLs below).
-- [ ] Supabase dashboard → Authentication: minimum password length 8 (the app
-      enforces it, the server still allows 6). **Email confirmation stays OFF on
+- [x] Supabase minimum password length: **decided to leave it at 6** (the app
+      enforces 8, the server allows 6) — no change wanted. **Email confirmation stays OFF on
       purpose — the app sends no emails.** Consequence: anyone can register with an
       email address they don't own, and there is no self-service password reset.
       Forgotten passwords are reset by the parish office; until an in-app admin
@@ -44,7 +44,9 @@ Still needs a person:
       and tell the member to change it under My Details. Keep the hard-coded admin
       (migration 0030) in mind: if that account were ever deleted, anyone could
       register its email and become admin.
-- [ ] **Redeploy the SnapScan webhook without JWT verification** — deployed with
+- [ ] **ON HOLD (until SnapScan is live): SnapScan webhook.** Redeployed without JWT
+      verification on 2026-11-02 (returns 503 "not configured" until the auth key is
+      set); remaining step is the secret below. Original note — deployed with
       `verify_jwt: true`, so SnapScan's callbacks (no Supabase token) are rejected
       before the function's own HMAC check. `supabase/config.toml` now says
       `verify_jwt = false`; production needs one redeploy:
@@ -74,9 +76,8 @@ Still needs a person:
       with the Supabase *service role* key (see the script's header comment
       for exact steps). Save the printed email/password table somewhere real
       before closing the terminal; it's only shown once.
-- [ ] Before running it: open `scripts/createLeagueAdminAccounts.mjs` and
-      change `EMAIL_DOMAIN` from the placeholder
-      (`league-admin.elcsatcp.internal`) to whatever you actually want.
+- [x] Email format chosen: `league-<key>@elcsa-tcp.internal` (e.g.
+      `league-youth@elcsa-tcp.internal`). Not a real inbox, nothing is ever sent to it.
 - [ ] Distribute each league's generated credentials to whoever runs that
       league.
 - [ ] **SnapScan paygate — needs a real SnapScan merchant account (none

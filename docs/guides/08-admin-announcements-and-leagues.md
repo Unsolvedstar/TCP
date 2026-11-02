@@ -10,7 +10,7 @@ Open **Announcements**. The top card, **New Announcement**, has:
 
 | Field | Notes |
 |---|---|
-| **Who should see this?** | **Whole Church** or one league. Pick a single choice. |
+| **Post to** | **Whole Church** or one league. Pick a single choice. |
 | **Title** | Required. |
 | **Date / when** | Optional free text — "Sunday 31 October, 09:00" or "Every Tuesday". It is *text*, not a calendar date. |
 | **Details** | Optional. |
@@ -44,7 +44,7 @@ They **cannot** see the registry, other members' details, or other leagues' tool
 People who ask to join this league are listed with their reason. **Schedule** (choose an installation date, then **Send Date**) or **Deny**, exactly as in [guide 7](07-admin-requests-and-families.md#pending-requests). Children's requests show the guardian's name.
 
 #### Post an Event
-Title, **Date**, optional details, and **Who should see this?** — **My League** or **Whole Church**. Press **Post Event**. Events appear on the calendar and in the list below, with **Remove**.
+Title, **Date**, optional details, and **Post to** — **My League** or **Whole Church**. Press **Post Event**. Events appear on the calendar and in the list below, with **Remove**.
 
 #### Certificate details
 Everything printed on this league's installation certificates that isn't about the individual:

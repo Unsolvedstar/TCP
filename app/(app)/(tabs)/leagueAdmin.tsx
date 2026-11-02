@@ -312,7 +312,7 @@ export default function LeagueAdmin() {
       <Card>
         <Text style={styles.cardTitle}>Post an Event</Text>
         <View style={{ gap: 10 }}>
-          <ChipRow label="Who should see this?" options={audienceOptions} value={evAudience} onChange={(v) => setEvAudience(v as 'league' | 'church')} allowDeselect={false} />
+          <ChipRow label="Post to" options={audienceOptions} value={evAudience} onChange={(v) => setEvAudience(v as 'league' | 'church')} allowDeselect={false} />
           <Field label="Title" value={evTitle} onChangeText={setEvTitle} placeholder="e.g. Youth camp" />
           <DateField label="Date" value={evDate} onChange={setEvDate} />
           <Field label="Details (optional)" value={evDescription} onChangeText={setEvDescription} placeholder="Short description…" />
