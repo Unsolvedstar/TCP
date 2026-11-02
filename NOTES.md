@@ -71,7 +71,7 @@ Still needs a person:
 
 ## Action items (things a person needs to actually do)
 
-- [ ] Run `scripts/createLeagueAdminAccounts.mjs` to provision the
+- [x] **Done 2026-11-02 (9 accounts created; on Node 20 run with `--experimental-websocket`).** Run `scripts/createLeagueAdminAccounts.mjs` to provision the
       generic per-league admin logins — needs a local `.env.service.local`
       with the Supabase *service role* key (see the script's header comment
       for exact steps). Save the printed email/password table somewhere real
