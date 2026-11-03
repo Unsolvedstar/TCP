@@ -22,6 +22,9 @@ Matches the app made on its own are checked by the office afterwards (see [Reque
 
 Every family has a short **family code**, shown on the card with a copy button. Anyone who enters your code joins your family.
 
+#### Choosing your own code
+The code starts as six random characters, but anyone in the family can press **Choose my own code** and pick one the whole family will remember: **6 to 12 letters or numbers**, no spaces or symbols (for example `MOKOENA2026`). Press **Save code**. If someone else already uses it you are asked to choose another. Your old code stops working at once; people already in the family are not affected. Because **anyone who enters the code joins your family**, choose something relatives can remember but strangers cannot guess, not just your surname. The code is also the family's banking reference, so tell anyone who pays by EFT if you change it.
+
 ### Joining a relative's family
 
 If a relative registered first and you ended up in separate families, press **Join a family**. You can find them two ways:

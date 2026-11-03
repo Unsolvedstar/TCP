@@ -40,7 +40,7 @@ Only needed for a new parish/installation, or if the old project is gone.
    ```
 4. In the dashboard, **Authentication → Providers → Email**:
    - leave **Confirm email OFF** — the app sends no email, so new sign-ups must be able to log in immediately;
-   - set **Minimum password length** to **8** (the app already requires 8; this makes the server agree).
+   - **Minimum password length** is deliberately left at the Supabase default of 6 (the app itself requires 8 when someone registers, so only direct calls to the server can use a shorter one).
    No redirect URLs are needed.
 5. Open the website and register the first account (see §2).
 
@@ -150,7 +150,7 @@ this does not include (see Supabase's backup documentation). Keep backups somewh
 
 ## 7. Security checklist
 
-- [ ] Email confirmation is **off** and minimum password is **8** (§1.4).
+- [ ] Email confirmation is **off** (§1.4). The server's minimum password length stays at 6 on purpose; the app enforces 8.
 - [ ] `.env`, `.env.service.local` and keys are never committed (they are git-ignored).
 - [ ] The service-role key is used only for the league-logins script and kept off shared machines.
 - [ ] The privacy policy (`/privacy`) names the parish's Information Officer and has been approved.

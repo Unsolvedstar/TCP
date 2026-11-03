@@ -53,6 +53,24 @@ Still needs a person:
       `npx supabase functions deploy snapscan-webhook --no-verify-jwt`
       (then `npx supabase secrets set SNAPSCAN_WEBHOOK_AUTH_KEY=...`). Only
       matters once SnapScan is live.
+- [ ] **Certificate templates.** The in-app certificates are our own drawn designs. Get the parish's
+      approved baptism, confirmation and league certificate templates (wording, layout, signatories) and
+      match the app to them; until then the guides say the designs are not official.
+- [ ] **Rotate the Supabase secret key** that was pasted into a chat on 2026-11-02 (Project Settings → API Keys →
+      create a new secret key, delete the old `default`). Nothing in the live app uses it.
+- [ ] **Sharing the documents:** the nine league login sheets contain passwords, so each goes only to its own
+      league. The Developer Guide is for whoever hosts the app, not for members. All PDFs say "draft, subject to change".
+- [ ] **Custom family codes (2026-11-02): tested locally, NOT yet on production.** Members can choose their own family
+      code: migration `0032_custom_family_code.sql` (applied to the local database only), `lib/familyCode.ts`, a
+      "Choose my own code" button on the Family card. Verified in a real browser against the local database (saving,
+      rejecting too-short codes, restoring) and by its RLS test. Still to do: `npx supabase db push --linked`.
+      Known trade-off: a memorable code is easier to guess, and anyone with the code joins the family immediately;
+      consider approval-on-join or a join attempt limit.
+- [x] **Full test pass 2026-11-02:** typecheck, 126 Jest tests, production build, a read-only pass over every role's
+      queries, and a 22-step browser run (public pages, member, admin, league admin) all pass. The RLS suite
+      (`supabase/tests/rls.test.mjs`) must only be run on a freshly reset local database: on a database that already
+      holds the seeded test accounts, tests that assume adminA is the sole admin fail and cascade (not app bugs).
+      Its cleanup now also removes the league/bank account/payment code it adds to the seeded congregation.
 - [ ] **Try it on real phones** once deployed: Android Chrome (Install the app
       button / browser prompt) and iPhone Safari (Share → Add to Home Screen).
       Check sign-in, choosing a photo for a

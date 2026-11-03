@@ -6,6 +6,7 @@ import { Button, Card, CopyButton, Field } from './ui'
 import { colors } from '../theme'
 import { styles } from './portalFamilyCard.styles'
 import { supabase } from '../lib/supabase'
+import { familyCodeProblem, normalizeFamilyCode } from '../lib/familyCode'
 
 type MyFamily = { id: string; name: string; code: string }
 type RelativeMatch = { profile_id: string; full_name: string; ward_name: string }
@@ -115,6 +116,8 @@ export function PortalFamilyCard() {
   const [siblingResults, setSiblingResults] = useState<RelativeMatch[]>([])
   const [searchingSiblings, setSearchingSiblings] = useState(false)
   const [selectedSibling, setSelectedSibling] = useState<RelativeMatch | null>(null)
+  const [choosingCode, setChoosingCode] = useState(false)
+  const [ownCode, setOwnCode] = useState('')
 
   const load = useCallback(async () => {
     try {
@@ -187,6 +190,24 @@ export function PortalFamilyCard() {
     await load()
   }
 
+  async function saveOwnCode() {
+    const problem = familyCodeProblem(ownCode)
+    if (problem) {
+      Alert.alert('Choose another code', problem)
+      return
+    }
+    setBusy(true)
+    const { error } = await supabase.rpc('set_family_code', { p_code: normalizeFamilyCode(ownCode) })
+    setBusy(false)
+    if (error) {
+      Alert.alert('Could not change the code', error.message)
+      return
+    }
+    setChoosingCode(false)
+    setOwnCode('')
+    await load()
+  }
+
   async function joinBySibling() {
     if (!selectedSibling) return
     setBusy(true)
@@ -235,6 +256,34 @@ export function PortalFamilyCard() {
             </View>
           </View>
           <Text style={styles.familyCodeHint}>Also doubles as your family's banking reference — see the Banking tab.</Text>
+
+          {choosingCode ? (
+            <View style={styles.joinForm}>
+              <Field
+                label="Your own family code"
+                value={ownCode}
+                onChangeText={(t) => setOwnCode(normalizeFamilyCode(t))}
+                placeholder="e.g. MOKOENA2026"
+                autoCapitalize="characters"
+              />
+              <Text style={styles.familyCodeHint}>
+                6 to 12 letters or numbers. Everyone who enters this code joins your family, so pick something your relatives can remember but strangers
+                can't guess (not just your surname). Your old code stops working; people already in the family are not affected.
+              </Text>
+              <View style={styles.nudgeActions}>
+                <View style={{ flex: 1 }}>
+                  <Button title="Save code" onPress={saveOwnCode} loading={busy} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Button title="Cancel" variant="secondary" onPress={() => { setChoosingCode(false); setOwnCode('') }} />
+                </View>
+              </View>
+            </View>
+          ) : (
+            <View style={{ marginTop: 10 }}>
+              <Button title="Choose my own code" variant="secondary" onPress={() => setChoosingCode(true)} />
+            </View>
+          )}
 
           {!nudgeDismissed && !joinMode ? (
             <View style={styles.nudgeBox}>

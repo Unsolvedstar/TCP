@@ -1,5 +1,10 @@
 // RLS / multi-tenancy security tests for supabase/migrations/0001_init.sql.
 //
+// Run against a LOCAL Supabase instance only — never the live project, and only against a
+// FRESHLY RESET database. Some tests assume adminA is the only admin of the seeded
+// congregation (e.g. "cannot demote the last admin"), so on a database that already holds
+// test accounts (scripts/seedTestAccounts.mjs) they fail, and the failures cascade.
+// If you want to keep seeded accounts, dump them first or use a separate local project.
 // Run against a LOCAL Supabase instance only — never the live project:
 //   npx supabase start                # brings up local Postgres+Auth via Docker
 //   npx supabase db reset             # applies 0001_init.sql fresh
@@ -580,6 +585,31 @@ test('a member can join a family by code, it cascades to existing dependents, an
   await admin.from('profiles').update({ household_id: null }).eq('id', memberA.id)
   await admin.from('dependents').update({ household_id: null }).eq('id', depA)
   await admin.from('households').delete().eq('id', householdId)
+})
+
+test('a family can choose its own code: validated, unique, and the old code stops working', async () => {
+  const first = await mintHouseholdCode(congA.id)
+  const other = await mintHouseholdCode(congA.id)
+  await expectOk(rpcRetryColdSchemaCache(() => memberA.client.rpc('join_family_by_code', { p_code: first.code })), 'memberA joining a family')
+
+  const chosen = await expectOk(
+    rpcRetryColdSchemaCache(() => memberA.client.rpc('set_family_code', { p_code: ' own code 7 ' })),
+    'memberA choosing their own code'
+  )
+  assert.equal(chosen, 'OWNCODE7', 'spaces removed and upper-cased')
+  const mine = await expectOk(memberA.client.rpc('my_family'), 'memberA reading my_family')
+  assert.equal(mine[0].code, 'OWNCODE7')
+
+  await expectError(memberA.client.rpc('set_family_code', { p_code: 'AB12' }), '6 to 12', 'a code that is too short')
+  await expectError(memberA.client.rpc('set_family_code', { p_code: 'BAD-CODE!' }), '6 to 12', 'a code with symbols')
+  await expectError(memberA.client.rpc('set_family_code', { p_code: other.code }), 'already taken', "another family's code")
+
+  // The old code no longer joins anyone.
+  await expectError(adminA.client.rpc('join_family_by_code', { p_code: first.code }), 'Invalid family code', 'the replaced code (same congregation)')
+
+  await admin.from('profiles').update({ household_id: null }).eq('id', memberA.id)
+  await admin.from('dependents').update({ household_id: null }).eq('id', depA)
+  await admin.from('households').delete().in('id', [first.id, other.id])
 })
 
 test('joining an already-named family does not overwrite its name', async () => {
@@ -1303,6 +1333,18 @@ after(async () => {
         await admin.auth.admin.deleteUser(u.id)
       } catch {}
     }
+  }
+  // Rows the SnapScan and league-admin sections add to congregation A (the seeded one) itself.
+  try {
+    await admin.from('congregation_payment_codes').delete().eq('congregation_id', congA.id).eq('code', 'SNPTEST')
+  } catch {}
+  try {
+    await admin.from('congregation_bank_accounts').delete().eq('congregation_id', congA.id).eq('name', 'SnapScan Test Account')
+  } catch {}
+  if (leagueA2?.id) {
+    try {
+      await admin.from('leagues').delete().eq('id', leagueA2.id)
+    } catch {}
   }
   if (congB?.id) {
     try {
