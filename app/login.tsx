@@ -45,7 +45,7 @@ export default function Login() {
           <Field label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" />
           <Field label="Password" value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" />
           <Button title="Sign In" onPress={onSubmit} loading={loading} />
-          <Text style={styles.hint}>Forgot your password? Ask the parish office to reset it for you.</Text>
+          <ActionButton label="Forgot your password?" onPress={() => router.push('/forgot-password')} />
         </View>
 
         <View style={{ marginTop: 20 }}>

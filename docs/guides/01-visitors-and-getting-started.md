@@ -84,9 +84,10 @@ Privacy Policy.
 
 ![Sign-in screen](../images/v03-signin.png)
 
-Enter your email and password and press **Sign In**. Under the button is a reminder:
-**"Forgot your password? Ask the parish office to reset it for you."** The app sends no emails, so there is no reset link —
-the office sets a temporary password for you.
+Enter your email and password and press **Sign In**. If you have forgotten your password, press **Forgot your password?**
+under the button, enter your email and press **Send reset link**. Open the link in the email, choose a new password
+(at least 8 characters) and sign in with it. The link works once and expires after a short time; if it has expired, the page offers to send a new one.
+If no email arrives, check spam, then ask the parish office to reset it for you.
 
 The sign-in screen also has **New here? Create a member account**, **Install the app** (where available) and **Privacy Policy**.
 

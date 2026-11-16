@@ -16,7 +16,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
-    // No email links (password reset / confirmation) are used, so never read tokens from the URL.
+    // Off on purpose: app/reset-password.tsx reads the recovery token from the URL itself, so a stray
+    // token in any other page's URL is never turned into a session.
     detectSessionInUrl: false,
   },
 })
