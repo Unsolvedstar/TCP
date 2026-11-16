@@ -9,7 +9,7 @@ jest.mock('@react-native-community/datetimepicker', () => ({ __esModule: true, d
 jest.mock('../alert', () => ({ Alert: { alert: jest.fn() } }))
 
 import { CertificatePaper } from '../../components/certificatePaper'
-import { DEFAULT_VERSES } from '../certificateVerse'
+import { defaultVerse } from '../certificateVerse'
 import type { CeremonyKind, LeagueRow } from '../types'
 
 jest.setTimeout(30000)
@@ -106,21 +106,23 @@ describe('CertificatePaper', () => {
 
     it.each(KINDS)('%s certificate always shows a verse, falling back to the default when none is set', async (kind) => {
       const text = flat((await render(bare(kind))).toJSON())
-      expect(text).toContain(DEFAULT_VERSES[kind].reference)
-      expect(text).toContain(DEFAULT_VERSES[kind].text.slice(0, 30))
+      // bare() renders name "Test Person" on 2026-07-26, which seeds the default pick.
+      const expected = defaultVerse(kind, 'Test Person|2026-07-26')
+      expect(text).toContain(expected.reference)
+      expect(text).toContain(expected.text.slice(0, 30))
     })
 
     it('prefers the verse an admin set over the default', async () => {
       const text = flat((await render(<CertificatePaper kind="baptism" name="T" displayDate={null} application={{ ...baptism, verse_text: 'Custom words.', verse_reference: 'Psalm 1:1' } as never} />)).toJSON())
       expect(text).toContain('Custom words')
       expect(text).toContain('Psalm 1:1')
-      expect(text).not.toContain(DEFAULT_VERSES.baptism.reference)
+      expect(text).not.toContain(defaultVerse('baptism', 'T|').reference)
     })
 
     it('does not double the full stop around a baptism verse', async () => {
       const text = flat((await render(bare('baptism'))).toJSON())
       expect(text).not.toContain('.”.')
-      expect(text).toContain('put on Christ”. Galatians 3:27 WEB')
+      expect(text).toMatch(/”\. [1-3]? ?[A-Za-z]+ \d+:\d+(-\d+)? KJV/)
     })
   })
 })

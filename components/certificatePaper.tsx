@@ -107,6 +107,8 @@ export function CertificatePaper({
   parishAddress?: string | null
 }) {
   const parish = parishName?.trim() || FALLBACK_PARISH
+  // Picks this certificate's default verse (when the admin set none); stable per person + date.
+  const verseSeed = `${name}|${displayDate ?? ''}`
 
   if (kind === 'baptism') {
     const app = application as BaptismApplication | null | undefined
@@ -133,7 +135,7 @@ export function CertificatePaper({
           <Text style={styles.baptismHeading}>in Southern Africa</Text>
           <Text style={styles.baptismTitle}>Baptismal Certificate</Text>
           <BaptismArch width={300} color={INK} />
-          <Verse verse={resolveVerse('baptism', { text: app?.verse_text, reference: app?.verse_reference })} plain />
+          <Verse verse={resolveVerse('baptism', { text: app?.verse_text, reference: app?.verse_reference }, verseSeed)} plain />
 
           <View style={styles.certifyBlock}>
             <Text style={styles.certifyLead}>It is hereby certified that</Text>
@@ -199,7 +201,7 @@ export function CertificatePaper({
           <View style={styles.dottedLine} />
           {displayDate ? <Text style={styles.installDate}>Installation date: {formatDate(displayDate)}</Text> : null}
 
-          <Verse verse={resolveVerse('league', { text: league?.verse_text, reference: league?.verse_reference })} />
+          <Verse verse={resolveVerse('league', { text: league?.verse_text, reference: league?.verse_reference }, verseSeed)} />
 
           <View style={styles.signatureRow}>
             <View style={styles.signatureBlock}>
@@ -240,7 +242,7 @@ export function CertificatePaper({
         {detail ? <Text style={styles.detail}>{detail}</Text> : null}
         {displayDate ? <Text style={styles.installDate}>{formatDate(displayDate)}</Text> : null}
 
-        <Verse verse={resolveVerse('confirmation')} />
+        <Verse verse={resolveVerse('confirmation', null, verseSeed)} />
 
         <View style={styles.signatureRow}>
           <View style={styles.signatureBlock}>

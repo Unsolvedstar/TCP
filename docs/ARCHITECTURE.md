@@ -128,7 +128,7 @@ puts two groups side by side on wide screens and stacks them on phones.
 - `components/certificateArt.tsx` draws everything as SVG: crest, parish seal, frame, the
   baptism arch, league emblem, confirmation emblem. No scanned images.
 - `lib/certificateVerse.ts` guarantees a Bible verse: the admin's own if set, else a default
-  (World English Bible, public domain).
+  (King James Version, bundled offline, public domain).
 - `components/certificateModal.tsx` loads the confirmed ceremony date and saves the sheet
   as a PNG: `html2canvas-pro` at 3× on the web, `react-native-view-shot` on a phone app.
 

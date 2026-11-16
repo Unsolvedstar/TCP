@@ -60,6 +60,6 @@ There is no paper template for this one yet, so the layout is the app's own desi
 
 ## Good to know
 
-- **Verses.** Admin-chosen verses are free text. The built-in defaults are in the *World English Bible*, a public-domain translation; a verse the office types can be from any translation they are licensed to use.
+- **Verses.** Admin-chosen verses are free text. The built-in defaults are picked from a curated list in the *King James Version*, a public-domain translation, and a given certificate always gets the same one; a verse the office types can be from any translation they are licensed to use.
 - **A certificate is only as complete as the record.** If a name, date or parent's name is wrong, ask the office to correct the record — then open the certificate again.
 - **Nothing is stored as an image.** The certificate is drawn fresh each time from the record, so corrections show immediately.

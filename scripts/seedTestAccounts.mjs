@@ -121,10 +121,10 @@ must(await db.from('dependents').update({ pending_baptism: true, baptism_applica
 const { data: tp } = await db.from('profiles').select('baptism_application').eq('id', thandi).single()
 await patch(thandi, {
   baptism_application: { ...(tp.baptism_application ?? {}), register_no: '07/03/12', diocese: 'Central Diocese', parents: 'Joseph & Beauty Mokoena', birth_place: 'Pretoria',
-    verse_reference: 'Psalm 25:1-3 WEB', verse_text: 'To you, Yahweh, I lift up my soul. My God, I have trusted in you. Don’t let me be put to shame. Don’t let my enemies triumph over me.' },
+    verse_reference: 'Psalm 25:1-3 KJV', verse_text: 'Unto thee, O Lord, do I lift up my soul. O my God, I trust in thee: let me not be ashamed, let not mine enemies triumph over me. Yea, let none that wait on thee be ashamed: let them be ashamed which transgress without cause.' },
 })
-must(await db.from('leagues').update({ chairperson_name: 'Ruth Mabaso', pastor_name: 'Rev. Daniel Ferreira', verse_reference: 'Romans 12:2 WEB',
-  verse_text: 'Don’t be conformed to this world, but be transformed by the renewing of your mind, so that you may prove what is the good, well-pleasing, and perfect will of God.' }).eq('id', league('PrayerYouth')), 'league details')
+must(await db.from('leagues').update({ chairperson_name: 'Ruth Mabaso', pastor_name: 'Rev. Daniel Ferreira', verse_reference: 'Romans 12:2 KJV',
+  verse_text: 'And be not conformed to this world: but be ye transformed by the renewing of your mind, that ye may prove what is that good, and acceptable, and perfect, will of God.' }).eq('id', league('PrayerYouth')), 'league details')
 must(await db.from('leagues').update({ chairperson_name: 'Beauty Zondi', pastor_name: 'Rev. Daniel Ferreira' }).eq('id', league('PrayerWomens')), 'league details 2') // no verse on purpose → shows the default
 
 // ---- League admin, posts, SnapScan ----------------------------------------
