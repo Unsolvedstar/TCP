@@ -52,9 +52,9 @@ and test record for making the app multi-congregation; it is history, not a to-d
 - Hosted on [Vercel](https://vercel.com) as a static site (`vercel.json`).
 - Jest for unit tests; a Docker-based suite for the database's security rules.
 
-The app sends **one kind of email**: the password-reset link ("Forgot your password?" on the sign-in screen),
-sent by Supabase Auth. It needs working email sending and the redirect URL set up — see
-[Deployment & operations](docs/DEPLOYMENT.md#resetting-a-members-password). Email confirmation stays off.
+The app **sends no email** — there is no email confirmation and no password-reset
+email, so no email service is needed. A forgotten password is reset by the parish
+office (see [Deployment & operations](docs/DEPLOYMENT.md#resetting-a-members-password)).
 
 ## Run it locally
 

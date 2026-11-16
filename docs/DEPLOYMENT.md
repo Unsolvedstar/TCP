@@ -112,12 +112,7 @@ at the top of the script. The passwords are printed once; store them in a passwo
 ## 6. Day-to-day operations
 
 ### Resetting a member's password
-**Self-service:** members press **Forgot your password?** on the sign-in screen and get a reset link by email. This needs, in Supabase:
-- **Authentication → URL Configuration:** Site URL `https://tcp-tau.vercel.app` and, under Redirect URLs, `https://tcp-tau.vercel.app/reset-password`.
-- **Custom SMTP** (Authentication → Emails → SMTP Settings). Supabase's built-in sender only delivers to your own team's addresses and is heavily rate-limited, so real members will not get the email without it.
-
-It cannot help league logins (`…@elcsa-tcp.internal` is not a real mailbox) or members who registered with an email they do not own.
-For those, the office resets it by hand. With the Supabase **SQL Editor**:
+There is no email reset. The member asks the parish office. With the Supabase **SQL Editor**:
 ```sql
 update auth.users
 set encrypted_password = crypt('SomeTempPass1', gen_salt('bf'))
